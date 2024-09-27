@@ -5,14 +5,17 @@ from django.contrib.auth import views as auth_views
 from django.contrib.auth import authenticate, login as auth_login
 from django.shortcuts import render, redirect
 from django.contrib import messages
-from .models import users
+from .models import User
 from django.contrib.auth.hashers import check_password
-from .forms import RegistrationForm
 from django.contrib.auth import logout as auth_logout
 from django.views.decorators.cache import cache_control
 from django.core.mail import EmailMessage, send_mail
 from django.utils.crypto import get_random_string
 from django.urls import reverse
+
+from django.shortcuts import render
+from .models import Client
+from django.contrib.auth.decorators import login_required
 
 
 def home(request):
@@ -36,12 +39,20 @@ def contact(request):
 def Book(request):
     return render(request, 'Book.html')
 
+from django.shortcuts import render, redirect
+from django.contrib import messages
+from django.core.mail import send_mail
+from django.utils.crypto import get_random_string
+from django.urls import reverse
+from .models import Client, Employee  # Make sure to import your User subclasses
+from django.contrib.auth.hashers import make_password  # For hashing passwords
+
 def forgot_reset(request):
     if request.method == 'POST':
         email = request.POST.get('email')
         
         # Check if the user exists with the provided email
-        user = users.objects.filter(email=email).first()
+        user = Client.objects.filter(email=email).first() or Employee.objects.filter(email=email).first()
         
         if user:
             # Generate a random token for the password reset
@@ -81,7 +92,7 @@ def forgot_reset(request):
 
 def reset_password(request, token):
     # Find the user by the reset token
-    user = users.objects.filter(reset_token=token).first()
+    user = Client.objects.filter(reset_token=token).first() or Employee.objects.filter(reset_token=token).first()
     
     if user:
         if request.method == 'POST':
@@ -90,7 +101,7 @@ def reset_password(request, token):
             
             if new_password == confirm_password:
                 # Hash the new password before saving it
-                user.password = new_password
+                user.password = make_password(new_password)  # Use make_password to hash the password
                 
                 # Clear the reset token after successful reset
                 user.reset_token = None
@@ -115,49 +126,126 @@ def logout(request):
     request.session.flush()  
     return redirect('login')
 
+from django.contrib.auth import authenticate, login as auth_login
+from django.contrib.auth.hashers import check_password
+from django.shortcuts import render, redirect
+from django.contrib import messages
+from .models import Client, Employee  # Make sure to import your models
 
 def login(request):
-    if request.method == "POST":
+    if request.method == 'POST':
         email = request.POST['email']
         password = request.POST['password']
-        status = request.POST['status']
+        status = request.POST.get('status')
 
-        try:
-            user = users.objects.get(email=email, status=status)
-            if check_password(password, user.password):
-                # Set session variables to manage the user login status
-                request.session['user_id'] = user.id
-                request.session['user_email'] = user.email
-                request.session['user_status'] = user.status
-                messages.success(request, 'Login successful!')
+        default_admin_email = 'admin@gmail.com'
+        default_admin_password = 'admin123'  # You can use Django's password hashing for extra security
 
-                # Redirect based on user status
-                if user.status == 'store':
-                    return redirect('store_dashboard')
-                elif user.status == 'employee':
+        # If the provided credentials match the default admin credentials, log in as admin
+        if email == default_admin_email and password == default_admin_password:
+            request.session['user_type'] = 'admin'  # Store the user type as admin
+            messages.success(request, 'Admin login successful!')
+            return redirect('admin_dashboard')  # Redirect to the admin dashboard
+
+        # Client login
+        if status == 'client':
+            try:
+                user = Client.objects.get(email=email)
+                if check_password(password, user.password):
+                    if not user.status:
+                        messages.error(request, "Your account is inactive. Please contact admin.")
+                        return redirect('login')
+                    else:
+                        request.session['user_id'] = user.id
+                        request.session['user_type'] = 'client'  # Store user type
+                        messages.success(request, 'Login successful!')
+                        return redirect('client_dashboard')
+                else:
+                    messages.error(request, 'Invalid email or password for client.')
+            except Client.DoesNotExist:
+                messages.error(request, 'Invalid email or password for client.')
+
+        # Employee login
+        elif status == 'employee':
+            try:
+                user = Employee.objects.get(email=email)
+                if check_password(password, user.password):
+                    request.session['user_id'] = user.id
+                    request.session['user_type'] = 'employee'  # Store user type
+                    messages.success(request, 'Login successful!')
                     return redirect('employee_dashboard')
-                elif user.status == 'client':
-                    return redirect('client_dashboard')
-            else:
-                messages.error(request, 'Invalid password.')
-        except users.DoesNotExist:
-            messages.error(request, 'User with provided email and status does not exist.')
-    
+                else:
+                    messages.error(request, 'Invalid email or password for employee.')
+            except Employee.DoesNotExist:
+                messages.error(request, 'Invalid email or password for employee.')
+
     return render(request, 'login.html')
+
+from django.shortcuts import render, redirect
+from django.contrib import messages
+from django.db import IntegrityError
+from .models import Client, Employee  # Import your models
+
+from django.shortcuts import render, redirect
+from django.contrib import messages
+from django.contrib.auth.hashers import make_password
+from django.db import IntegrityError
+from .models import Client, Employee  # Import your models
 
 def register(request):
     if request.method == 'POST':
-        form = RegistrationForm(request.POST)
-        if form.is_valid():
-            form.save()
-            messages.success(request, 'Registration successful!')
-            return redirect('register')  # Redirect as needed
-        else:
-            # Form is invalid, so render the form with error messages
-            messages.error(request, 'Please correct the errors below.')
-    else:
-        form = RegistrationForm()
-    return render(request, 'register.html', {'form': form})
+        first_name = request.POST['first_name']
+        last_name = request.POST['last_name']
+        email = request.POST['email']
+        password = request.POST['password']
+        dob = request.POST['dob']
+        contact = request.POST['contact']
+        status = request.POST['status']
+
+        # Check if email or contact already exists in both Client and Employee
+        if Client.objects.filter(email=email).exists() or Employee.objects.filter(email=email).exists():
+            messages.error(request, 'User already exists with this email. Please use a different email.')
+            return render(request, 'register.html')  # Re-render the form with error
+
+        if Client.objects.filter(contact=contact).exists() or Employee.objects.filter(contact=contact).exists():
+            messages.error(request, 'User already exists with this contact number. Please use a different contact number.')
+            return render(request, 'register.html')  # Re-render the form with error
+
+        # Hash the password
+        hashed_password = make_password(password)
+
+        # Create user depending on status
+        try:
+            if status == 'client':
+                client = Client(
+                    first_name=first_name,
+                    last_name=last_name,
+                    email=email,
+                    password=hashed_password,  # Store hashed password
+                    dob=dob,
+                    contact=contact
+                )
+                client.save()
+                messages.success(request, 'Registration successful! You can now log in.')
+            elif status == 'employee':
+                employee = Employee(
+                    first_name=first_name,
+                    last_name=last_name,
+                    email=email,
+                    password=hashed_password,  # Store hashed password
+                    dob=dob,
+                    contact=contact
+                )
+                employee.save()
+                messages.success(request, 'Registration successful! You can now log in.')
+
+            return redirect('login')  # Redirect to login or another page
+
+        except IntegrityError:
+            messages.error(request, 'An error occurred during registration. Please try again.')
+            return render(request, 'register.html')  # Re-render the form with error
+
+    return render(request, 'register.html')  # Render the registration form
 
 def for_men(request):
     return render(request, 'for_men.html')
@@ -165,19 +253,233 @@ def for_men(request):
 def for_women(request):
     return render(request, 'for_women.html')
 
-def store_dashboard(request):
-    if request.session.get('user_status') != 'store':
-        return redirect('login')
-    return render(request, 'client_dashboard.html')
+
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
+
+#Client
+
+
+def client_dashboard(request):
+    # Check if user is logged in by verifying the session
+    user_id = request.session.get('user_id')
+
+    
+    # Fetch the Client object using the user's ID
+    try:
+        client = Client.objects.get(id=user_id)
+    except Client.DoesNotExist:
+        messages.error(request, "You want to loggin to access dashboard.")
+        return redirect('login')  # Redirect if client not found
+
+    context = {
+        'client': client,
+    }
+    return render(request, 'client_dashboard.html', context)
 
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def employee_dashboard(request):
-    if request.session.get('user_status') != 'employee':
-        return redirect('login')
-    return render(request, 'employee_dashboard.html')
+     # Check if user is logged in by verifying the session
+    user_id = request.session.get('user_id')
+
+    
+    # Fetch the Client object using the user's ID
+    try:
+        employee = Employee.objects.get(id=user_id)
+    except Employee.DoesNotExist:
+        messages.error(request, "You want to loggin to access dashboard.")
+        return redirect('login')  # Redirect if client not found
+
+    context = {
+        'employee': employee,
+    }
+    return render(request, 'employee_dashboard.html', context)
+
+
+def user_profile(request):
+    return render(request, 'user_profile.html')
+
+from django.shortcuts import render, redirect
+from django.contrib import messages
+
+# def admin_login(request):
+#     if request.method == 'POST':
+#         username = request.POST['username']
+#         password = request.POST['password']
+        
+#         # Check against predefined credentials
+#         if username == 'admin' and password == 'admin123':
+#             # Create a custom session for the admin user
+#             request.session['is_admin'] = True
+#             return redirect('admin_dashboard')  # Redirect to admin dashboard
+#         else:
+#             messages.error(request, "Invalid username or password. Please try again.")
+    
+#     return render(request, 'admin_login.html')
+
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
-def client_dashboard(request):
-    if request.session.get('user_status') != 'client':
-        return redirect('login')
-    return render(request, 'client_dashboard.html')
+def admin_dashboard(request):
+    user_type = request.session.get('user_type')
+
+    if user_type != 'admin':
+        messages.error(request, "You need to log in as admin to access this page.")
+        return redirect('login')  # Redirect non-admins to login
+
+    # Proceed with loading the admin dashboard
+    return render(request, 'admin_dashboard.html')
+
+from django.shortcuts import render
+from .models import Client
+
+def manage_client(request):
+    # Fetch all clients from the database
+    clients = Client.objects.all()  # Fetch all clients
+    context = {'clients': clients}  # Passing clients data to the template
+    return render(request, 'manage_client.html', context)
+
+def manage_employee(request):
+    # Fetch all clients from the database
+    employees = Employee.objects.all()  # Fetch all clients
+    context = {'employees': employees}  # Passing clients data to the template
+    return render(request, 'manage_employee.html', context)
+
+
+from django.shortcuts import redirect
+from django.contrib import messages
+from .models import Client
+
+def toggle_client_status(request, client_id):
+    if request.method == 'POST':
+        client = Client.objects.get(id=client_id)
+        client.status = not client.status  # Toggle the status
+        client.save()
+        messages.success(request, f"Client {client.first_name}'s status updated to {'Active' if client.status else 'Inactive'}.")
+    return redirect('manage_client')
+
+from .models import Employee
+def toggle_employee_status(request, employee_id):
+    if request.method == 'POST':
+        employee = Employee.objects.get(id=employee_id)
+        employee.status = not employee.status  # Toggle the status
+        employee.save()
+        messages.success(request, f"employee {employee.first_name}'s status updated to {'Active' if employee.status else 'Inactive'}.")
+    return redirect('manage_employee')
+
+
+
+# views.py
+from django.shortcuts import render, redirect
+from django.contrib import messages
+from .models import Client
+from .forms import ClientProfileUpdateForm
+
+def client_update(request):
+    user_id = request.session.get('user_id')  # Assuming you store the user ID in the session
+    client = Client.objects.get(id=user_id)
+
+    if request.method == 'POST':
+        form = ClientProfileUpdateForm(request.POST, instance=client)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Profile updated successfully!')
+            return redirect('client_update')  # Redirect to the client dashboard
+    else:
+        form = ClientProfileUpdateForm(instance=client)
+
+    return render(request, 'client_update.html', {'form': form})
+
+from django.shortcuts import render
+from django.contrib.auth.decorators import login_required
+from .models import Client
+
+def client_profile(request):
+    # Assuming you store the user ID in the session
+    user_id = request.session.get('user_id')
+    
+    # Fetch the client object based on the stored user ID
+    client = Client.objects.get(id=user_id)
+    
+    # Pass the client object to the template for display
+    return render(request, 'client_profile.html', {'client': client})
+
+from django.shortcuts import render, redirect
+from django.contrib import messages
+from .models import Service
+from .forms import ServiceForm  # Make sure to create this form
+
+def manage_service(request):
+    services = Service.objects.all()
+
+    if request.method == 'POST':
+        form = ServiceForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Service added successfully!')
+            return redirect('manage_service')  # Redirect to manage services
+    else:
+        form = ServiceForm()
+
+    return render(request, 'manage_service.html', {
+        'services': services,
+        'form': form
+    })
+
+def delete_service(request, service_id):
+    service = get_object_or_404(Service, id=service_id)
+    service.delete()
+    messages.success(request, 'Service deleted successfully!')
+    return redirect('manage_service')
+
+from django.shortcuts import render
+from .models import Service
+
+def client_services(request):
+    # Fetch all services from the database
+    services = Service.objects.all()
+
+    # Pass the services queryset to the template as a dictionary
+    context = {
+        'services': services,
+    }
+
+    return render(request, 'client_services.html', context)
+
+def employee_services(request):
+    # Fetch all services from the database
+    services = Service.objects.all()
+
+    # Pass the services queryset to the template as a dictionary
+    context = {
+        'services': services,
+    }
+
+    return render(request, 'employee_services.html', context)
+
+from .models import Client
+
+def employee_profile(request):
+    # Assuming you store the user ID in the session
+    user_id = request.session.get('user_id')
+    
+    # Fetch the client object based on the stored user ID
+    employee = Employee.objects.get(id=user_id)
+    
+    # Pass the client object to the template for display
+    return render(request, 'employee_profile.html', {'employee': employee})
+
+from .forms import EmployeeProfileUpdateForm
+
+def employee_update(request):
+    user_id = request.session.get('user_id')  # Assuming you store the user ID in the session
+    employee = Employee.objects.get(id=user_id)
+
+    if request.method == 'POST':
+        form = EmployeeProfileUpdateForm(request.POST, instance=employee)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Profile updated successfully!')
+            return redirect('employee_update')  # Redirect to the employee dashboard
+    else:
+        form = EmployeeProfileUpdateForm(instance=employee)
+
+    return render(request, 'employee_update.html', {'form': form})
 

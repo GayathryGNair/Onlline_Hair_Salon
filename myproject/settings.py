@@ -84,7 +84,7 @@ WSGI_APPLICATION = 'myproject.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'salon_db',  # Replace with your actual database name
+        'NAME': 'hair_db',  # Replace with your actual database name
         'USER': 'root',  # Replace with your MySQL username (default is 'root')  
         'PASSWORD': '',  # Replace with your MySQL password (default is empty)
         'HOST': 'localhost',
@@ -155,6 +155,7 @@ AUTHENTICATION_BACKENDS = [
 
 
 
+
 SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = 'your-client-id.apps.googleusercontent.com'
 SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = 'your-client-secret'
 
@@ -169,4 +170,6 @@ EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'glamourquest6@gmail.com'
 EMAIL_HOST_PASSWORD = 'iuja sggz broh sgde'
+
+
 

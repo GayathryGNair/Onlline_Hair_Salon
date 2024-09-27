@@ -1,41 +1,34 @@
-# models.py
 from django.db import models
 from django.contrib.auth.hashers import make_password
-from django.contrib.auth.hashers import make_password, check_password as django_check_password
 
-
-class users(models.Model):
+class User(models.Model):
+    first_name = models.CharField(max_length=100)
+    last_name = models.CharField(max_length=100)
     email = models.EmailField(unique=True)
-    password = models.CharField(max_length=255)
+    password = models.CharField(max_length=128)
+    dob = models.DateField()
     contact = models.CharField(max_length=15)
-    status = models.CharField(max_length=10, choices=[('store', 'Store/Salon'), ('employee', 'Employee'), ('client', 'Client')])
-    reset_token = models.CharField(max_length=100, blank=True, null=True)
+    status = models.BooleanField(default=True)
 
-    def __str__(self):
-        return self.email
-     
-    def save(self, *args, **kwargs):
-        if not self.pk or not self.password.startswith('pbkdf2_sha256$'):  # Ensures the password is hashed only once
-            self.password = make_password(self.password)
-        super(users, self).save(*args, **kwargs)
+    is_super = models.BooleanField(default=False)
+
+
+    class Meta:
+        abstract = True
+
+class Client(User):
+    reset_token = models.CharField(max_length=64, null=True, blank=True)  # Add reset_token field
+
+class Employee(User):
+    reset_token = models.CharField(max_length=64, null=True, blank=True)  # Add reset_token field
 
 from django.db import models
 
-class Booking(models.Model):
-    SERVICE_CHOICES = [
-        ('hair_wash', 'Hair Wash'),
-        ('hair_colour', 'Hair Colour'),
-        ('hair_spa', 'Hair Spa'),
-        # Add other services as needed
-    ]
-
-    name = models.CharField(max_length=100)
-    email = models.EmailField()
-    contact = models.CharField(max_length=15)
-    service = models.CharField(max_length=20, choices=SERVICE_CHOICES)
-    stylist = models.CharField(max_length=100)
-    date = models.DateField()
-    time = models.TimeField()
+class Service(models.Model):
+    name = models.CharField(max_length=100)  # Name of the service
+    description = models.TextField()  # Description of the service
+    rate = models.DecimalField(max_digits=8, decimal_places=2)  # Price of the service
+    duration = models.DurationField(help_text="Duration in HH:MM:SS format")  # Duration of the service
 
     def __str__(self):
-        return f"{self.name} - {self.service} on {self.date} at {self.time}"
+        return self.name

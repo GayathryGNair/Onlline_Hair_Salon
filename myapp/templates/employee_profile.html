@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile</title>
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif; /* Changed font to match dashboard */
+            background-color: #eaeaea; /* Lighter background for consistency */
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 30px;
+            background-color: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #6a11cb; /* Updated header color */
+            margin-bottom: 30px;
+            font-size: 1.5em;
+        }
+
+        .profile-info {
+            margin: 20px 0;
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            padding: 20px;
+            border: 1px solid #ddd;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+            font-size: 18px;
+        }
+
+        th {
+            background-color: #6a11cb; /* Updated table header color */
+            color: white;
+        }
+
+        a {
+            display: inline-block;
+            padding: 12px 20px;
+            background: linear-gradient(90deg, #6a11cb, #2575fc); /* Updated button gradient */
+            color: white;
+            border-radius: 5px;
+            text-align: center;
+            font-size: 16px;
+            font-weight: bold;
+            text-decoration: none;
+            transition: background-color 0.3s ease;
+            margin-top: 20px;
+            width: 150px;
+            text-align: center;
+            margin-left: calc(50% - 75px); /* Centering the button */
+        }
+
+        a:hover {
+            background: linear-gradient(90deg, #2575fc, #6a11cb); /* Reverse gradient on hover */
+        }
+
+        footer {
+            text-align: center;
+            padding: 15px;
+            background-color: #ffffff; /* White footer for consistency */
+            color: #6a11cb; /* Updated footer text color */
+            font-size: 0.9em;
+            border-top: 1px solid #ddd; /* Added border for separation */
+            margin-top: auto;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+
+            h1 {
+                font-size: 2em;
+            }
+
+            th, td {
+                font-size: 16px;
+            }
+
+            a {
+                width: 100%;
+                margin-left: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>PROFILE DETAILS</h1>
+
+        <div class="profile-info">
+            <table>
+                <tr>
+                    <th>Field</th>
+                    <th>Details</th>
+                </tr>
+                <tr>
+                    <td><strong>First Name:</strong></td>
+                    <td>{{ employee.first_name }}</td>
+                </tr>
+                <tr>
+                    <td><strong>Last Name:</strong></td>
+                    <td>{{ employee.last_name }}</td>
+                </tr>
+                <tr>
+                    <td><strong>Email:</strong></td>
+                    <td>{{ employee.email }}</td>
+                </tr>
+                <tr>
+                    <td><strong>Date of Birth:</strong></td>
+                    <td>{{ employee.dob }}</td>
+                </tr>
+                <tr>
+                    <td><strong>Contact Number:</strong></td>
+                    <td>{{ employee.contact }}</td>
+                </tr>
+                <tr>
+                    <td><strong>Status:</strong></td>
+                    <td>{{ employee.status|yesno:"Active,Inactive" }}</td>
+                </tr>
+            </table>
+        </div>
+
+        <a href="{% url 'employee_update' %}">Update Profile</a>
+    </div>
+
+    <footer>
+        &copy; 2024 Hair Salon | All Rights Reserved
+    </footer>
+</body>
+</html>

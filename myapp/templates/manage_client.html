@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Clients</title>
+
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+        }
+
+        .container {
+            margin-top: 50px;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        table, th, td {
+            border: 1px solid #ccc;
+        }
+
+        th, td {
+            padding: 10px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #95a5a6;
+            color: white;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>Manage Clients</h1>
+        <table class="table table-striped table-bordered">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>First Name</th>
+                    <th>Last Name</th>
+                    <th>Email</th>
+                    <th>Date of Birth</th>
+                    <th>Contact</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <!-- Update your HTML to include a form/button to toggle status -->
+<tbody>
+    {% for client in clients %}
+        <tr>
+            <td>{{ client.id }}</td>
+            <td>{{ client.first_name }}</td>
+            <td>{{ client.last_name }}</td>
+            <td>{{ client.email }}</td>
+            <td>{{ client.dob }}</td>
+            <td>{{ client.contact }}</td>
+            <td>
+                <form method="POST" action="{% url 'toggle_client_status' client.id %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-sm {% if client.status %}btn-success{% else %}btn-danger{% endif %}">
+                        {% if client.status %}Active{% else %}Inactive{% endif %}
+                    </button>
+                </form>
+            </td>
+        </tr>
+    {% empty %}
+        <tr>
+            <td colspan="7" class="text-center">No clients found</td>
+        </tr>
+    {% endfor %}
+</tbody>
+
+        </table>
+    </div>
+
+    <script src="{% static 'js/bootstrap.min.js' %}"></script>
+</body>
+
+</html>
