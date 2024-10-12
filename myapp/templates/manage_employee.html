@@ -14,8 +14,55 @@
             background-color: #f4f4f4;
         }
 
+        header {
+            background: linear-gradient(90deg, #7f8c8d, #95a5a6);
+            color: white;
+            padding: 15px;
+            text-align: center;
+            font-size: 28px;
+            font-weight: bold;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            position: relative;
+        }
+
+        .logout-button {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background-color: #e74c3c;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .logout-button:hover {
+            background-color: #c0392b;
+        }
+
+        nav {
+            background: linear-gradient(90deg, #7f8c8d, #95a5a6);
+            padding: 10px;
+            text-align: center;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        nav a {
+            color: white;
+            text-decoration: none;
+            margin: 0 15px;
+            font-size: 18px;
+        }
+
+        nav a:hover {
+            text-decoration: underline;
+        }
+
         .container {
-            margin-top: 50px;
+            margin-top: 30px;
         }
 
         h1 {
@@ -28,11 +75,14 @@
             border-collapse: collapse;
         }
 
-        table, th, td {
+        table,
+        th,
+        td {
             border: 1px solid #ccc;
         }
 
-        th, td {
+        th,
+        td {
             padding: 10px;
             text-align: left;
         }
@@ -53,6 +103,26 @@
 </head>
 
 <body>
+    <header>
+        <marquee behavior="scroll" direction="left" scrollamount="5">
+            <em>Welcome to GlamourQuest Hair Salon Admin Dashboard</em>
+        </marquee>
+        <!-- Logout Button -->
+        <form method="POST" action="{% url 'logout' %}" style="display:inline;">
+            {% csrf_token %}
+            <button class="logout-button">Logout</button>
+        </form>
+    </header>
+
+    <nav>
+        <a href="{% url 'admin_dashboard' %}">Home</a>
+        <a href="{% url 'manage_client' %}">Manage Clients</a>
+        <a href="{% url 'manage_employee' %}">Manage Employees</a>
+        <a href="#">View Appointments</a>
+        <a href="{% url 'manage_service' %}">Manage Services</a>
+        <a href="{% url 'category' %}">Add Categories</a>
+    </nav>
+
     <div class="container">
         <h1>Manage Employees</h1>
         <table class="table table-striped table-bordered">
@@ -70,39 +140,38 @@
             </thead>
             <tbody>
                 {% for employee in employees %}
-                    <tr>
-                        <td>{{ employee.id }}</td>
-                        <td>{{ employee.first_name }}</td>
-                        <td>{{ employee.last_name }}</td>
-                        <td>{{ employee.email }}</td>
-                        <td>{{ employee.dob }}</td>
-                        <td>{{ employee.contact }}</td>
+                <tr>
+                    <td>{{ employee.id }}</td>
+                    <td>{{ employee.first_name }}</td>
+                    <td>{{ employee.last_name }}</td>
+                    <td>{{ employee.email }}</td>
+                    <td>{{ employee.dob }}</td>
+                    <td>{{ employee.contact }}</td>
 
-                        <!-- Status Button -->
-                        <td>
-                            <form method="POST" action="{% url 'toggle_employee_status' employee.id %}">
-                                {% csrf_token %}
-                                <button type="submit" class="btn btn-sm {% if employee.status %}btn-success{% else %}btn-danger{% endif %}">
-                                    {% if employee.status %}Active{% else %}Inactive{% endif %}
-                                </button>
-                            </form>
-                        </td>
+                    <!-- Status Button -->
+                    <td>
+                        <form method="POST" action="{% url 'toggle_employee_status' employee.id %}">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-sm {% if employee.status %}btn-success{% else %}btn-danger{% endif %}">
+                                {% if employee.status %}Active{% else %}Inactive{% endif %}
+                            </button>
+                        </form>
+                    </td>
 
-                        <!-- Approve/Decline Buttons -->
-                        <td>
-                            <form method="POST" action="{% url 'toggle_employee_approval' employee.id %}">
-                                {% csrf_token %}
-                                <button type="submit" class="btn btn-sm {% if employee.approved %}btn-success{% else %}btn-danger{% endif %} btn-space">
-                                    {% if employee.approved %}Approved{% else %}Declined{% endif %}
-                                </button>
-                            </form>
-                        </td>
-                    </tr>
-                
+                    <!-- Approve/Decline Buttons -->
+                    <td>
+                        <form method="POST" action="{% url 'toggle_employee_approval' employee.id %}">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-sm {% if employee.approved %}btn-success{% else %}btn-danger{% endif %} btn-space">
+                                {% if employee.approved %}Approved{% else %}Declined{% endif %}
+                            </button>
+                        </form>
+                    </td>
+                </tr>
                 {% empty %}
-                    <tr>
-                        <td colspan="8" class="text-center">No employee found</td>
-                    </tr>
+                <tr>
+                    <td colspan="8" class="text-center">No employee found</td>
+                </tr>
                 {% endfor %}
             </tbody>
         </table>

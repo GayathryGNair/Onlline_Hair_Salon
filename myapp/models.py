@@ -33,6 +33,9 @@ class ServiceCategory(models.Model):
 class ServiceSubcategory(models.Model):
     category = models.ForeignKey(ServiceCategory, on_delete=models.CASCADE, related_name='subcategories')
     name = models.CharField(max_length=100)
+    description = models.TextField(null=True, blank=True) 
+    image = models.ImageField(upload_to='servicesubcategory_images/', blank=True, null=True)
+    
 
     def __str__(self):
         return f"{self.name} ({self.category.name})"

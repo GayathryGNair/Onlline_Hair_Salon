@@ -399,46 +399,71 @@ def client_profile(request):
     # Pass the client object to the template for display
     return render(request, 'client_profile.html', {'client': client})
 
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
+from .models import Service, ServiceCategory, ServiceSubcategory
 from django.contrib import messages
-  # Make sure to create this form
 
-# def manage_service(request):
-#     services = Service.objects.all()
+def manage_service(request):
+    if request.method == 'POST':
+        category_id = request.POST.get('category')
+        subcategory_id = request.POST.get('subcategory')
+        service_name = request.POST.get('service_name')
+        description = request.POST.get('description')
+        rate = request.POST.get('rate')
+        image = request.FILES.get('image')
 
-#     if request.method == 'POST':
-#         form = ServiceForm(request.POST, request.FILES)  # Use request.FILES for image uploads
-#         if form.is_valid():
-#             form.save()
-#             messages.success(request, 'Service added successfully!')
-#             return redirect('manage_service')  # Redirect to manage services after adding
-#     else:
-#         form = ServiceForm()
+        # Create a new service
+        Service.objects.create(
+            subcategory_id=subcategory_id,
+            service_name=service_name,
+            description=description,
+            rate=rate,
+            image=image
+        )
+        messages.success(request, 'Service added successfully.')
+        return redirect('manage_service')  # Redirect to the same page
 
-#     return render(request, 'manage_service.html', {
-#         'services': services,
-#         'form': form
-#     })
+    categories = ServiceCategory.objects.all()
+    subcategories = ServiceSubcategory.objects.all()
+    services = Service.objects.all()
 
-def delete_service(request, service_id):
-    service = get_object_or_404(Service, id=service_id)
-    service.delete()
-    messages.success(request, 'Service deleted successfully!')
-    return redirect('manage_service')
+    return render(request, 'manage_service.html', {
+        'categories': categories,
+        'subcategories': subcategories,
+        'services': services,
+        'messages': messages.get_messages(request),
+    })
 
 def edit_services(request, service_id):
     service = get_object_or_404(Service, id=service_id)
 
     if request.method == 'POST':
-        form = ServiceForm(request.POST, request.FILES, instance=service)
-        if form.is_valid():
-            form.save()
-            messages.success(request, 'Service updated successfully!')
-            return redirect('manage_service')
-    else:
-        form = ServiceForm(instance=service)
+        service.subcategory_id = request.POST.get('subcategory')
+        service.service_name = request.POST.get('service_name')
+        service.description = request.POST.get('description')
+        service.rate = request.POST.get('rate')
+        if 'image' in request.FILES:
+            service.image = request.FILES['image']
+        service.save()
+        messages.success(request, 'Service updated successfully.')
+        return redirect('manage_service')
 
-    return render(request, 'edit_services.html', {'form': form, 'service': service})
+    categories = ServiceCategory.objects.all()
+    subcategories = ServiceSubcategory.objects.all()
+
+    return render(request, 'edit_services.html', {
+        'service': service,
+        'categories': categories,
+        'subcategories': subcategories,
+        'messages': messages.get_messages(request),
+    })
+
+def delete_service(request, service_id):
+    service = get_object_or_404(Service, id=service_id)
+    service.delete()
+    messages.success(request, 'Service deleted successfully.')
+    return redirect('manage_service')
+
 
 from django.shortcuts import render
 from django.contrib import messages
@@ -539,10 +564,34 @@ def client_update(request):
     # Pass the client object to the template context
     return render(request, 'client_update.html', {'form': form, 'client': client})
 
+from django.shortcuts import render
+from .models import ServiceCategory, ServiceSubcategory, Service
+
+# views.py
+from django.shortcuts import render
+from .models import Service, ServiceSubcategory
+
+# views.py
+from django.shortcuts import render
+from .models import Service, ServiceSubcategory
+
+# views.py
+from django.shortcuts import render
+from .models import ServiceSubcategory, Service
+
 def hair_care_services(request):
+    # Fetch all service subcategories where category ID is 1
+    hair_care_subcategories = ServiceSubcategory.objects.filter(category_id=1)
     
-    # Assuming you store the user ID in the session, or use the request's user object
-      return render(request, 'hair_care_services.html')
+    context = {
+        'hair_care_subcategories': hair_care_subcategories,
+    }
+    
+    return render(request, 'hair_care_services.html', context)
+
+
+
+
 
 def hair_cut_services(request):
     return render(request, 'hair_cut_services.html')
@@ -558,3 +607,161 @@ def mani_pedi_services(request):
 
 def waxing_services(request):
     return render(request, 'waxing-services.html')
+from django.shortcuts import render, get_object_or_404
+from .models import Service
+
+def service_detail(request, service_id):
+    service = get_object_or_404(Service, id=service_id)
+    return render(request, 'service_detail.html', {'service': service})
+
+from django.shortcuts import render, get_object_or_404, redirect
+from django.contrib import messages
+from .models import ServiceCategory, ServiceSubcategory, Service
+
+def category(request):
+    categories = ServiceCategory.objects.all()
+    subcategories = ServiceSubcategory.objects.all()
+    services = Service.objects.all()
+
+    if request.method == 'POST':
+        if 'category_name' in request.POST:
+            # Add Category
+            category_name = request.POST['category_name']
+            if ServiceCategory.objects.filter(name=category_name).exists():
+                messages.error(request, 'Category already exists!')
+            else:
+                category = ServiceCategory(name=category_name)
+                category.save()
+                messages.success(request, 'Category added successfully!')
+        
+        elif 'subcategory_name' in request.POST:
+            # Add Subcategory
+            subcategory_name = request.POST['subcategory_name']
+            category_id = request.POST['category']
+            description = request.POST.get('description', '')
+            # Check if category exists
+            category = get_object_or_404(ServiceCategory, id=category_id)
+            if ServiceSubcategory.objects.filter(name=subcategory_name, category=category).exists():
+                messages.error(request, 'Subcategory already exists in this category!')
+            else:
+                # Handle image upload
+                subcategory = ServiceSubcategory(
+                    name=subcategory_name,
+                    category=category,
+                    description=description
+                )
+                
+                # Check if an image file was uploaded
+                if 'subcategory_image' in request.FILES:
+                    subcategory.image = request.FILES['subcategory_image']
+                    
+                subcategory.save()
+                messages.success(request, 'Subcategory added successfully!')
+        
+        return redirect('category')
+
+    return render(request, 'category.html', {
+        'categories': categories,
+        'subcategories': subcategories,
+        'services': services,
+    })
+
+
+
+def edit_category(request, category_id):
+    category = get_object_or_404(ServiceCategory, id=category_id)
+    
+    if request.method == 'POST':
+        category.name = request.POST['category_name']
+        category.save()
+        messages.success(request, 'Category updated successfully!')
+        return redirect('category')
+    
+    return render(request, 'edit_category.html', {'category': category})
+
+
+def delete_category(request, category_id):
+    category = get_object_or_404(ServiceCategory, id=category_id)
+    category.delete()
+    messages.success(request, 'Category deleted successfully!')
+    return redirect('category')
+
+
+from django.shortcuts import render, get_object_or_404, redirect
+from django.contrib import messages
+from .models import ServiceSubcategory, ServiceCategory
+
+def edit_subcategory(request, subcategory_id):
+    subcategory = get_object_or_404(ServiceSubcategory, id=subcategory_id)
+    
+    if request.method == 'POST':
+        subcategory_name = request.POST.get('subcategory_name', '').strip()
+        category_id = request.POST.get('category', None)
+        
+        # Validation: Check if subcategory name and category are provided
+        if not subcategory_name:
+            messages.error(request, 'Subcategory name cannot be empty.')
+            return render(request, 'edit_subcategory.html', {
+                'subcategory': subcategory,
+                'categories': ServiceCategory.objects.all()
+            })
+        
+        if not category_id:
+            messages.error(request, 'Please select a valid category.')
+            return render(request, 'edit_subcategory.html', {
+                'subcategory': subcategory,
+                'categories': ServiceCategory.objects.all()
+            })
+
+        try:
+            # Update the subcategory fields
+            subcategory.name = subcategory_name
+            subcategory.category_id = category_id
+            
+            # Handle optional description and image if they are part of the model
+            description = request.POST.get('description', '').strip()
+            if description:
+                subcategory.description = description
+            
+            if 'subcategory_image' in request.FILES:
+                subcategory.image = request.FILES['subcategory_image']
+            
+            subcategory.save()
+            messages.success(request, 'Subcategory updated successfully!')
+            return redirect('category')
+        except Exception as e:
+            messages.error(request, f'Error updating subcategory: {e}')
+    
+    categories = ServiceCategory.objects.all()
+    return render(request, 'edit_subcategory.html', {
+        'subcategory': subcategory,
+        'categories': categories
+    })
+
+
+
+def delete_subcategory(request, subcategory_id):
+    subcategory = get_object_or_404(ServiceSubcategory, id=subcategory_id)
+    subcategory.delete()
+    messages.success(request, 'Subcategory deleted successfully!')
+    return redirect('category')
+
+from django.shortcuts import render, get_object_or_404, redirect
+from django.contrib import messages
+from .models import ServiceSubcategory, ServiceCategory
+
+# def edit_subcategory(request, subcategory_id):
+    # subcategory = get_object_or_404(ServiceSubcategory, id=subcategory_id)
+    
+    # if request.method == 'POST':
+    #     subcategory.name = request.POST['subcategory_name']
+    #     subcategory.category_id = request.POST['category']
+    #     subcategory.save()
+    #     messages.success(request, 'Subcategory updated successfully!')
+    #     return redirect('category')
+    
+    # categories = ServiceCategory.objects.all()
+    # return render(request, 'edit_subcategory.html', {
+    #     'subcategory': subcategory,  # This passes the subcategory to the template
+    #     'categories': categories
+    # })

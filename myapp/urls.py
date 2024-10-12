@@ -4,7 +4,8 @@ from django.urls import path
 from . import views
 from django.contrib.auth import views as auth_views
 from .views import manage_client
-from .views import delete_service,edit_services
+from .views import  edit_services, delete_service, manage_service,service_detail,category
+
 
 
 urlpatterns = [
@@ -33,6 +34,10 @@ urlpatterns = [
     path('admin_dashboard/', views.admin_dashboard, name='admin_dashboard'),
     path('manage_client/', views.manage_client, name='manage_client'),
     path('manage_employee/', views.manage_employee, name='manage_employee'),
+    path('manage_service/', views.manage_service, name='manage_service'),
+    path('edit_services/<int:service_id>/', edit_services, name='edit_services'),
+    path('delete_service/<int:service_id>/', delete_service, name='delete_service'),
+    
 
     path('client_update/', views.client_update, name='client_update'),
     path('client_profile/', views.client_profile, name='client_profile'),
@@ -46,14 +51,18 @@ urlpatterns = [
 
     path('toggle-client-status/<int:client_id>/', views.toggle_client_status, name='toggle_client_status'),
     path('toggle-employee-status/<int:employee_id>/', views.toggle_employee_status, name='toggle_employee_status'),
-    # path('manage-service/',views.manage_service, name='manage_service'),
-    path('delete-service/<int:service_id>/', delete_service, name='delete_service'),
     path('employee_profile/', views.employee_profile, name='employee_profile'),
     path('employee_update/', views.employee_update, name='employee_update'),
     path('employee_services/', views.employee_services, name='employee_services'),
-    path('edit-services/<int:service_id>/', edit_services, name='edit_services'),
     path('toggle_employee_status/<int:employee_id>/', views.toggle_employee_status, name='toggle_employee_status'),
     path('toggle_employee_approval/<int:employee_id>/', views.toggle_employee_approval, name='toggle_employee_approval'),
+    path('service/<int:service_id>/', service_detail, name='service_detail'),
+    path('category/', views.category, name='category'),
+    path('category/edit/<int:category_id>/', views.edit_category, name='edit_category'),
+    path('category/delete/<int:category_id>/', views.delete_category, name='delete_category'),
+    # path('subcategory/edit/<int:subcategory_id>/', views.edit_subcategory, name='edit_subcategory'),
+    path('subcategory/delete/<int:subcategory_id>/', views.delete_subcategory, name='delete_subcategory'),
+    path('edit-subcategory/<int:subcategory_id>/', views.edit_subcategory, name='edit_subcategory'),
     
 
 ]

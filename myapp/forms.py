@@ -23,5 +23,12 @@ class EmployeeProfileUpdateForm(forms.ModelForm):
         self.fields['email'].widget.attrs['readonly'] = True
 
 
+from django import forms
+from .models import Service
+
+class ServiceForm(forms.ModelForm):
+    class Meta:
+        model = Service
+        fields = ['service_name', 'description', 'rate', 'image', 'subcategory']
 
 

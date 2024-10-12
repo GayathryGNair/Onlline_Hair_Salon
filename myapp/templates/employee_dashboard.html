@@ -1,249 +1,57 @@
+<!-- edit_service.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Employee Dashboard</title>
-    <style>
-        body {
-            font-family: 'Poppins', sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #eaeaea;
-            color: #444;
-        }
-
-        header {
-            background: linear-gradient(90deg, #6a11cb, #2575fc);
-            color: white;
-            padding: 20px;
-            text-align: center;
-            font-size: 32px;
-            font-weight: bold;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-        }
-
-        nav {
-            background-color: #ffffff;
-            overflow: hidden;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-            position: relative; /* Enable positioning for dropdown */
-            z-index: 1; /* Ensure the nav is below the dropdown */
-        }
-
-        nav a {
-            float: left;
-            display: block;
-            color: #6a11cb;
-            text-align: center;
-            padding: 15px 25px; /* Adjust padding for better alignment */
-            text-decoration: none;
-            transition: background-color 0.3s ease, color 0.3s ease;
-        }
-
-        nav a:hover {
-            background-color: #6a11cb;
-            color: white;
-        }
-
-        /* Dropdown container */
-        .dropdown {
-            float: left;
-            position: relative; /* Maintain positioning for dropdown */
-        }
-
-        /* Dropdown button */
-        .dropdown > a {
-            cursor: pointer; /* Change cursor to pointer for dropdown */
-        }
-
-        /* Dropdown content (hidden by default) */
-        .dropdown-content {
-            display: none;
-            position: absolute; /* Make the dropdown absolute */
-            background-color: #ffffff;
-            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
-            z-index: 2; /* Higher z-index to ensure it appears above the nav */
-            min-width: 160px;
-            left: 0; /* Align to the left of the nav */
-            border-radius: 8px; /* Rounded corners for dropdown */
-            padding: 10px 0; /* Padding to create space inside the box */
-        }
-
-        /* Links inside the dropdown */
-        .dropdown-content a {
-            color: #6a11cb;
-            padding: 10px 16px; /* Adjust padding for links */
-            text-decoration: none;
-            display: block;
-            text-align: left;
-            border-bottom: 1px solid #f1f1f1; /* Add separator lines between links */
-        }
-
-        /* Remove border from the last link */
-        .dropdown-content a:last-child {
-            border-bottom: none;
-        }
-
-        /* Change color of dropdown links on hover */
-        .dropdown-content a:hover {
-            background-color: #6a11cb;
-            color: white;
-            border-radius: 8px; /* Rounded corners on hover */
-        }
-
-        /* Show the dropdown content on hover or focus */
-        .dropdown:hover .dropdown-content,
-        .dropdown:focus-within .dropdown-content {
-            display: block; /* Show the dropdown on hover or focus */
-        }
-
-        .container {
-            padding: 30px;
-            position: relative; /* Create stacking context */
-            z-index: 0; /* Ensure it is below the dropdown */
-        }
-
-        .dashboard-card {
-            background-color: white;
-            border-radius: 15px;
-            padding: 30px;
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
-            margin-bottom: 30px;
-            transition: transform 0.3s ease;
-        }
-
-        .dashboard-card:hover {
-            transform: translateY(-4px);
-        }
-
-        h2 {
-            margin-top: 0;
-            color: #6a11cb;
-            font-size: 30px;
-            font-weight: 600;
-        }
-
-        .dashboard-card p {
-            font-size: 18px;
-            line-height: 1.6;
-            color: #666;
-        }
-
-        .card-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 25px;
-        }
-
-        .card {
-            background-color: #fff;
-            padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-            text-align: center;
-            transition: box-shadow 0.3s ease, transform 0.3s ease;
-        }
-
-        .card:hover {
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
-            transform: translateY(-2px);
-        }
-
-        .card h3 {
-            color: #2575fc;
-            font-size: 24px;
-            margin-bottom: 10px;
-        }
-
-        .card p {
-            color: #777;
-            font-size: 16px;
-            margin-bottom: 20px;
-        }
-
-        .card a {
-            display: inline-block;
-            margin-top: 15px;
-            padding: 12px 30px;
-            background: linear-gradient(90deg, #6a11cb, #2575fc);
-            color: white;
-            text-decoration: none;
-            border-radius: 5px;
-            font-weight: bold;
-            transition: background 0.3s ease, transform 0.2s ease;
-        }
-
-        .card a:hover {
-            background: linear-gradient(90deg, #2575fc, #6a11cb);
-            transform: scale(1.05);
-        }
-
-        footer {
-            text-align: center;
-            padding: 15px;
-            background-color: #ffffff;
-            color: #6a11cb;
-            font-size: 14px;
-            border-top: 1px solid #ddd;
-        }
-
-        @media (max-width: 768px) {
-            .card-grid {
-                grid-template-columns: 1fr;
-            }
-
-            nav a {
-                float: none;
-                width: 100%;
-                text-align: left;
-                padding: 15px;
-            }
-        }
-    </style>
+    <title>Edit Service</title>
+    <link rel="stylesheet" href="style.css"> <!-- Link to your CSS file -->
 </head>
 <body>
-    <header>
-        <marquee behavior="scroll" direction="left" scrollamount="5">
-            <em>Welcome to GlamourQuest Hair Salon</em>
-        </marquee>
-    </header>
-    
-    <nav>
-        <a href="#">Home</a>
-        <a href="{% url 'employee_profile' %}">Profile</a>
-        <a href="#">Manage Appointments</a>
-        <a href="{% url 'employee_services' %}">Services</a>
-        <a href="{% url 'logout' %}">Logout</a>
-    </nav>
+    <div class="form-container">
+        <h2>Edit Service</h2>
 
-    <div class="container">
-        <div class="dashboard-card">
-            <h2>Hello {{ employee.first_name }}</h2>
-            <p>Welcome to your employee dashboard. Here you can manage appointments, view your profile, and more.</p>
-        </div>
+        {% if messages %}
+            <ul>
+                {% for message in messages %}
+                    <li>{{ message }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
 
-        <div class="card-grid">
-            <div class="card">
-                <h3>Manage Appointments</h3>
-                <p>View, edit, or cancel appointments.</p>
-                <a href="#">Manage Appointments</a>
-            </div>
-            <div class="card">
-                <h3>Profile Settings</h3>
-                <p>Update your personal information and work schedule.</p>
-                <a href="{% url 'employee_update' %}">Update Profile</a>
-            </div>
-            <div class="card">
-                <h3>Feedback</h3>
-                <p>View feedback from clients on your services.</p>
-                <a href="#">View Feedback</a>
-            </div>
-        </div>
+        <form method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+
+            <label for="category">Select Category:</label>
+            <select id="category" name="category" required>
+                <option value="" disabled>Choose a Category</option>
+                {% for category in categories %}
+                    <option value="{{ category.id }}" {% if category.id == service.subcategory.category.id %}selected{% endif %}>{{ category.name }}</option>
+                {% endfor %}
+            </select>
+
+            <label for="subcategory">Select Subcategory:</label>
+            <select id="subcategory" name="subcategory" required>
+                <option value="" disabled>Choose a Subcategory</option>
+                {% for subcategory in subcategories %}
+                    <option value="{{ subcategory.id }}" {% if subcategory.id == service.subcategory.id %}selected{% endif %}>{{ subcategory.name }}</option>
+                {% endfor %}
+            </select>
+
+            <label for="service_name">Service Name:</label>
+            <input type="text" id="service_name" name="service_name" value="{{ service.service_name }}" required>
+
+            <label for="description">Description:</label>
+            <textarea id="description" name="description" required>{{ service.description }}</textarea>
+
+            <label for="rate">Rate (INR):</label>
+            <input type="number" step="0.01" id="rate" name="rate" value="{{ service.rate }}" required>
+
+            <label for="image">Upload Image:</label>
+            <input type="file" id="image" name="image">
+
+            <button type="submit">Update Service</button>
+        </form>
     </div>
-    
-    <footer><br><br>
-        &copy; 2024 Hair Salon | All Rights Reserved
-    </footer>
 </body>
 </html>

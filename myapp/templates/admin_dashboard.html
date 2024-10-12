@@ -50,6 +50,26 @@
             background-color: #c0392b;
         }
 
+        nav {
+            background-color: #7f8c8d; /* Background color of the nav */
+            display: flex;
+            justify-content: center; /* Center the items */
+            padding: 10px 0;
+        }
+
+        nav a {
+            color: white; /* Text color */
+            text-decoration: none; /* Remove underline */
+            padding: 10px 20px; /* Spacing around links */
+            margin: 0 10px; /* Spacing between links */
+            transition: background-color 0.3s ease; /* Smooth hover effect */
+        }
+
+        nav a:hover {
+            background-color: #95a5a6; /* Background color on hover */
+            border-radius: 5px; /* Rounded corners on hover */
+        }
+
         .container {
             padding: 30px;
         }
@@ -138,6 +158,15 @@
         </form>
     </header>
 
+    <nav>
+        <a href="{% url 'admin_dashboard' %}">Home</a>
+        <a href="{% url 'manage_client' %}">Manage Clients</a>
+        <a href="{% url 'manage_employee' %}">Manage Employees</a>
+        <a href="#">View Appointments</a>
+        <a href="{% url 'manage_service' %}">Manage Services</a>
+        <a href="{% url 'category' %}">Add Categories</a>
+    </nav>
+
     <div class="container">
         <div class="dashboard-card">
             <h2>Admin Dashboard</h2>
@@ -161,9 +190,13 @@
                 <h3>Manage Services</h3>
                 <a href="{% url 'manage_service' %}">Go to Services</a>
             </div>
+            <div class="dashboard-box">
+                <h3>Add Categories</h3>
+                <a href="{% url 'category' %}">Go to Category</a>
+            </div>
         </div>
     </div>
-    <br><br><br><br><br><br><br>
+    
     <footer>
         &copy; 2024 Hair Salon | All Rights Reserved
     </footer>
