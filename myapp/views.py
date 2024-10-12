@@ -17,7 +17,6 @@ from django.shortcuts import render
 from .models import Client
 from django.contrib.auth.decorators import login_required
 
-
 def home(request):
     return render(request, 'index.html')
 
@@ -89,7 +88,6 @@ def forgot_reset(request):
     # Render the forgot password page
     return render(request, 'forgot_reset.html')
 
-
 def reset_password(request, token):
     # Find the user by the reset token
     user = Client.objects.filter(reset_token=token).first() or Employee.objects.filter(reset_token=token).first()
@@ -136,61 +134,57 @@ def login(request):
     if request.method == 'POST':
         email = request.POST['email']
         password = request.POST['password']
-        status = request.POST.get('status')
 
         default_admin_email = 'admin@gmail.com'
-        default_admin_password = 'admin123'  # You can use Django's password hashing for extra security
+        default_admin_password = 'admin123'
 
-        # If the provided credentials match the default admin credentials, log in as admin
+        # Admin login
         if email == default_admin_email and password == default_admin_password:
-            request.session['user_type'] = 'admin'  # Store the user type as admin
+            request.session['user_type'] = 'admin'
             messages.success(request, 'Admin login successful!')
-            return redirect('admin_dashboard')  # Redirect to the admin dashboard
+            return redirect('admin_dashboard')
 
-        # Client login
-        if status == 'client':
-            try:
-                user = Client.objects.get(email=email)
-                if check_password(password, user.password):
-                    if not user.status:
-                        messages.error(request, "Your account is inactive. Please contact admin.")
-                        return redirect('login')
-                    else:
-                        request.session['user_id'] = user.id
-                        request.session['user_type'] = 'client'  # Store user type
-                        messages.success(request, 'Login successful!')
-                        return redirect('client_dashboard')
+        # Try Client login first
+        try:
+            user = Client.objects.get(email=email)
+            if check_password(password, user.password):
+                if not user.status:
+                    messages.error(request, "Your account is inactive. Please contact admin.")
+                    return redirect('login')
                 else:
-                    messages.error(request, 'Invalid email or password for client.')
-            except Client.DoesNotExist:
-                messages.error(request, 'Invalid email or password for client.')
-
-        # Employee login
-        elif status == 'employee':
-            try:
-                user = Employee.objects.get(email=email)
-                if check_password(password, user.password):
                     request.session['user_id'] = user.id
-                    request.session['user_type'] = 'employee'  # Store user type
+                    request.session['user_type'] = 'client'
                     messages.success(request, 'Login successful!')
-                    return redirect('employee_dashboard')
-                else:
-                    messages.error(request, 'Invalid email or password for employee.')
-            except Employee.DoesNotExist:
-                messages.error(request, 'Invalid email or password for employee.')
+                    return redirect('client_dashboard')
+            else:
+                messages.error(request, 'Invalid email or password.')
+                return redirect('login')
+        except Client.DoesNotExist:
+            pass
+
+        # If not a client, try Employee login
+        try:
+            user = Employee.objects.get(email=email)
+            if check_password(password, user.password):
+                request.session['user_id'] = user.id
+                request.session['user_type'] = 'employee'
+                messages.success(request, 'Login successful!')
+                return redirect('employee_dashboard')
+            else:
+                messages.error(request, 'Invalid email or password.')
+                return redirect('login')
+        except Employee.DoesNotExist:
+            messages.error(request, 'Invalid email or password.')
+            return redirect('login')
 
     return render(request, 'login.html')
 
 from django.shortcuts import render, redirect
 from django.contrib import messages
+from django.core.mail import send_mail
 from django.db import IntegrityError
-from .models import Client, Employee  # Import your models
-
-from django.shortcuts import render, redirect
-from django.contrib import messages
 from django.contrib.auth.hashers import make_password
-from django.db import IntegrityError
-from .models import Client, Employee  # Import your models
+from .models import Client, Employee  # Ensure to import your models
 
 def register(request):
     if request.method == 'POST':
@@ -238,6 +232,13 @@ def register(request):
                 )
                 employee.save()
                 messages.success(request, 'Registration successful! You can now log in.')
+
+            # Send confirmation email
+            subject = 'Welcome to Our Service'
+            message = f'Thank you for registering, {first_name}! Please confirm your email address.'
+            from_email = 'glamourquest6@gmail.com'  # Use the same email as configured in settings.py
+            recipient_list = [email]
+            send_mail(subject, message, from_email, recipient_list)
 
             return redirect('login')  # Redirect to login or another page
 
@@ -364,9 +365,6 @@ def toggle_employee_status(request, employee_id):
         messages.success(request, f"employee {employee.first_name}'s status updated to {'Active' if employee.status else 'Inactive'}.")
     return redirect('manage_employee')
 
-
-
-# views.py
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from .models import Client
@@ -403,25 +401,24 @@ def client_profile(request):
 
 from django.shortcuts import render, redirect
 from django.contrib import messages
-from .models import Service
-from .forms import ServiceForm  # Make sure to create this form
+  # Make sure to create this form
 
-def manage_service(request):
-    services = Service.objects.all()
+# def manage_service(request):
+#     services = Service.objects.all()
 
-    if request.method == 'POST':
-        form = ServiceForm(request.POST)
-        if form.is_valid():
-            form.save()
-            messages.success(request, 'Service added successfully!')
-            return redirect('manage_service')  # Redirect to manage services
-    else:
-        form = ServiceForm()
+#     if request.method == 'POST':
+#         form = ServiceForm(request.POST, request.FILES)  # Use request.FILES for image uploads
+#         if form.is_valid():
+#             form.save()
+#             messages.success(request, 'Service added successfully!')
+#             return redirect('manage_service')  # Redirect to manage services after adding
+#     else:
+#         form = ServiceForm()
 
-    return render(request, 'manage_service.html', {
-        'services': services,
-        'form': form
-    })
+#     return render(request, 'manage_service.html', {
+#         'services': services,
+#         'form': form
+#     })
 
 def delete_service(request, service_id):
     service = get_object_or_404(Service, id=service_id)
@@ -429,19 +426,40 @@ def delete_service(request, service_id):
     messages.success(request, 'Service deleted successfully!')
     return redirect('manage_service')
 
+def edit_services(request, service_id):
+    service = get_object_or_404(Service, id=service_id)
+
+    if request.method == 'POST':
+        form = ServiceForm(request.POST, request.FILES, instance=service)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Service updated successfully!')
+            return redirect('manage_service')
+    else:
+        form = ServiceForm(instance=service)
+
+    return render(request, 'edit_services.html', {'form': form, 'service': service})
+
 from django.shortcuts import render
-from .models import Service
+from django.contrib import messages
+from .models import  Client
 
 def client_services(request):
+    # Assuming you store the user ID in the session, or use the request's user object
+    user_id = request.session.get('user_id')  # Adjust this if needed based on how you store the session
+    client = Client.objects.get(id=user_id)
+
     # Fetch all services from the database
     services = Service.objects.all()
 
-    # Pass the services queryset to the template as a dictionary
+    # Pass the client and services to the template
     context = {
-        'services': services,
+        'client': client,  # Client data for the profile name and other info
+        'services': services,  # Services data to list available services
     }
 
     return render(request, 'client_services.html', context)
+
 
 def employee_services(request):
     # Fetch all services from the database
@@ -483,3 +501,60 @@ def employee_update(request):
 
     return render(request, 'employee_update.html', {'form': form})
 
+from django.shortcuts import get_object_or_404, redirect
+from .models import Employee
+
+# Toggle the active/inactive status
+def toggle_employee_status(request, employee_id):
+    employee = get_object_or_404(Employee, id=employee_id)
+    employee.status = not employee.status
+    employee.save()
+    return redirect('manage_employee')
+
+# Toggle the approval status
+def toggle_employee_approval(request, employee_id):
+    employee = get_object_or_404(Employee, id=employee_id)
+    employee.approved = not employee.approved
+    employee.save()
+    return redirect('manage_employee')
+
+from django.shortcuts import render, redirect
+from django.contrib import messages
+from .models import Client
+from .forms import ClientProfileUpdateForm
+
+def client_update(request):
+    user_id = request.session.get('user_id')  # Assuming you store the user ID in the session
+    client = Client.objects.get(id=user_id)
+
+    if request.method == 'POST':
+        form = ClientProfileUpdateForm(request.POST, instance=client)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Profile updated successfully!')
+            return redirect('client_dashboard')  # Redirect to the client dashboard
+    else:
+        form = ClientProfileUpdateForm(instance=client)
+
+    # Pass the client object to the template context
+    return render(request, 'client_update.html', {'form': form, 'client': client})
+
+def hair_care_services(request):
+    
+    # Assuming you store the user ID in the session, or use the request's user object
+      return render(request, 'hair_care_services.html')
+
+def hair_cut_services(request):
+    return render(request, 'hair_cut_services.html')
+
+def facial_services(request):
+    return render(request, 'facial_services.html')
+
+def all_type_skin(request):
+    return render(request, 'all_type_skin.html')
+
+def mani_pedi_services(request):
+    return render(request, 'mani-pedi-services.html')
+
+def waxing_services(request):
+    return render(request, 'waxing-services.html')

@@ -1,0 +1,277 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hair Care Services</title>
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+
+        header {
+            background: linear-gradient(90deg, #ff7e5f, #feb47b);
+            color: white;
+            padding: 15px;
+            text-align: center;
+            font-size: 28px;
+            font-weight: bold;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        nav {
+            background-color: #5fffe2aa;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            position: relative;
+        }
+
+        nav a {
+            float: left;
+            display: block;
+            color: #ff7e5f;
+            text-align: center;
+            padding: 16px 20px;
+            text-decoration: none;
+            transition: background-color 0.3s ease;
+        }
+
+        nav a:hover {
+            background-color: #feb47b;
+            color: white;
+        }
+
+        .container {
+            padding: 30px;
+        }
+
+        h2 {
+            color: #ff7e5f;
+            font-size: 28px;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .profile-container {
+            float: right;
+            position: relative;
+            padding: 16px;
+            text-align: center;
+        }
+
+        .profile-icon {
+            cursor: pointer;
+            font-size: 18px; /* Slightly smaller icon */
+            padding: 8px; /* Reduce padding */
+            border-radius: 50%;
+            background-color: #ffffff;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        /* New styling for username below the icon */
+        .profile-name {
+            display: block;
+            margin-top: 8px;
+            font-size: 14px; /* Adjust size as needed */
+            color: #ff7e5f;
+            text-align: center;
+        }
+
+        .profile-dropdown {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: 100px; /* Adjusted position */
+            background-color: white;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            border-radius: 5px;
+            z-index: 1000;
+            width: 150px;
+        }
+
+        .profile-dropdown a {
+            display: block;
+            padding: 8px 10px;
+            text-align: left;
+            text-decoration: none;
+            font-size: 14px;
+            color: #ff7e5f;
+            border-bottom: 1px solid #f0f0f0;
+            transition: background-color 0.3s ease;
+        }
+
+        .profile-dropdown a:hover {
+            background-color: #feb47b;
+            color: white;
+        }
+
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+            margin-top: 30px;
+        }
+
+        .hair-care-card {
+            background-color: white;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            transition: box-shadow 0.3s ease;
+        }
+
+        .hair-care-card img {
+            max-width: 100%;
+            border-radius: 50%; /* Makes the image circular */
+            width: 200px; /* Ensure width and height are the same for a perfect circle */
+            height: 200px; /* Ensure height matches the width */
+            object-fit: cover; /* Ensures the image covers the circular area nicely */
+        }
+
+
+        .hair-care-card h3 {
+            color: #ff7e5f;
+            font-size: 22px;
+            margin-top: 10px;
+        }
+
+        .hair-care-card p {
+            color: #777;
+            font-size: 16px;
+            margin-bottom: 20px;
+        }
+
+        /* Remove underline from links in the service cards */
+        .hair-care-card a {
+            text-decoration: none; /* Remove underline from links */
+        }
+
+        .footer {
+            text-align: center;
+            padding: 15px;
+            background-color: #5fffe2aa;
+            color: #ff7e5f;
+            font-size: 14px;
+            position: relative;
+            width: 100%;
+            bottom: 0;
+            margin-top: 30px;
+        }
+
+        @media (max-width: 768px) {
+            nav a {
+                float: none;
+                width: 100%;
+                text-align: left;
+                padding: 15px;
+            }
+        }
+    </style>
+    <script>
+        function toggleDropdown() {
+            const dropdown = document.getElementById("profileDropdown");
+            dropdown.style.display = dropdown.style.display === "block" ? "none" : "block";
+        }
+
+        // Close the dropdown if the user clicks outside of it
+        window.onclick = function(event) {
+            if (!event.target.matches('.profile-icon')) {
+                const dropdowns = document.getElementsByClassName("profile-dropdown");
+                for (let i = 0; i < dropdowns.length; i++) {
+                    const openDropdown = dropdowns[i];
+                    if (openDropdown.style.display === "block") {
+                        openDropdown.style.display = "none";
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+
+<body>
+    <header>
+        <marquee behavior="scroll" direction="left" scrollamount="5">
+            <em>Welcome to GlamourQuest Hair Salon</em>
+        </marquee>
+        <div class="profile-container">
+            <div class="profile-icon" onclick="toggleDropdown()">&#128100;</div>
+            <div>
+                <span class="profile-name">{{ client.first_name }}</span>
+            </div>
+            <div class="profile-dropdown" id="profileDropdown">
+                <a href="{% url 'client_profile' %}">View Profile</a>
+                <a href="{% url 'client_update' %}">Update Profile</a>
+                <a href="{% url 'logout' %}">Logout</a>
+            </div>
+        </div>
+    </header>
+
+    <nav>
+        <a href="dashboard.html">Dashboard</a>
+        <a href="#">Profile</a>
+        <a href="#">Appointments</a>
+        <a href="#">Services</a>
+        <a href="{% url 'hair_care_services' %}">Hair Care</a>
+    </nav>
+
+    <div class="container">
+        <h2>Our Hair Care Services</h2>
+        <div class="card-grid">
+            <div class="hair-care-card">
+                <a href="{% url 'hair_cut_services' %}"> <!-- Link to the hair cut services page -->
+                    <img src="{% static 'images/haircut.jpeg' %}" alt="Hair Cut">
+                    <h3>Hair Cut</h3>
+                    <p>Professional haircut tailored to your style.</p>
+                </a>
+            </div>
+            <div class="hair-care-card">
+                <a href="hair_coloring_services.html"> <!-- Link to the hair coloring services page -->
+                    <img src="{% static 'images/hair-coloring.jpg' %}" alt="Hair Coloring">
+                    <h3>Hair Coloring</h3>
+                    <p>Vibrant hair colors to express your personality.</p>
+                </a>
+            </div>
+            <div class="hair-care-card">
+                <a href="hair_treatment_services.html"> <!-- Link to the hair treatment services page -->
+                    <img src="{% static 'images/Hair-Treatment.jpg' %}" alt="Hair Treatment">
+                    <h3>Hair Treatment</h3>
+                    <p>Nourishing treatments for healthier hair.</p>
+                </a>
+            </div>
+            <div class="hair-care-card">
+                <a href="styling_services.html"> <!-- Link to the styling services page -->
+                    <img src="{% static 'images/hair-styling.jpg' %}"  alt="Hair Styling">
+                    <h3>Styling</h3>
+                    <p>Professional styling for any occasion.</p>
+                </a>
+            </div>
+            <div class="hair-care-card">
+                <a href="hair_spa_services.html"> <!-- Link to the hair spa services page -->
+                    <img src="{% static 'images/hair-spa.jpg' %}" alt="Hair Spa">
+                    <h3>Hair Spa</h3>
+                    <p>Revitalizing treatments for your hair.</p>
+                </a>
+            </div>
+            <div class="hair-care-card">
+                <a href="hair_highlights_services.html"> <!-- Link to the hair highlights services page -->
+                    <img src="{% static 'images/hair-highlights.jpg' %}" alt="Hair Highlights">
+                    <h3>Hair Highlights</h3>
+                    <p>Add a touch of glamour with highlights.</p>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer">
+        &copy; 2024 GlamourQuest Hair Salon | All rights reserved.
+    </footer>
+</body>
+
+</html>

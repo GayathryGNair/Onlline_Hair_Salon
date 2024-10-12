@@ -4,7 +4,7 @@ from django.urls import path
 from . import views
 from django.contrib.auth import views as auth_views
 from .views import manage_client
-from .views import delete_service
+from .views import delete_service,edit_services
 
 
 urlpatterns = [
@@ -37,14 +37,25 @@ urlpatterns = [
     path('client_update/', views.client_update, name='client_update'),
     path('client_profile/', views.client_profile, name='client_profile'),
     path('client_services/', views.client_services, name='client_services'),
+    path('hair_care_services/', views.hair_care_services, name='hair_care_services'),
+    path('hair_cut_services/', views.hair_cut_services, name='hair_cut_services'),
+    path('facial_services/', views.facial_services, name='facial_services'),
+    path('all_type_skin/', views.all_type_skin, name='all_type_skin'),
+    path('mani-pedi-services/', views.mani_pedi_services, name='mani-pedi-services'),
+     path('waxing-services/', views.waxing_services, name='waxing-services'),
 
     path('toggle-client-status/<int:client_id>/', views.toggle_client_status, name='toggle_client_status'),
     path('toggle-employee-status/<int:employee_id>/', views.toggle_employee_status, name='toggle_employee_status'),
-    path('manage-service/',views.manage_service, name='manage_service'),
+    # path('manage-service/',views.manage_service, name='manage_service'),
     path('delete-service/<int:service_id>/', delete_service, name='delete_service'),
     path('employee_profile/', views.employee_profile, name='employee_profile'),
     path('employee_update/', views.employee_update, name='employee_update'),
     path('employee_services/', views.employee_services, name='employee_services'),
+    path('edit-services/<int:service_id>/', edit_services, name='edit_services'),
+    path('toggle_employee_status/<int:employee_id>/', views.toggle_employee_status, name='toggle_employee_status'),
+    path('toggle_employee_approval/<int:employee_id>/', views.toggle_employee_approval, name='toggle_employee_approval'),
+    
+
 ]
 
     

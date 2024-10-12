@@ -157,31 +157,31 @@
                 let isValid = true;
                 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
                 const phonePattern = /^\d{10}$/; // Ensure exactly 10 digits
-    
+        
                 // Clear previous error messages
                 $(".error").remove();
-    
+        
                 // Validate first name
                 const firstName = $("input[name='first_name']").val();
                 if (firstName.length < 2) {
                     isValid = false;
                     $("input[name='first_name']").after('<div class="error" style="color:red;">First name must be at least 2 characters long.</div>');
                 }
-    
+        
                 // Validate last name
                 const lastName = $("input[name='last_name']").val();
-                if (lastName.length < 2) {
+                if (lastName.length < 1) {
                     isValid = false;
                     $("input[name='last_name']").after('<div class="error" style="color:red;">Last name must be at least 2 characters long.</div>');
                 }
-    
+        
                 // Validate email
                 const email = $("input[name='email']").val();
                 if (!emailPattern.test(email)) {
                     isValid = false;
                     $("input[name='email']").after('<div class="error" style="color:red;">Please enter a valid email address.</div>');
                 }
-    
+        
                 // Validate password
                 const password = $("input[name='password']").val();
                 const passwordUppercase = /[A-Z]/.test(password);
@@ -190,18 +190,34 @@
                     isValid = false;
                     $("input[name='password']").after('<div class="error" style="color:red;">Password must be at least 6 characters long and contain at least one uppercase letter and one special character.</div>');
                 }
-    
+        
                 // Validate contact number
                 const contact = $("input[name='contact']").val();
                 if (!phonePattern.test(contact)) {
                     isValid = false;
                     $("input[name='contact']").after('<div class="error" style="color:red;">Contact number must be exactly 10 digits long.</div>');
                 }
+        
+                // Date of birth validation
+                const dob = new Date($("input[name='dob']").val());
+                const today = new Date();
+                const minAge = 18;
+                const age = today.getFullYear() - dob.getFullYear();
+                const monthDiff = today.getMonth() - dob.getMonth();
+                const dayDiff = today.getDate() - dob.getDate();
+    
+                if (dob >= today) {
+                    isValid = false;
+                    $("input[name='dob']").after('<div class="error" style="color:red;">Date of birth cannot be a future date.</div>');
+                } else if (age < minAge || (age === minAge && (monthDiff < 0 || (monthDiff === 0 && dayDiff < 0)))) {
+                    isValid = false;
+                    $("input[name='dob']").after('<div class="error" style="color:red;">You must be at least 18 years old to register.</div>');
+                }
     
                 // Placeholder check for existing email/contact (this would be done on the server normally)
                 const existingEmails = ["existing@example.com"]; // Replace with actual check
                 const existingContacts = ["1234567890"]; // Replace with actual check
-    
+        
                 if (existingEmails.includes(email)) {
                     isValid = false;
                     $("input[name='email']").after('<div class="error" style="color:red;">User already exists with this email.</div>');
@@ -210,7 +226,7 @@
                     isValid = false;
                     $("input[name='contact']").after('<div class="error" style="color:red;">User already exists with this contact number.</div>');
                 }
-    
+        
                 // Prevent form submission if validation fails
                 if (!isValid) {
                     event.preventDefault();
@@ -219,7 +235,6 @@
         });
     </script>
     
-    </script>
     
     
     <h4>Already have an account? <a style="color: #007bff" href="{% url 'login' %}"><b>SIGN IN</b></a></h4>

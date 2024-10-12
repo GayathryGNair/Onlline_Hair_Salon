@@ -1,0 +1,192 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Facial Services</title>
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+
+        header {
+            background: linear-gradient(90deg, #ff7e5f, #feb47b);
+            color: white;
+            padding: 15px;
+            text-align: center;
+            font-size: 28px;
+            font-weight: bold;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        nav {
+            background-color: #5fffe2aa;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            position: relative;
+        }
+
+        nav a {
+            float: left;
+            display: block;
+            color: #ff7e5f;
+            text-align: center;
+            padding: 16px 20px;
+            text-decoration: none;
+            transition: background-color 0.3s ease;
+        }
+
+        nav a:hover {
+            background-color: #feb47b;
+            color: white;
+        }
+
+        .container {
+            padding: 30px;
+        }
+
+        h2 {
+            color: #ff7e5f;
+            font-size: 28px;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+            margin-top: 30px;
+        }
+
+        .facial-card {
+            background-color: white;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            transition: box-shadow 0.3s ease;
+        }
+
+        .facial-card img {
+            max-width: 100%;
+            border-radius: 50%; /* Makes the image circular */
+            width: 200px; /* Ensure width and height are the same for a perfect circle */
+            height: 200px; /* Ensure height matches the width */
+            object-fit: cover; /* Ensures the image covers the circular area nicely */
+        }
+
+        .facial-card h3 {
+            color: #ff7e5f;
+            font-size: 22px;
+            margin-top: 10px;
+        }
+
+        .facial-card p {
+            color: #777;
+            font-size: 16px;
+            margin-bottom: 20px;
+        }
+
+        /* Remove underline from links in the service cards */
+        .facial-card a {
+            text-decoration: none; /* Remove underline from links */
+        }
+
+        .footer {
+            text-align: center;
+            padding: 15px;
+            background-color: #5fffe2aa;
+            color: #ff7e5f;
+            font-size: 14px;
+            position: relative;
+            width: 100%;
+            bottom: 0;
+            margin-top: 30px;
+        }
+
+        @media (max-width: 768px) {
+            nav a {
+                float: none;
+                width: 100%;
+                text-align: left;
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <h1>Facial Services</h1>
+    </header>
+
+    <nav>
+        <a href="dashboard.html">Dashboard</a>
+        <a href="#">Profile</a>
+        <a href="#">Appointments</a>
+        <a href="#">Services</a>
+        <a href="{% url 'hair_care_services' %}">Hair Care</a>
+        <a href="{% url 'facial_services' %}">Facial Services</a>
+    </nav>
+
+    <div class="container">
+        <h2>Our Facial Services</h2>
+        <div class="card-grid">
+            <div class="facial-card">
+                <a href="{%  url 'all_type_skin' %}"> <!-- Link to All Types of Skin Facials page -->
+                    <img src="{% static 'images/all-type.jpg' %}"  alt="All Types of Skin Facials">
+                    <h3>All Types of Skin Facials</h3>
+                    <p>Customized facials for all skin types for a radiant glow.</p>
+                </a>
+            </div>
+            <div class="facial-card">
+                <a href="dry_skin_facials.html"> <!-- Link to Dry Skin Facials page -->
+                    <img src="{% static 'images/dry-skin1.jpg' %}" alt="Dry Skin Facials">
+                    <h3>Dry Skin Facials</h3>
+                    <p>Deeply hydrating facials to nourish and moisturize dry skin.</p>
+                </a>
+            </div>
+            <div class="facial-card">
+                <a href="oily_skin_facials.html"> <!-- Link to Oily Skin Facials page -->
+                    <img src="{% static 'images/oily-skin.jpg' %}" alt="Oily Skin Facials">
+                    <h3>Oily Skin Facials</h3>
+                    <p>Purifying facials to help control excess oil and shine.</p>
+                </a>
+            </div>
+            <div class="facial-card">
+                <a href="sensitive_skin_facials.html"> <!-- Link to Sensitive Skin Facials page -->
+                    <img src="{% static 'images/sensitive-skin.jpg' %}" alt="Sensitive Skin Facials">
+                    <h3>Sensitive Skin Facials</h3>
+                    <p>Gentle facials designed to soothe and calm sensitive skin.</p>
+                </a>
+            </div>
+            <div class="facial-card">
+                <a href="anti_aging_facials.html"> <!-- Link to Anti-Aging Facials page -->
+                    <img src="{% static 'images/anti-skin.jpg' %}" alt="Anti-Aging Facials">
+                    <h3>Anti-Aging Facials</h3>
+                    <p>Revitalizing facials that help reduce the signs of aging.</p>
+                </a>
+            </div>
+            <div class="facial-card">
+                <a href="brightening_facials.html"> <!-- Link to Brightening Facials page -->
+                    <img src="{% static 'images/brightening-skin.jpg' %}" alt="Brightening Facials">
+                    <h3>Brightening Facials</h3>
+                    <p>Facials that enhance your skin's natural brightness and glow.</p>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer">
+        &copy; 2024 GlamourQuest Hair Salon | All rights reserved.
+    </footer>
+</body>
+
+</html>

@@ -1,122 +1,206 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Profile</title>
+    <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
     <style>
         body {
-            font-family: 'Arial', sans-serif;
-            background-color: #f4f4f4;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f2f5;
             margin: 0;
             padding: 0;
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
+        }
+
+        header {
+            background: linear-gradient(90deg, #ff7e5f, #feb47b);
+            color: white;
+            padding: 15px;
+            text-align: center;
+            font-size: 28px;
+            font-weight: bold;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        nav {
+            background-color: #5fffe2aa;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        nav a {
+            float: left;
+            display: block;
+            color: #ff7e5f;
+            text-align: center;
+            padding: 16px 20px;
+            text-decoration: none;
+            transition: background-color 0.3s ease;
+        }
+
+        nav a:hover {
+            background-color: #feb47b;
+            color: white;
         }
 
         .container {
-            max-width: 800px;
-            margin: 50px auto;
+            max-width: 600px;
+            background-color: white;
             padding: 30px;
-            background-color: #ffffff;
-            border-radius: 10px;
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+            border-radius: 12px;
+            box-shadow: 0 12px 25px rgba(0, 0, 0, 0.1);
+            margin: 30px auto;
         }
 
-        h1 {
+        h2 {
             text-align: center;
             color: #ff7e5f;
-            margin-bottom: 30px;
-            font-size: 2.5em;
+            font-size: 1.8rem;
+            margin-bottom: 25px;
+            font-weight: bold;
         }
 
-        .profile-info {
-            margin: 20px 0;
-            background-color: #f9f9f9;
-            border-radius: 8px;
-            padding: 20px;
-            border: 1px solid #ddd;
+        .profile-container {
+            float: right;
+            position: relative;
+            padding: 16px;
+            text-align: center;
+        }
+
+        .profile-icon {
+            cursor: pointer;
+            font-size: 18px; /* Slightly smaller icon */
+            padding: 8px; /* Reduce padding */
+            border-radius: 50%;
+            background-color: #ffffff;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+        .profile-name {
+            display: block;
+            margin-top: 8px;
+            font-size: 14px; /* Adjust size as needed */
+            color: #ff7e5f;
+            text-align: center;
+        }
+
+        .profile-dropdown {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: 100px; /* Adjusted position */
+            background-color: white;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            border-radius: 5px;
+            z-index: 1000;
+            width: 150px;
+        }
+
+        .profile-dropdown a {
+            display: block;
+            padding: 8px 10px;
+            text-align: left;
+            text-decoration: none;
+            font-size: 14px;
+            color: #ff7e5f;
+            border-bottom: 1px solid #f0f0f0;
+            transition: background-color 0.3s ease;
+        }
+
+        .profile-dropdown a:hover {
+            background-color: #feb47b;
+            color: white;
         }
 
         table {
             width: 100%;
-            border-collapse: collapse;
+            margin-top: 20px;
         }
 
-        th, td {
+        table th,
+        table td {
             padding: 12px;
             text-align: left;
             border-bottom: 1px solid #ddd;
-            font-size: 18px;
-        }
-
-        th {
-            background-color: #ff7e5f;
-            color: white;
-        }
-
-        a {
-            display: inline-block;
-            padding: 12px 20px;
-            background-color: #ff7e5f;
-            color: white;
-            border-radius: 5px;
-            text-align: center;
             font-size: 16px;
-            font-weight: bold;
-            text-decoration: none;
-            transition: background-color 0.3s ease;
-            margin-top: 20px;
-            width: 150px;
-            text-align: center;
-            margin-left: calc(50% - 75px); /* Centering the button */
         }
 
-        a:hover {
+        table th {
             background-color: #ff7e5f;
-        }
-
-        footer {
-            text-align: center;
-            padding: 15px;
-            background-color: #333;
             color: white;
-            margin-top: auto;
-            font-size: 0.9em;
         }
 
-        /* Responsive Design */
+        .btn-primary {
+            background-color: #ff7e5f;
+            border: none;
+            color: white;
+            padding: 12px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 8px;
+            width: 100%;
+            margin-top: 15px;
+            transition: background-color 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            background-color: #feb47b;
+        }
+
+        .form-errors {
+            color: red;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+
         @media (max-width: 768px) {
             .container {
-                padding: 20px;
-            }
-
-            h1 {
-                font-size: 2em;
-            }
-
-            th, td {
-                font-size: 16px;
-            }
-
-            a {
                 width: 100%;
-                margin-left: 0;
+                padding: 15px;
             }
         }
     </style>
 </head>
-<body>
-    <div class="container">
-        <h1>Profile Details</h1>
 
-        <div class="profile-info">
-            <table>
+<body>
+    <header>
+        <marquee behavior="scroll" direction="left" scrollamount="5">
+            <em>Welcome to GlamourQuest Hair Salon</em>
+        </marquee>
+        <div class="profile-container">
+            <div class="profile-icon" onclick="toggleDropdown()">&#128100;</div>
+            <div>
+                <span class="profile-name">{{ client.first_name }}</span>
+            </div>
+            <div class="profile-dropdown" id="profileDropdown">
+                <a href="{% url 'client_profile' %}">View Profile</a>
+                <a href="{% url 'client_update' %}">Update Profile</a>
+                <a href="{% url 'logout' %}">Logout</a>
+            </div>
+        </div>
+    </header>
+
+    <nav>
+        <a href="{% url 'client_dashboard' %}">Home</a>
+        <a href="{% url 'client_profile' %}">Profile</a>
+        <a href="{% url 'Book' %}">Appointments</a>
+        <a href="{% url 'client_services' %}">Services</a>
+       
+    </nav>
+
+    <div class="container">
+        <h2>Profile Details</h2>
+
+        <table>
+            <thead>
                 <tr>
                     <th>Field</th>
                     <th>Details</th>
                 </tr>
+            </thead>
+            <tbody>
                 <tr>
                     <td><strong>First Name:</strong></td>
                     <td>{{ client.first_name }}</td>
@@ -141,14 +225,30 @@
                     <td><strong>Status:</strong></td>
                     <td>{{ client.status|yesno:"Active,Inactive" }}</td>
                 </tr>
-            </table>
-        </div>
+            </tbody>
+        </table>
 
-        <a href="{% url 'client_update' %}">Update Profile</a>
+        <a href="{% url 'client_update' %}" class="btn btn-primary">Update Profile</a>
     </div>
 
-    <footer>
-        &copy; 2024 Hair Salon | All Rights Reserved
-    </footer>
+    <script>
+        function toggleDropdown() {
+            var dropdown = document.getElementById('profileDropdown');
+            dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+        }
+
+        window.onclick = function(event) {
+            if (!event.target.matches('.profile-icon')) {
+                var dropdowns = document.getElementsByClassName("profile-dropdown");
+                for (var i = 0; i < dropdowns.length; i++) {
+                    var openDropdown = dropdowns[i];
+                    if (openDropdown.style.display === 'block') {
+                        openDropdown.style.display = 'none';
+                    }
+                }
+            }
+        };
+    </script>
 </body>
+
 </html>

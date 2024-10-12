@@ -119,12 +119,13 @@
         {% for message in messages %}
             <div class="alert alert-success">{{ message }}</div>
         {% endfor %}
-
-        <form method="POST">
+        
+        <form method="POST" enctype="multipart/form-data">
             {% csrf_token %}
             {{ form.as_p }}
             <button type="submit" class="btn btn-primary">Add Service</button>
         </form>
+        
 
         <h3>Existing Services</h3>
         <div class="card-grid">
@@ -132,16 +133,28 @@
                 <div class="service-item">
                     <h5>{{ service.name }}</h5>
                     <p>{{ service.description }}</p>
-                    <p><strong>Price:</strong> ${{ service.price }} | <strong>Duration:</strong> {{ service.duration }} mins</p>
+                    <p><strong>Price:</strong> ${{ service.price|floatformat:2 }} | <strong>Duration:</strong> {{ service.duration }} mins</p>
+        
+                    {% if service.image %}
+                        <img src="{{ service.image.url }}" alt="{{ service.name }}">
+                    {% else %}
+                        <p>No image available.</p>
+                    {% endif %}
+        
                     <form method="POST" action="{% url 'delete_service' service.id %}">
                         {% csrf_token %}
                         <button type="submit" class="btn btn-danger">Delete</button>
+                    </form>
+                    <form method="GET" action="{% url 'edit_services' service.id %}">
+                        <button type="submit" class="btn btn-primary">Edit</button>
                     </form>
                 </div>
             {% empty %}
                 <p>No services available.</p>
             {% endfor %}
         </div>
+        
+        
     </div>
 
 </body>

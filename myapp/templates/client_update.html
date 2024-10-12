@@ -1,6 +1,7 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,31 +11,48 @@
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: #f0f2f5;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
             margin: 0;
-            padding: 20px;
+            padding: 0;
         }
+
+        header {
+            background: linear-gradient(90deg, #ff7e5f, #feb47b);
+            color: white;
+            padding: 15px;
+            text-align: center;
+            font-size: 28px;
+            font-weight: bold;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        nav {
+            background-color: #5fffe2aa;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        nav a {
+            float: left;
+            display: block;
+            color: #ff7e5f;
+            text-align: center;
+            padding: 16px 20px;
+            text-decoration: none;
+            transition: background-color 0.3s ease;
+        }
+
+        nav a:hover {
+            background-color: #feb47b;
+            color: white;
+        }
+
         .container {
             max-width: 600px;
             background-color: white;
             padding: 30px;
             border-radius: 12px;
             box-shadow: 0 12px 25px rgba(0, 0, 0, 0.1);
-            animation: fadeIn 0.5s ease-in-out;
-        }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            margin: 30px auto;
         }
 
         h2 {
@@ -45,30 +63,63 @@
             font-weight: bold;
         }
 
-        table {
-            width: 100%;
-            margin-bottom: 20px;
-            border-collapse: collapse;
+        .profile-container {
+            float: right;
+            position: relative;
+            padding: 16px;
+            text-align: center;
         }
 
-        th, td {
-            padding: 12px;
+        .profile-icon {
+            cursor: pointer;
+            font-size: 18px; /* Slightly smaller icon */
+            padding: 8px; /* Reduce padding */
+            border-radius: 50%;
+            background-color: #ffffff;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        /* New styling for username below the icon */
+        .profile-name {
+            display: block;
+            margin-top: 8px;
+            font-size: 14px; /* Adjust size as needed */
+            color: #ff7e5f;
+            text-align: center;
+        }
+
+        .profile-dropdown {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: 100px; /* Adjusted position */
+            background-color: white;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            border-radius: 5px;
+            z-index: 1000;
+            width: 150px;
+        }
+
+        .profile-dropdown a {
+            display: block;
+            padding: 8px 10px;
             text-align: left;
-            border-bottom: 1px solid #ddd;
+            text-decoration: none;
+            font-size: 14px;
+            color: #ff7e5f;
+            border-bottom: 1px solid #f0f0f0;
+            transition: background-color 0.3s ease;
         }
 
-        label {
-            font-weight: bold;
-            color: #333;
+        .profile-dropdown a:hover {
+            background-color: #feb47b;
+            color: white;
         }
 
-        .form-control {
-            border-radius: 8px;
-            border: 1px solid #ccc;
-            padding: 12px;
-            font-size: 16px;
-            width: 100%;
-            box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.05);
+        .form-errors {
+            color: red;
+            font-size: 14px;
+            margin-top: 10px;
         }
 
         .btn-primary {
@@ -85,49 +136,63 @@
         }
 
         .btn-primary:hover {
-            background-color: #ff7e5f;
+            background-color: #feb47b;
         }
 
-        .alert-success {
-            background-color: #d4edda;
-            color: #ff7e5f;
-            border-color: #c3e6cb;
-            border-radius: 8px;
+        table input, table select, table textarea {
+            width: 100%;
             padding: 10px;
-            margin-top: 20px;
             font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            box-sizing: border-box;
         }
 
-        .alert-success::before {
-            content: "✔️ ";
-            font-size: 16px;
+        table td {
+            padding: 12px 8px;
         }
 
-        .form-errors {
-            color: red;
-            font-size: 14px;
-            margin-top: 10px;
-        }
-
-        /* Responsive */
         @media (max-width: 768px) {
             .container {
                 width: 100%;
                 padding: 15px;
             }
-
-            .btn-primary {
-                font-size: 14px;
-            }
         }
     </style>
 </head>
+
 <body>
+    <header>
+        <marquee behavior="scroll" direction="left" scrollamount="5">
+            <em>Welcome to GlamourQuest Hair Salon</em>
+        </marquee>
+        <div class="profile-container">
+            <div class="profile-icon" onclick="toggleDropdown()">&#128100;</div>
+            <div>
+                <span class="profile-name">{{ client.first_name }}</span>
+            </div>
+            <div class="profile-dropdown" id="profileDropdown">
+                <a href="{% url 'client_profile' %}">View Profile</a>
+                <a href="{% url 'client_update' %}">Update Profile</a>
+                <a href="{% url 'logout' %}">Logout</a>
+            </div>
+        </div>
+        
+    </header>
+
+    <nav>
+        <a href="{% url 'client_dashboard' %}">Home</a>
+        <a href="{% url 'client_profile' %}">Profile</a>
+        <a href="{% url 'Book' %}">Appointments</a>
+        <a href="{% url 'client_services' %}">Services</a>
+
+    </nav>
+
     <div class="container">
         <h2>Update Your Profile</h2>
         <form method="POST">
             {% csrf_token %}
-            <table>
+            <table style="margin-left: auto; margin-right: auto;">
                 <tbody>
                     {% for field in form %}
                     <tr>
@@ -137,9 +202,9 @@
                         <td>
                             {{ field }}
                             {% if field.errors %}
-                                <div class="form-errors">
-                                    {{ field.errors }}
-                                </div>
+                            <div class="form-errors">
+                                {{ field.errors }}
+                            </div>
                             {% endif %}
                         </td>
                     </tr>
@@ -150,9 +215,29 @@
         </form>
         <div>
             {% for message in messages %}
-                <div class="alert alert-success">{{ message }}</div>
+            <div class="alert alert-success">{{ message }}</div>
             {% endfor %}
         </div>
     </div>
+
+    <script>
+        function toggleDropdown() {
+            var dropdown = document.getElementById('profileDropdown');
+            dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+        }
+
+        window.onclick = function(event) {
+            if (!event.target.matches('.profile-icon')) {
+                var dropdowns = document.getElementsByClassName("profile-dropdown");
+                for (var i = 0; i < dropdowns.length; i++) {
+                    var openDropdown = dropdowns[i];
+                    if (openDropdown.style.display === 'block') {
+                        openDropdown.style.display = 'none';
+                    }
+                }
+            }
+        };
+    </script>
 </body>
+
 </html>

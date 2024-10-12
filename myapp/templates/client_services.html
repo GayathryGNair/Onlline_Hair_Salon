@@ -8,133 +8,245 @@
     <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
     <style>
         body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
-            padding: 20px;
+            font-family: 'Poppins', sans-serif;
             margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+            color: #333;
         }
 
-        h1 {
+        header {
+            background: linear-gradient(90deg, #ff7e5f, #feb47b);
+            color: white;
+            padding: 15px;
             text-align: center;
-            margin-bottom: 30px;
-            color:#ff7e5f;
-            font-size: 2.5rem; /* Larger font size */
-            font-weight: bold; /* Bolder text */
+            font-size: 28px;
+            font-weight: bold;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            position: relative;
+        }
+
+        nav {
+            background-color: #5fffe2aa;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            position: relative;
+        }
+
+        nav a {
+            float: left;
+            display: block;
+            color: #ff7e5f;
+            text-align: center;
+            padding: 16px 20px;
+            text-decoration: none;
+            transition: background-color 0.3s ease;
+        }
+
+        nav a:hover {
+            background-color: #feb47b;
+            color: white;
+        }
+
+        .profile-container {
+            float: right;
+            padding: 16px;
+            text-align: center;
+        }
+
+        .profile-icon {
+            cursor: pointer;
+            font-size: 18px;
+            padding: 8px;
+            border-radius: 50%;
+            background-color: #ffffff;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            display: inline-block; /* Ensures proper layout */
+        }
+
+        .profile-name {
+            display: block;
+            margin-top: 8px;
+            font-size: 14px;
+            color: #ff7e5f;
+            text-align: center;
+        }
+
+        .profile-dropdown {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: 60px; /* Adjusted position to avoid overlap */
+            background-color: white;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            border-radius: 5px;
+            z-index: 1000;
+            width: 150px;
+        }
+
+        .profile-dropdown a {
+            display: block;
+            padding: 8px 10px;
+            text-align: left;
+            text-decoration: none;
+            font-size: 14px;
+            color: #ff7e5f;
+            border-bottom: 1px solid #f0f0f0;
+            transition: background-color 0.3s ease;
+        }
+
+        .profile-dropdown a:hover {
+            background-color: #feb47b;
+            color: white;
         }
 
         .container {
-            max-width: 800px; /* Limit the max width of the table */
-            margin: auto; /* Center the container */
+            max-width: 1200px;
+            margin: auto;
             padding: 20px;
-            background-color: white; /* White background for the container */
-            border-radius: 12px; /* Rounded corners */
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* Subtle shadow effect */
         }
 
-        .table {
+        .card-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
+        }
+
+        .card {
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            width: 300px;
+            padding: 20px;
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+
+        .card img {
             width: 100%;
-            margin-top: 20px;
-            border-collapse: collapse;
-            font-size: 1rem; /* Base font size */
+            height: 200px;
+            object-fit: cover;
+            border-radius: 12px;
         }
 
-        .table th, .table td {
-            border: 1px solid #dddddd;
-            text-align: left;
-            padding: 12px;
-            transition: background-color 0.3s; /* Smooth background transition */
+        .card h3 {
+            font-size: 20px;
+            margin: 15px 0;
+            color: #ff7e5f;
         }
 
-        .table th {
-            background-color: #ff7e5f; /* Primary header color */
+        .card p {
+            font-size: 14px;
+            color: #333;
+        }
+
+        .card .rate, .card .duration {
+            margin: 10px 0;
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .card .btn {
+            background-color: #ff7e5f;
             color: white;
-            text-transform: uppercase; /* Uppercase text for headers */
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            border-radius: 6px;
+            text-decoration: none;
+            display: inline-block;
         }
 
-        .table tr:nth-child(even) {
-            background-color: #f9f9f9; /* Slightly lighter for even rows */
-        }
-
-        .table tr:hover {
-            background-color: #e0e0e0; /* Change background on hover */
-        }
-
-        .table td {
-            position: relative; /* Relative positioning for tooltips */
-        }
-
-        /* Tooltip styles */
-        .table td::after {
-            content: attr(data-tooltip); /* Use data-tooltip attribute */
-            position: absolute;
-            left: 50%;
-            bottom: 100%;
-            transform: translateX(-50%);
-            background-color: #333;
+        .card .btn:hover {
+            background-color: #feb47b;
             color: white;
-            padding: 5px 10px;
-            border-radius: 5px;
-            white-space: nowrap; /* Prevent line breaks */
-            visibility: hidden; /* Hide by default */
-            opacity: 0; /* Hide tooltip */
-            transition: opacity 0.3s; /* Smooth transition */
-            z-index: 10; /* Ensure it is on top */
         }
 
-        .table td:hover::after {
-            visibility: visible; /* Show tooltip on hover */
-            opacity: 1; /* Fade in tooltip */
+        .card:hover {
+            transform: scale(1.05);
         }
 
-        .no-services {
-            text-align: center; /* Center text */
-            color: #ff7e5f; /* Primary color for no services message */
-            font-weight: bold; /* Bold text */
-        }
-
-        /* Responsive design */
-        @media (max-width: 768px) {
-            h1 {
-                font-size: 2rem; /* Smaller font on smaller screens */
-            }
-
-            .table th, .table td {
-                font-size: 0.9rem; /* Smaller font for table cells */
-            }
-
-            .container {
-                padding: 15px; /* Reduce padding on smaller screens */
-            }
+        footer {
+            text-align: center;
+            padding: 15px;
+            background-color: #5fffe2aa;
+            color: #ff7e5f;
+            font-size: 14px;
+            position: relative;
+            width: 100%;
+            bottom: 0;
         }
     </style>
 </head>
 <body>
-    <h1>Our Services</h1>
+    <header>
+        <marquee behavior="scroll" direction="left" scrollamount="5">
+            <em>Welcome to GlamourQuest Hair Salon</em>
+        </marquee>
+        
+        <div class="profile-container">
+            <div class="profile-icon" onclick="toggleDropdown()">&#128100;</div>
+            <div>
+                <span class="profile-name">{{ client.first_name }}</span>
+            </div>
+            <div class="profile-dropdown" id="profileDropdown">
+                <a href="{% url 'client_profile' %}">View Profile</a>
+                <a href="{% url 'client_update' %}">Update Profile</a>
+                <a href="{% url 'logout' %}">Logout</a>
+            </div>
+        </div>
+    </header>
+
+    <nav>
+        <a href="#">Home</a>
+        <a href="{% url 'client_profile' %}">Profile</a>
+        <a href="{% url 'Book' %}">Appointments</a>
+        <a href="{% url 'client_services' %}">Services</a>
+        
+    </nav>
+
     <div class="container">
-        <table class="table">
-            <thead>
-                <tr>
-                    <th>Service Name</th>
-                    <th>Description</th>
-                    <th>Rate ($)</th>
-                    <th>Duration</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for service in services %}
-                    <tr>
-                        <td data-tooltip="Click to learn more">{{ service.name }}</td>
-                        <td>{{ service.description }}</td>
-                        <td>{{ service.rate }}</td>
-                        <td>{{ service.duration }}</td>
-                    </tr>
-                {% empty %}
-                    <tr>
-                        <td colspan="4" class="no-services">No services available at the moment.</td>
-                    </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+        <h1>Our Services</h1>
+        <div class="card-container">
+            {% for service in services %}
+            <div class="card">
+                {% if service.image %}
+                <img src="{{ service.image.url }}" alt="{{ service.name }}">
+                {% endif %}
+                <h3>{{ service.name }}</h3>
+                <p>{{ service.description }}</p>
+                <p class="rate">Rate: ${{ service.rate|default:"No Rate Available" }}</p>
+                <p class="duration">Duration: {{ service.duration }} mins</p>
+                <a href="#" class="btn">Book Now</a>
+            </div>
+            {% empty %}
+            <p>No services available at the moment.</p>
+            {% endfor %}
+        </div>
     </div>
+
+    <footer>
+        &copy; 2024 Hair Salon | All Rights Reserved
+    </footer>
+
+    <script>
+        function toggleDropdown() {
+            var dropdown = document.getElementById('profileDropdown');
+            dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+        }
+
+        window.onclick = function(event) {
+            if (!event.target.matches('.profile-icon')) {
+                var dropdowns = document.getElementsByClassName("profile-dropdown");
+                for (var i = 0; i < dropdowns.length; i++) {
+                    var openDropdown = dropdowns[i];
+                    if (openDropdown.style.display === 'block') {
+                        openDropdown.style.display = 'none';
+                    }
+                }
+            }
+        };
+    </script>
 </body>
 </html>

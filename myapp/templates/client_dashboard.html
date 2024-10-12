@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -14,19 +15,21 @@
         }
 
         header {
-            background: linear-gradient(90deg, #ff7e5f, #feb47b); /* Multicolor gradient */
+            background: linear-gradient(90deg, #ff7e5f, #feb47b);
             color: white;
             padding: 15px;
             text-align: center;
             font-size: 28px;
             font-weight: bold;
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            position: relative;
         }
 
         nav {
             background-color: #5fffe2aa;
             overflow: hidden;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            position: relative;
         }
 
         nav a {
@@ -40,7 +43,59 @@
         }
 
         nav a:hover {
-            background-color: #feb47b; /* Change on hover */
+            background-color: #feb47b;
+            color: white;
+        }
+
+        .profile-name {
+            display: block;
+            margin-top: 8px;
+            font-size: 14px; /* Adjust size as needed */
+            color: #ff7e5f;
+            text-align: center;
+        }
+
+        /* Profile icon */
+        .profile-container {
+            float: right;
+            position: relative;
+            padding: 16px;
+        }
+
+        .profile-icon {
+            cursor: pointer;
+            font-size: 18px; /* Slightly smaller icon */
+            padding: 8px; /* Reduce padding */
+            border-radius: 50%;
+            background-color: #ffffff;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .profile-dropdown {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: 50px;
+            background-color: white;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            border-radius: 5px;
+            z-index: 1000;
+            width: 150px; /* Reduce width */
+        }
+
+        .profile-dropdown a {
+            display: block;
+            padding: 8px 10px; /* Reduce padding */
+            text-align: left;
+            text-decoration: none;
+            font-size: 14px; /* Smaller font size */
+            color: #ff7e5f;
+            border-bottom: 1px solid #f0f0f0;
+            transition: background-color 0.3s ease;
+        }
+
+        .profile-dropdown a:hover {
+            background-color: #feb47b;
             color: white;
         }
 
@@ -63,7 +118,7 @@
 
         h2 {
             margin-top: 0;
-            color: #ff7e5f; /* Use a color from the gradient */
+            color: #ff7e5f;
             font-size: 28px;
             font-weight: 600;
         }
@@ -94,7 +149,7 @@
         }
 
         .card h3 {
-            color: #ff7e5f; /* Use a color from the gradient */
+            color: #ff7e5f;
             font-size: 22px;
             margin-bottom: 10px;
         }
@@ -109,7 +164,7 @@
             display: inline-block;
             margin-top: 15px;
             padding: 12px 30px;
-            background: linear-gradient(90deg, #ff7e5f, #feb47b); /* Multicolor gradient */
+            background: linear-gradient(90deg, #ff7e5f, #feb47b);
             color: white;
             text-decoration: none;
             border-radius: 5px;
@@ -118,7 +173,7 @@
         }
 
         .card a:hover {
-            background: linear-gradient(90deg, #feb47b, #ff7e5f); /* Reverse gradient on hover */
+            background: linear-gradient(90deg, #feb47b, #ff7e5f);
             transform: scale(1.05);
         }
 
@@ -147,24 +202,39 @@
         }
     </style>
 </head>
+
 <body>
     <header>
         <marquee behavior="scroll" direction="left" scrollamount="5">
             <em>Welcome to GlamourQuest Hair Salon</em>
         </marquee>
+        <div class="profile-container">
+            <div class="profile-icon" onclick="toggleDropdown()">&#128100;</div>
+            <span class="profile-name">{{ client.first_name }}</span> <!-- New name display -->
+            <div class="profile-dropdown" id="profileDropdown">
+                <a href="{% url 'client_profile' %}">View Profile</a>
+                <a href="{% url 'client_update' %}">Update Profile</a>
+                <a href="{% url 'logout' %}">Logout</a>
+            </div> 
+        </div>
+        
+        </div>
     </header>
-    
+
     <nav>
         <a href="#">Home</a>
         <a href="{% url 'client_profile' %}">Profile</a>
-        <a href="#">Appointments</a>
+        <a href="{% url 'Book' %}">Appointments</a>
         <a href="{% url 'client_services' %}">Services</a>
-        <a href="{% url 'logout' %}">Logout</a>
+        <a href="{% url 'hair_care_services' %}">Hair Care</a>
+        <a href="{% url 'facial_services' %}">Facial</a>
+        <a href="{% url 'mani-pedi-services' %}">Mani & Pedi</a>
+        <a href="{% url 'waxing-services' %}">Waxing</a>
     </nav>
 
     <div class="container">
         <div class="dashboard-card">
-            <h2>Hello {{ client.first_name }}</h2> 
+            <h2>Hello {{ client.first_name }}</h2>
             <p>Welcome to your personal dashboard. Here you can manage your bookings, view your profile, and more.</p>
         </div>
 
@@ -186,10 +256,32 @@
             </div>
         </div>
     </div>
+
     <br><br><br><br>
 
     <footer>
         &copy; 2024 Hair Salon | All Rights Reserved
     </footer>
+
+    <script>
+        function toggleDropdown() {
+            var dropdown = document.getElementById('profileDropdown');
+            dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+        }
+
+        // Optional: Close dropdown if clicked outside
+        window.onclick = function(event) {
+            if (!event.target.matches('.profile-icon')) {
+                var dropdowns = document.getElementsByClassName("profile-dropdown");
+                for (var i = 0; i < dropdowns.length; i++) {
+                    var openDropdown = dropdowns[i];
+                    if (openDropdown.style.display === 'block') {
+                        openDropdown.style.display = 'none';
+                    }
+                }
+            }
+        };
+    </script>
 </body>
+
 </html>

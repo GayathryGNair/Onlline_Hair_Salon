@@ -20,15 +20,34 @@ class Client(User):
     reset_token = models.CharField(max_length=64, null=True, blank=True)  # Add reset_token field
 
 class Employee(User):
-    reset_token = models.CharField(max_length=64, null=True, blank=True)  # Add reset_token field
+    reset_token = models.CharField(max_length=64, null=True, blank=True) 
+    approved = models.BooleanField(default=False)  # Add reset_token field
 
-from django.db import models
-
-class Service(models.Model):
-    name = models.CharField(max_length=100)  # Name of the service
-    description = models.TextField()  # Description of the service
-    rate = models.DecimalField(max_digits=8, decimal_places=2)  # Price of the service
-    duration = models.DurationField(help_text="Duration in HH:MM:SS format")  # Duration of the service
+class ServiceCategory(models.Model):
+    name = models.CharField(max_length=100)
 
     def __str__(self):
         return self.name
+
+
+class ServiceSubcategory(models.Model):
+    category = models.ForeignKey(ServiceCategory, on_delete=models.CASCADE, related_name='subcategories')
+    name = models.CharField(max_length=100)
+
+    def __str__(self):
+        return f"{self.name} ({self.category.name})"
+
+
+class Service(models.Model):
+    subcategory = models.ForeignKey(ServiceSubcategory, on_delete=models.CASCADE, related_name='services')
+    service_name = models.CharField(max_length=100)
+    description = models.TextField()
+    rate = models.DecimalField(max_digits=10, decimal_places=2, help_text="Rate in Indian Rupees")
+    image = models.ImageField(upload_to='service_images/', blank=True, null=True)
+
+    def __str__(self):
+        return f"{self.service_name} ({self.subcategory.name} - {self.subcategory.category.name})"
+
+
+
+    

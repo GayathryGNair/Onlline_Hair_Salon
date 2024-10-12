@@ -1,0 +1,138 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Waxing Services</title>
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+
+        header {
+            background: linear-gradient(90deg, #ff7e5f, #feb47b);
+            color: white;
+            padding: 15px;
+            text-align: center;
+            font-size: 28px;
+            font-weight: bold;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        .container {
+            padding: 30px;
+        }
+
+        h2 {
+            color: #ff7e5f;
+            font-size: 28px;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+            margin-top: 30px;
+        }
+
+        .service-card {
+            background-color: white;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            transition: box-shadow 0.3s ease;
+        }
+
+        .service-card img {
+            max-width: 100%;
+            border-radius: 50%; /* Makes the image circular */
+            width: 200px; /* Ensure width and height are the same for a perfect circle */
+            height: 200px; /* Ensure height matches the width */
+            object-fit: cover; /* Ensures the image covers the circular area nicely */
+        }
+
+        .service-card h3 {
+            color: #ff7e5f;
+            font-size: 22px;
+            margin-top: 10px;
+        }
+
+        .service-card p {
+            color: #777;
+            font-size: 16px;
+            margin-bottom: 20px;
+        }
+
+        /* Remove underline from links in service cards */
+        .service-card a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 15px;
+            background-color: #5fffe2aa;
+            color: #ff7e5f;
+            font-size: 14px;
+            position: relative;
+            width: 100%;
+            bottom: 0;
+            margin-top: 30px;
+        }
+
+        @media (max-width: 768px) {
+            .card-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <h1>Waxing Services</h1>
+    </header>
+
+    <div class="container">
+        <h2>Choose Your Waxing Service</h2>
+        <div class="card-grid">
+            <div class="service-card">
+                <a href="honey_waxing.html"> <!-- Link to honey waxing page -->
+                    <img src="{% static 'images/honey-waxing.jpg' %}" alt="Honey Waxing">
+                    <h3>Honey Waxing</h3>
+                    <p>Smooth and gentle hair removal using honey wax.</p>
+                </a>
+            </div>
+            <div class="service-card">
+                <a href="rica_waxing.html"> <!-- Link to rica waxing page -->
+                    <img src="{% static 'images/rica-waxing.jpg' %}" alt="Rica Waxing">
+                    <h3>Rica Waxing</h3>
+                    <p>Effective and nourishing waxing for sensitive skin.</p>
+                </a>
+            </div>
+            <div class="service-card">
+                <a href="rica_rollon_waxing.html"> <!-- Link to rica roll-on waxing page -->
+                    <img src="{% static 'images/rica-rollon-waxing.jpg' %}" alt="Rica Roll-on Waxing">
+                    <h3>Rica Roll-on Waxing</h3>
+                    <p>Convenient and smooth roll-on waxing experience.</p>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer">
+        &copy; 2024 GlamourQuest Hair Salon | All rights reserved.
+    </footer>xaa
+</body>
+
+</html>
