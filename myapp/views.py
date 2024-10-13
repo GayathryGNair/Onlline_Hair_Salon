@@ -1,5 +1,5 @@
 # myapp/views.py
-
+# index page
 from django.shortcuts import render, get_object_or_404
 from django.contrib.auth import views as auth_views
 from django.contrib.auth import authenticate, login as auth_login
@@ -12,10 +12,19 @@ from django.views.decorators.cache import cache_control
 from django.core.mail import EmailMessage, send_mail
 from django.utils.crypto import get_random_string
 from django.urls import reverse
-
 from django.shortcuts import render
 from .models import Client
 from django.contrib.auth.decorators import login_required
+from django.shortcuts import render, redirect
+from django.contrib import messages
+from django.core.mail import send_mail
+from django.utils.crypto import get_random_string
+from django.urls import reverse
+from .models import Client, Employee  # Make sure to import your User subclasses
+from django.contrib.auth.hashers import make_password 
+from .models import Client, Employee
+from django.db import IntegrityError
+
 
 def home(request):
     return render(request, 'index.html')
@@ -37,14 +46,6 @@ def contact(request):
 
 def Book(request):
     return render(request, 'Book.html')
-
-from django.shortcuts import render, redirect
-from django.contrib import messages
-from django.core.mail import send_mail
-from django.utils.crypto import get_random_string
-from django.urls import reverse
-from .models import Client, Employee  # Make sure to import your User subclasses
-from django.contrib.auth.hashers import make_password  # For hashing passwords
 
 def forgot_reset(request):
     if request.method == 'POST':
@@ -124,12 +125,6 @@ def logout(request):
     request.session.flush()  
     return redirect('login')
 
-from django.contrib.auth import authenticate, login as auth_login
-from django.contrib.auth.hashers import check_password
-from django.shortcuts import render, redirect
-from django.contrib import messages
-from .models import Client, Employee  # Make sure to import your models
-
 def login(request):
     if request.method == 'POST':
         email = request.POST['email']
@@ -178,13 +173,6 @@ def login(request):
             return redirect('login')
 
     return render(request, 'login.html')
-
-from django.shortcuts import render, redirect
-from django.contrib import messages
-from django.core.mail import send_mail
-from django.db import IntegrityError
-from django.contrib.auth.hashers import make_password
-from .models import Client, Employee  # Ensure to import your models
 
 def register(request):
     if request.method == 'POST':
@@ -254,12 +242,9 @@ def for_men(request):
 def for_women(request):
     return render(request, 'for_women.html')
 
+#client
 
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
-
-#Client
-
-
 def client_dashboard(request):
     # Check if user is logged in by verifying the session
     user_id = request.session.get('user_id')
@@ -277,77 +262,6 @@ def client_dashboard(request):
     }
     return render(request, 'client_dashboard.html', context)
 
-@cache_control(no_cache=True, must_revalidate=True, no_store=True)
-def employee_dashboard(request):
-     # Check if user is logged in by verifying the session
-    user_id = request.session.get('user_id')
-
-    
-    # Fetch the Client object using the user's ID
-    try:
-        employee = Employee.objects.get(id=user_id)
-    except Employee.DoesNotExist:
-        messages.error(request, "You want to loggin to access dashboard.")
-        return redirect('login')  # Redirect if client not found
-
-    context = {
-        'employee': employee,
-    }
-    return render(request, 'employee_dashboard.html', context)
-
-
-def user_profile(request):
-    return render(request, 'user_profile.html')
-
-from django.shortcuts import render, redirect
-from django.contrib import messages
-
-# def admin_login(request):
-#     if request.method == 'POST':
-#         username = request.POST['username']
-#         password = request.POST['password']
-        
-#         # Check against predefined credentials
-#         if username == 'admin' and password == 'admin123':
-#             # Create a custom session for the admin user
-#             request.session['is_admin'] = True
-#             return redirect('admin_dashboard')  # Redirect to admin dashboard
-#         else:
-#             messages.error(request, "Invalid username or password. Please try again.")
-    
-#     return render(request, 'admin_login.html')
-
-@cache_control(no_cache=True, must_revalidate=True, no_store=True)
-def admin_dashboard(request):
-    user_type = request.session.get('user_type')
-
-    if user_type != 'admin':
-        messages.error(request, "You need to log in as admin to access this page.")
-        return redirect('login')  # Redirect non-admins to login
-
-    # Proceed with loading the admin dashboard
-    return render(request, 'admin_dashboard.html')
-
-from django.shortcuts import render
-from .models import Client
-
-def manage_client(request):
-    # Fetch all clients from the database
-    clients = Client.objects.all()  # Fetch all clients
-    context = {'clients': clients}  # Passing clients data to the template
-    return render(request, 'manage_client.html', context)
-
-def manage_employee(request):
-    # Fetch all clients from the database
-    employees = Employee.objects.all()  # Fetch all clients
-    context = {'employees': employees}  # Passing clients data to the template
-    return render(request, 'manage_employee.html', context)
-
-
-from django.shortcuts import redirect
-from django.contrib import messages
-from .models import Client
-
 def toggle_client_status(request, client_id):
     if request.method == 'POST':
         client = Client.objects.get(id=client_id)
@@ -355,15 +269,6 @@ def toggle_client_status(request, client_id):
         client.save()
         messages.success(request, f"Client {client.first_name}'s status updated to {'Active' if client.status else 'Inactive'}.")
     return redirect('manage_client')
-
-from .models import Employee
-def toggle_employee_status(request, employee_id):
-    if request.method == 'POST':
-        employee = Employee.objects.get(id=employee_id)
-        employee.status = not employee.status  # Toggle the status
-        employee.save()
-        messages.success(request, f"employee {employee.first_name}'s status updated to {'Active' if employee.status else 'Inactive'}.")
-    return redirect('manage_employee')
 
 from django.shortcuts import render, redirect
 from django.contrib import messages
@@ -385,9 +290,6 @@ def client_update(request):
 
     return render(request, 'client_update.html', {'form': form})
 
-from django.shortcuts import render
-from django.contrib.auth.decorators import login_required
-from .models import Client
 
 def client_profile(request):
     # Assuming you store the user ID in the session
@@ -399,11 +301,157 @@ def client_profile(request):
     # Pass the client object to the template for display
     return render(request, 'client_profile.html', {'client': client})
 
+
+def client_services(request):
+    # Assuming you store the user ID in the session, or use the request's user object
+    user_id = request.session.get('user_id')  # Adjust this if needed based on how you store the session
+    client = Client.objects.get(id=user_id)
+
+    # Fetch all services from the database
+    services = Service.objects.all()
+
+    # Pass the client and services to the template
+    context = {
+        'client': client,  # Client data for the profile name and other info
+        'services': services,  # Services data to list available services
+    }
+
+    return render(request, 'client_services.html', context)
+
+def client_update(request):
+    user_id = request.session.get('user_id')  # Assuming you store the user ID in the session
+    client = Client.objects.get(id=user_id)
+
+    if request.method == 'POST':
+        form = ClientProfileUpdateForm(request.POST, instance=client)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Profile updated successfully!')
+            return redirect('client_dashboard')  # Redirect to the client dashboard
+    else:
+        form = ClientProfileUpdateForm(instance=client)
+
+    # Pass the client object to the template context
+    return render(request, 'client_update.html', {'form': form, 'client': client})
+
+
+from django.shortcuts import render, get_object_or_404
+from .models import ServiceSubcategory, Service
+
+def hair_care_services(request):
+    # Fetch all service subcategories where category ID is 1
+    hair_care_subcategories = ServiceSubcategory.objects.filter(category_id=1)
+    
+    context = {
+        'hair_care_subcategories': hair_care_subcategories,
+    }
+    
+    return render(request, 'hair_care_services.html', context)
+
+def services_in_subcategory(request, subcategory_id):
+    # Fetch the subcategory and its related services
+    subcategory = get_object_or_404(ServiceSubcategory, id=subcategory_id)
+    services = Service.objects.filter(subcategory=subcategory)
+    
+    context = {
+        'subcategory': subcategory,
+        'services': services,
+    }
+    
+    return render(request, 'services_in_subcategory.html', context)
+
+
+
+def facial_services(request):
+    facial_service_subcategories = ServiceSubcategory.objects.filter(category_id=2)
+    
+    context = {
+        'facial_service_subcategories': facial_service_subcategories,
+    }
+    
+    return render(request, 'facial_services.html', context)
+
+def hair_cut_services(request):
+    return render(request, 'hair_cut_services.html')
+
+def all_type_skin(request):
+    return render(request, 'all_type_skin.html')
+
+def mani_pedi_services(request):
+    mani_pedi_service_subcategories = ServiceSubcategory.objects.filter(category_id=2)
+    
+    context = {
+        'mani_pedi_service_subcategories': mani_pedi_service_subcategories,
+    }
+    
+    return render(request, 'mani-pedi-services.html', context)
+
+def waxing_services(request):
+    waxing_service_subcategories = ServiceSubcategory.objects.filter(category_id=2)
+    
+    context = {
+        'waxing_service_subcategories': waxing_service_subcategories,
+    }
+    
+    return render(request, 'waxing-services.html', context)
+
+from django.shortcuts import render, get_object_or_404
+from .models import Service
+
+def service_detail(request, service_id):
+    service = get_object_or_404(Service, id=service_id)
+    return render(request, 'service_detail.html', {'service': service})
+
+# admin 
+
+from django.shortcuts import render
+from .models import Client
+
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
+def admin_dashboard(request):
+    user_type = request.session.get('user_type')
+
+    if user_type != 'admin':
+        messages.error(request, "You need to log in as admin to access this page.")
+        return redirect('login')  # Redirect non-admins to login
+
+  
+    return render(request, 'admin_dashboard.html')
+
+
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
+def manage_client(request):
+    user_type = request.session.get('user_type')
+
+    if user_type != 'admin':
+        messages.error(request, "You need to log in as admin to access this page.")
+        return redirect('login')  
+    clients = Client.objects.all()  # Fetch all clients
+    context = {'clients': clients}  # Passing clients data to the template
+    return render(request, 'manage_client.html', context)
+
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
+def manage_employee(request):
+    user_type = request.session.get('user_type')
+
+    if user_type != 'admin':
+        messages.error(request, "You need to log in as admin to access this page.")
+        return redirect('login') 
+    employees = Employee.objects.all()  # Fetch all clients
+    context = {'employees': employees}  # Passing clients data to the template
+    return render(request, 'manage_employee.html', context)
+
 from django.shortcuts import render, redirect, get_object_or_404
 from .models import Service, ServiceCategory, ServiceSubcategory
 from django.contrib import messages
 
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def manage_service(request):
+    user_type = request.session.get('user_type')
+
+    if user_type != 'admin':
+        messages.error(request, "You need to log in as admin to access this page.")
+        return redirect('login') 
     if request.method == 'POST':
         category_id = request.POST.get('category')
         subcategory_id = request.POST.get('subcategory')
@@ -434,7 +482,13 @@ def manage_service(request):
         'messages': messages.get_messages(request),
     })
 
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def edit_services(request, service_id):
+    user_type = request.session.get('user_type')
+
+    if user_type != 'admin':
+        messages.error(request, "You need to log in as admin to access this page.")
+        return redirect('login')
     service = get_object_or_404(Service, id=service_id)
 
     if request.method == 'POST':
@@ -464,26 +518,175 @@ def delete_service(request, service_id):
     messages.success(request, 'Service deleted successfully.')
     return redirect('manage_service')
 
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
+def category(request):
+    user_type = request.session.get('user_type')
 
-from django.shortcuts import render
-from django.contrib import messages
-from .models import  Client
-
-def client_services(request):
-    # Assuming you store the user ID in the session, or use the request's user object
-    user_id = request.session.get('user_id')  # Adjust this if needed based on how you store the session
-    client = Client.objects.get(id=user_id)
-
-    # Fetch all services from the database
+    if user_type != 'admin':
+        messages.error(request, "You need to log in as admin to access this page.")
+        return redirect('login')
+    categories = ServiceCategory.objects.all()
+    subcategories = ServiceSubcategory.objects.all()
     services = Service.objects.all()
 
-    # Pass the client and services to the template
-    context = {
-        'client': client,  # Client data for the profile name and other info
-        'services': services,  # Services data to list available services
-    }
+    if request.method == 'POST':
+        if 'category_name' in request.POST:
+            # Add Category
+            category_name = request.POST['category_name']
+            if ServiceCategory.objects.filter(name=category_name).exists():
+                messages.error(request, 'Category already exists!')
+            else:
+                category = ServiceCategory(name=category_name)
+                category.save()
+                messages.success(request, 'Category added successfully!')
+        
+        elif 'subcategory_name' in request.POST:
+            # Add Subcategory
+            subcategory_name = request.POST['subcategory_name']
+            category_id = request.POST['category']
+            description = request.POST.get('description', '')
+            # Check if category exists
+            category = get_object_or_404(ServiceCategory, id=category_id)
+            if ServiceSubcategory.objects.filter(name=subcategory_name, category=category).exists():
+                messages.error(request, 'Subcategory already exists in this category!')
+            else:
+                # Handle image upload
+                subcategory = ServiceSubcategory(
+                    name=subcategory_name,
+                    category=category,
+                    description=description
+                )
+                
+                # Check if an image file was uploaded
+                if 'subcategory_image' in request.FILES:
+                    subcategory.image = request.FILES['subcategory_image']
+                    
+                subcategory.save()
+                messages.success(request, 'Subcategory added successfully!')
+        
+        return redirect('category')
 
-    return render(request, 'client_services.html', context)
+    return render(request, 'category.html', {
+        'categories': categories,
+        'subcategories': subcategories,
+        'services': services,
+    })
+
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
+def edit_category(request, category_id):
+    user_type = request.session.get('user_type')
+
+    if user_type != 'admin':
+        messages.error(request, "You need to log in as admin to access this page.")
+        return redirect('login')
+    category = get_object_or_404(ServiceCategory, id=category_id)
+    
+    if request.method == 'POST':
+        category.name = request.POST['category_name']
+        category.save()
+        messages.success(request, 'Category updated successfully!')
+        return redirect('category')
+    
+    return render(request, 'edit_category.html', {'category': category})
+
+def delete_category(request, category_id):
+    category = get_object_or_404(ServiceCategory, id=category_id)
+    category.delete()
+    messages.success(request, 'Category deleted successfully!')
+    return redirect('category')
+
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
+def edit_subcategory(request, subcategory_id):
+    user_type = request.session.get('user_type')
+
+    if user_type != 'admin':
+        messages.error(request, "You need to log in as admin to access this page.")
+        return redirect('login')
+    subcategory = get_object_or_404(ServiceSubcategory, id=subcategory_id)
+    
+    if request.method == 'POST':
+        subcategory_name = request.POST.get('subcategory_name', '').strip()
+        category_id = request.POST.get('category', None)
+        
+        # Validation: Check if subcategory name and category are provided
+        if not subcategory_name:
+            messages.error(request, 'Subcategory name cannot be empty.')
+            return render(request, 'edit_subcategory.html', {
+                'subcategory': subcategory,
+                'categories': ServiceCategory.objects.all()
+            })
+        
+        if not category_id:
+            messages.error(request, 'Please select a valid category.')
+            return render(request, 'edit_subcategory.html', {
+                'subcategory': subcategory,
+                'categories': ServiceCategory.objects.all()
+            })
+
+        try:
+            # Update the subcategory fields
+            subcategory.name = subcategory_name
+            subcategory.category_id = category_id
+            
+            # Handle optional description and image if they are part of the model
+            description = request.POST.get('description', '').strip()
+            if description:
+                subcategory.description = description
+            
+            if 'subcategory_image' in request.FILES:
+                subcategory.image = request.FILES['subcategory_image']
+            
+            subcategory.save()
+            messages.success(request, 'Subcategory updated successfully!')
+            return redirect('category')
+        except Exception as e:
+            messages.error(request, f'Error updating subcategory: {e}')
+    
+    categories = ServiceCategory.objects.all()
+    return render(request, 'edit_subcategory.html', {
+        'subcategory': subcategory,
+        'categories': categories
+    })
+
+
+
+def delete_subcategory(request, subcategory_id):
+    subcategory = get_object_or_404(ServiceSubcategory, id=subcategory_id)
+    subcategory.delete()
+    messages.success(request, 'Subcategory deleted successfully!')
+    return redirect('category')
+
+#employee
+
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
+def employee_dashboard(request):
+     # Check if user is logged in by verifying the session
+    user_id = request.session.get('user_id')
+
+    
+    # Fetch the Client object using the user's ID
+    try:
+        employee = Employee.objects.get(id=user_id)
+    except Employee.DoesNotExist:
+        messages.error(request, "You want to loggin to access dashboard.")
+        return redirect('login')  # Redirect if client not found
+
+    context = {
+        'employee': employee,
+    }
+    return render(request, 'employee_dashboard.html', context)
+
+def user_profile(request):
+    return render(request, 'user_profile.html')
+
+
+def toggle_employee_status(request, employee_id):
+    if request.method == 'POST':
+        employee = Employee.objects.get(id=employee_id)
+        employee.status = not employee.status  # Toggle the status
+        employee.save()
+        messages.success(request, f"employee {employee.first_name}'s status updated to {'Active' if employee.status else 'Inactive'}.")
+    return redirect('manage_employee')
 
 
 def employee_services(request):
@@ -543,225 +746,5 @@ def toggle_employee_approval(request, employee_id):
     employee.save()
     return redirect('manage_employee')
 
-from django.shortcuts import render, redirect
-from django.contrib import messages
-from .models import Client
-from .forms import ClientProfileUpdateForm
-
-def client_update(request):
-    user_id = request.session.get('user_id')  # Assuming you store the user ID in the session
-    client = Client.objects.get(id=user_id)
-
-    if request.method == 'POST':
-        form = ClientProfileUpdateForm(request.POST, instance=client)
-        if form.is_valid():
-            form.save()
-            messages.success(request, 'Profile updated successfully!')
-            return redirect('client_dashboard')  # Redirect to the client dashboard
-    else:
-        form = ClientProfileUpdateForm(instance=client)
-
-    # Pass the client object to the template context
-    return render(request, 'client_update.html', {'form': form, 'client': client})
-
-from django.shortcuts import render
-from .models import ServiceCategory, ServiceSubcategory, Service
-
-# views.py
-from django.shortcuts import render
-from .models import Service, ServiceSubcategory
-
-# views.py
-from django.shortcuts import render
-from .models import Service, ServiceSubcategory
-
-# views.py
-from django.shortcuts import render
-from .models import ServiceSubcategory, Service
-
-def hair_care_services(request):
-    # Fetch all service subcategories where category ID is 1
-    hair_care_subcategories = ServiceSubcategory.objects.filter(category_id=1)
-    
-    context = {
-        'hair_care_subcategories': hair_care_subcategories,
-    }
-    
-    return render(request, 'hair_care_services.html', context)
 
 
-
-
-
-def hair_cut_services(request):
-    return render(request, 'hair_cut_services.html')
-
-def facial_services(request):
-    return render(request, 'facial_services.html')
-
-def all_type_skin(request):
-    return render(request, 'all_type_skin.html')
-
-def mani_pedi_services(request):
-    return render(request, 'mani-pedi-services.html')
-
-def waxing_services(request):
-    return render(request, 'waxing-services.html')
-from django.shortcuts import render, get_object_or_404
-from .models import Service
-
-def service_detail(request, service_id):
-    service = get_object_or_404(Service, id=service_id)
-    return render(request, 'service_detail.html', {'service': service})
-
-from django.shortcuts import render, get_object_or_404, redirect
-from django.contrib import messages
-from .models import ServiceCategory, ServiceSubcategory, Service
-
-def category(request):
-    categories = ServiceCategory.objects.all()
-    subcategories = ServiceSubcategory.objects.all()
-    services = Service.objects.all()
-
-    if request.method == 'POST':
-        if 'category_name' in request.POST:
-            # Add Category
-            category_name = request.POST['category_name']
-            if ServiceCategory.objects.filter(name=category_name).exists():
-                messages.error(request, 'Category already exists!')
-            else:
-                category = ServiceCategory(name=category_name)
-                category.save()
-                messages.success(request, 'Category added successfully!')
-        
-        elif 'subcategory_name' in request.POST:
-            # Add Subcategory
-            subcategory_name = request.POST['subcategory_name']
-            category_id = request.POST['category']
-            description = request.POST.get('description', '')
-            # Check if category exists
-            category = get_object_or_404(ServiceCategory, id=category_id)
-            if ServiceSubcategory.objects.filter(name=subcategory_name, category=category).exists():
-                messages.error(request, 'Subcategory already exists in this category!')
-            else:
-                # Handle image upload
-                subcategory = ServiceSubcategory(
-                    name=subcategory_name,
-                    category=category,
-                    description=description
-                )
-                
-                # Check if an image file was uploaded
-                if 'subcategory_image' in request.FILES:
-                    subcategory.image = request.FILES['subcategory_image']
-                    
-                subcategory.save()
-                messages.success(request, 'Subcategory added successfully!')
-        
-        return redirect('category')
-
-    return render(request, 'category.html', {
-        'categories': categories,
-        'subcategories': subcategories,
-        'services': services,
-    })
-
-
-
-def edit_category(request, category_id):
-    category = get_object_or_404(ServiceCategory, id=category_id)
-    
-    if request.method == 'POST':
-        category.name = request.POST['category_name']
-        category.save()
-        messages.success(request, 'Category updated successfully!')
-        return redirect('category')
-    
-    return render(request, 'edit_category.html', {'category': category})
-
-
-def delete_category(request, category_id):
-    category = get_object_or_404(ServiceCategory, id=category_id)
-    category.delete()
-    messages.success(request, 'Category deleted successfully!')
-    return redirect('category')
-
-
-from django.shortcuts import render, get_object_or_404, redirect
-from django.contrib import messages
-from .models import ServiceSubcategory, ServiceCategory
-
-def edit_subcategory(request, subcategory_id):
-    subcategory = get_object_or_404(ServiceSubcategory, id=subcategory_id)
-    
-    if request.method == 'POST':
-        subcategory_name = request.POST.get('subcategory_name', '').strip()
-        category_id = request.POST.get('category', None)
-        
-        # Validation: Check if subcategory name and category are provided
-        if not subcategory_name:
-            messages.error(request, 'Subcategory name cannot be empty.')
-            return render(request, 'edit_subcategory.html', {
-                'subcategory': subcategory,
-                'categories': ServiceCategory.objects.all()
-            })
-        
-        if not category_id:
-            messages.error(request, 'Please select a valid category.')
-            return render(request, 'edit_subcategory.html', {
-                'subcategory': subcategory,
-                'categories': ServiceCategory.objects.all()
-            })
-
-        try:
-            # Update the subcategory fields
-            subcategory.name = subcategory_name
-            subcategory.category_id = category_id
-            
-            # Handle optional description and image if they are part of the model
-            description = request.POST.get('description', '').strip()
-            if description:
-                subcategory.description = description
-            
-            if 'subcategory_image' in request.FILES:
-                subcategory.image = request.FILES['subcategory_image']
-            
-            subcategory.save()
-            messages.success(request, 'Subcategory updated successfully!')
-            return redirect('category')
-        except Exception as e:
-            messages.error(request, f'Error updating subcategory: {e}')
-    
-    categories = ServiceCategory.objects.all()
-    return render(request, 'edit_subcategory.html', {
-        'subcategory': subcategory,
-        'categories': categories
-    })
-
-
-
-def delete_subcategory(request, subcategory_id):
-    subcategory = get_object_or_404(ServiceSubcategory, id=subcategory_id)
-    subcategory.delete()
-    messages.success(request, 'Subcategory deleted successfully!')
-    return redirect('category')
-
-from django.shortcuts import render, get_object_or_404, redirect
-from django.contrib import messages
-from .models import ServiceSubcategory, ServiceCategory
-
-# def edit_subcategory(request, subcategory_id):
-    # subcategory = get_object_or_404(ServiceSubcategory, id=subcategory_id)
-    
-    # if request.method == 'POST':
-    #     subcategory.name = request.POST['subcategory_name']
-    #     subcategory.category_id = request.POST['category']
-    #     subcategory.save()
-    #     messages.success(request, 'Subcategory updated successfully!')
-    #     return redirect('category')
-    
-    # categories = ServiceCategory.objects.all()
-    # return render(request, 'edit_subcategory.html', {
-    #     'subcategory': subcategory,  # This passes the subcategory to the template
-    #     'categories': categories
-    # })

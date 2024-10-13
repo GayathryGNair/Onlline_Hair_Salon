@@ -5,7 +5,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Waxing  Subcategories</title>
+    <title>{{ subcategory.name }} Services</title>
     <style>
         body {
             font-family: 'Poppins', sans-serif;
@@ -109,7 +109,7 @@
             margin-top: 30px;
         }
 
-        .facial-card {
+        .service-card {
             background-color: white;
             padding: 15px;
             border-radius: 10px;
@@ -118,28 +118,12 @@
             transition: box-shadow 0.3s ease;
         }
 
-        .facial-card img {
+        .service-card img {
             max-width: 100%;
-            border-radius: 50%;
+            border-radius: 10px;
             width: 200px;
             height: 200px;
             object-fit: cover;
-        }
-
-        .facial-card h3 {
-            color: #ff7e5f;
-            font-size: 22px;
-            margin-top: 10px;
-        }
-
-        .facial-card p {
-            color: #777;
-            font-size: 16px;
-            margin-bottom: 20px;
-        }
-
-        .facial-card a {
-            text-decoration: none;
         }
 
         .footer {
@@ -177,9 +161,7 @@
                 <a href="{% url 'client_profile' %}">View Profile</a>
                 <a href="{% url 'client_update' %}">Update Profile</a>
                 <a href="{% url 'logout' %}">Logout</a>
-            </div> 
-        </div>
-        
+            </div>
         </div>
     </header>
 
@@ -195,26 +177,23 @@
     </nav>
 
     <div class="container">
-        <h2>Our Waxing  Subcategories</h2>
+        <h2>Available Services</h2>
         <div class="card-grid">
-            {% for subcategory in waxing_service_subcategories %}
-                <div class="facial-card">
-                    <a href="{% url 'services_in_subcategory' subcategory.id %}"> <!-- Link to Services related to the Subcategory -->
-                        {% if subcategory.image %}
-                            <img src="{{ subcategory.image.url }}" alt="{{ subcategory.name }}">
-                        {% else %}
-                            <img src="{% static 'path/to/default/image.jpg' %}" alt="{{ subcategory.name }}">
-                        {% endif %}
-                        <h3>{{ subcategory.name }}</h3>
-                        <p>{{ subcategory.description }}</p> <!-- Displaying the description -->
-                        <p>Explore our range of services under {{ subcategory.name }}.</p>
-                    </a>
+            {% for service in services %}
+                <div class="service-card">
+                    <h3>{{ service.service_name }}</h3>
+                    <p>{{ service.description }}</p>
+                    <p>Rate: ₹{{ service.rate }}</p>
+                    {% if service.image %}
+                        <img src="{{ service.image.url }}" alt="{{ service.service_name }}">
+                    {% else %}
+                        <img src="{% static 'path/to/default/service_image.jpg' %}" alt="{{ service.service_name }}">
+                    {% endif %}
                 </div>
             {% empty %}
-                <p>No Waxing subcategories available.</p>
+                <p>No services available under this subcategory.</p>
             {% endfor %}
         </div>
-        
     </div>
 
     <footer class="footer">

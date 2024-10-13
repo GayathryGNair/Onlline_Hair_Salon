@@ -5,7 +5,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mani & Pedi Services</title>
+    <title>Mani_pedi Care Subcategories</title>
     <style>
         body {
             font-family: 'Poppins', sans-serif;
@@ -23,6 +23,72 @@
             font-size: 28px;
             font-weight: bold;
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            position: relative;
+        }
+
+        .profile-container {
+            float: right;
+            position: relative;
+            padding: 16px;
+        }
+
+        .profile-icon {
+            cursor: pointer;
+            font-size: 18px;
+            padding: 8px;
+            border-radius: 50%;
+            background-color: #ffffff;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .profile-dropdown {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: 50px;
+            background-color: white;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            border-radius: 5px;
+            z-index: 1000;
+            width: 150px;
+        }
+
+        .profile-dropdown a {
+            display: block;
+            padding: 8px 10px;
+            text-align: left;
+            text-decoration: none;
+            font-size: 14px;
+            color: #ff7e5f;
+            border-bottom: 1px solid #f0f0f0;
+            transition: background-color 0.3s ease;
+        }
+
+        .profile-dropdown a:hover {
+            background-color: #feb47b;
+            color: white;
+        }
+
+        nav {
+            background-color: #5fffe2aa;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            position: relative;
+        }
+
+        nav a {
+            float: left;
+            display: block;
+            color: #ff7e5f;
+            text-align: center;
+            padding: 16px 20px;
+            text-decoration: none;
+            transition: background-color 0.3s ease;
+        }
+
+        nav a:hover {
+            background-color: #feb47b;
+            color: white;
         }
 
         .container {
@@ -43,7 +109,7 @@
             margin-top: 30px;
         }
 
-        .service-card {
+        .facial-card {
             background-color: white;
             padding: 15px;
             border-radius: 10px;
@@ -52,29 +118,28 @@
             transition: box-shadow 0.3s ease;
         }
 
-        .service-card img {
+        .facial-card img {
             max-width: 100%;
-            border-radius: 50%; /* Makes the image circular */
-            width: 200px; /* Ensure width and height are the same for a perfect circle */
-            height: 200px; /* Ensure height matches the width */
-            object-fit: cover; /* Ensures the image covers the circular area nicely */
+            border-radius: 50%;
+            width: 200px;
+            height: 200px;
+            object-fit: cover;
         }
-        .service-card h3 {
+
+        .facial-card h3 {
             color: #ff7e5f;
             font-size: 22px;
             margin-top: 10px;
         }
 
-        .service-card p {
+        .facial-card p {
             color: #777;
             font-size: 16px;
             margin-bottom: 20px;
         }
 
-        /* Remove underline from links in service cards */
-        .service-card a {
+        .facial-card a {
             text-decoration: none;
-            color: inherit;
         }
 
         .footer {
@@ -90,8 +155,11 @@
         }
 
         @media (max-width: 768px) {
-            .card-grid {
-                grid-template-columns: 1fr;
+            nav a {
+                float: none;
+                width: 100%;
+                text-align: left;
+                padding: 15px;
             }
         }
     </style>
@@ -99,39 +167,79 @@
 
 <body>
     <header>
-        <h1>Mani & Pedi Services</h1>
+        <marquee behavior="scroll" direction="left" scrollamount="5">
+            <em>Welcome to GlamourQuest Hair Salon</em>
+        </marquee>
+        <div class="profile-container">
+            <div class="profile-icon" onclick="toggleDropdown()">&#128100;</div>
+            <span class="profile-name">{{ client.first_name }}</span> <!-- New name display -->
+            <div class="profile-dropdown" id="profileDropdown">
+                <a href="{% url 'client_profile' %}">View Profile</a>
+                <a href="{% url 'client_update' %}">Update Profile</a>
+                <a href="{% url 'logout' %}">Logout</a>
+            </div> 
+        </div>
+        
+        </div>
     </header>
 
+    <nav>
+        <a href="{% url 'client_dashboard' %}">Home</a>
+        <a href="{% url 'client_profile' %}">Profile</a>
+        <a href="{% url 'Book' %}">Appointments</a>
+        <a href="{% url 'client_services' %}">Services</a>
+        <a href="{% url 'hair_care_services' %}">Hair Care</a>
+        <a href="{% url 'facial_services' %}">Facial</a>
+        <a href="{% url 'mani-pedi-services' %}">Mani & Pedi</a>
+        <a href="{% url 'waxing-services' %}">Waxing</a>
+    </nav>
+
     <div class="container">
-        <h2>Choose Your Service</h2>
+        <h2>Our Mani_pedi Care </h2>
         <div class="card-grid">
-            <div class="service-card">
-                <a href="manicure.html"> <!-- Link to the manicure page -->
-                    <img src="{% static 'images/manicure.jpg' %}" alt="Manicure">
-                    <h3>Manicure</h3>
-                    <p>Beautifully groomed nails with a professional touch.</p>
-                </a>
-            </div>
-            <div class="service-card">
-                <a href="pedicure.html"> <!-- Link to the pedicure page -->
-                    <img src="{% static 'images/pedicure.jpg' %}" alt="Pedicure">
-                    <h3>Pedicure</h3>
-                    <p>Relaxing pedicure for soft, smooth feet.</p>
-                </a>
-            </div>
-            <div class="service-card">
-                <a href="mani_pedi_combo.html"> <!-- Link to the mani & pedi combo page -->
-                    <img src="{% static 'images/mani-pedi.jpg' %}" alt="Mani & Pedi Combo">
-                    <h3>Mani & Pedi Combo</h3>
-                    <p>A complete care package for your hands and feet.</p>
-                </a>
-            </div>
+            {% for subcategory in  mani_pedi_service_subcategories %}
+                <div class="facial-card">
+                    <a href="{% url 'services_in_subcategory' subcategory.id %}"> <!-- Link to Services related to the Subcategory -->
+                        {% if subcategory.image %}
+                            <img src="{{ subcategory.image.url }}" alt="{{ subcategory.name }}">
+                        {% else %}
+                            <img src="{% static 'path/to/default/image.jpg' %}" alt="{{ subcategory.name }}">
+                        {% endif %}
+                        <h3>{{ subcategory.name }}</h3>
+                        <p>{{ subcategory.description }}</p> <!-- Displaying the description -->
+                        <p>Explore our range of services under {{ subcategory.name }}.</p>
+                    </a>
+                </div>
+            {% empty %}
+                <p>No Mani_pedi Care subcategories available.</p>
+            {% endfor %}
         </div>
+        
     </div>
 
     <footer class="footer">
         &copy; 2024 GlamourQuest Hair Salon | All rights reserved.
     </footer>
+
+    <script>
+        function toggleDropdown() {
+            var dropdown = document.getElementById('profileDropdown');
+            dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+        }
+
+        // Optional: Close dropdown if clicked outside
+        window.onclick = function(event) {
+            if (!event.target.matches('.profile-icon')) {
+                var dropdowns = document.getElementsByClassName("profile-dropdown");
+                for (var i = 0; i < dropdowns.length; i++) {
+                    var openDropdown = dropdowns[i];
+                    if (openDropdown.style.display === 'block') {
+                        openDropdown.style.display = 'none';
+                    }
+                }
+            }
+        };
+    </script>
 </body>
 
 </html>

@@ -5,7 +5,7 @@ from . import views
 from django.contrib.auth import views as auth_views
 from .views import manage_client
 from .views import  edit_services, delete_service, manage_service,service_detail,category
-
+from .views import hair_care_services, services_in_subcategory
 
 
 urlpatterns = [
@@ -63,6 +63,7 @@ urlpatterns = [
     # path('subcategory/edit/<int:subcategory_id>/', views.edit_subcategory, name='edit_subcategory'),
     path('subcategory/delete/<int:subcategory_id>/', views.delete_subcategory, name='delete_subcategory'),
     path('edit-subcategory/<int:subcategory_id>/', views.edit_subcategory, name='edit_subcategory'),
+    path('hair-care/<int:subcategory_id>/', services_in_subcategory, name='services_in_subcategory'),
     
 
 ]

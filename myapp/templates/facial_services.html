@@ -5,7 +5,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Facial Services</title>
+    <title>Facial Care Subcategories</title>
     <style>
         body {
             font-family: 'Poppins', sans-serif;
@@ -23,6 +23,50 @@
             font-size: 28px;
             font-weight: bold;
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            position: relative;
+        }
+
+        .profile-container {
+            float: right;
+            position: relative;
+            padding: 16px;
+        }
+
+        .profile-icon {
+            cursor: pointer;
+            font-size: 18px;
+            padding: 8px;
+            border-radius: 50%;
+            background-color: #ffffff;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .profile-dropdown {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: 50px;
+            background-color: white;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            border-radius: 5px;
+            z-index: 1000;
+            width: 150px;
+        }
+
+        .profile-dropdown a {
+            display: block;
+            padding: 8px 10px;
+            text-align: left;
+            text-decoration: none;
+            font-size: 14px;
+            color: #ff7e5f;
+            border-bottom: 1px solid #f0f0f0;
+            transition: background-color 0.3s ease;
+        }
+
+        .profile-dropdown a:hover {
+            background-color: #feb47b;
+            color: white;
         }
 
         nav {
@@ -76,10 +120,10 @@
 
         .facial-card img {
             max-width: 100%;
-            border-radius: 50%; /* Makes the image circular */
-            width: 200px; /* Ensure width and height are the same for a perfect circle */
-            height: 200px; /* Ensure height matches the width */
-            object-fit: cover; /* Ensures the image covers the circular area nicely */
+            border-radius: 50%;
+            width: 200px;
+            height: 200px;
+            object-fit: cover;
         }
 
         .facial-card h3 {
@@ -94,9 +138,8 @@
             margin-bottom: 20px;
         }
 
-        /* Remove underline from links in the service cards */
         .facial-card a {
-            text-decoration: none; /* Remove underline from links */
+            text-decoration: none;
         }
 
         .footer {
@@ -124,69 +167,79 @@
 
 <body>
     <header>
-        <h1>Facial Services</h1>
+        <marquee behavior="scroll" direction="left" scrollamount="5">
+            <em>Welcome to GlamourQuest Hair Salon</em>
+        </marquee>
+        <div class="profile-container">
+            <div class="profile-icon" onclick="toggleDropdown()">&#128100;</div>
+            <span class="profile-name">{{ client.first_name }}</span> <!-- New name display -->
+            <div class="profile-dropdown" id="profileDropdown">
+                <a href="{% url 'client_profile' %}">View Profile</a>
+                <a href="{% url 'client_update' %}">Update Profile</a>
+                <a href="{% url 'logout' %}">Logout</a>
+            </div> 
+        </div>
+        
+        </div>
     </header>
 
     <nav>
-        <a href="dashboard.html">Dashboard</a>
-        <a href="#">Profile</a>
-        <a href="#">Appointments</a>
-        <a href="#">Services</a>
+        <a href="{% url 'client_dashboard' %}">Home</a>
+        <a href="{% url 'client_profile' %}">Profile</a>
+        <a href="{% url 'Book' %}">Appointments</a>
+        <a href="{% url 'client_services' %}">Services</a>
         <a href="{% url 'hair_care_services' %}">Hair Care</a>
-        <a href="{% url 'facial_services' %}">Facial Services</a>
+        <a href="{% url 'facial_services' %}">Facial</a>
+        <a href="{% url 'mani-pedi-services' %}">Mani & Pedi</a>
+        <a href="{% url 'waxing-services' %}">Waxing</a>
     </nav>
 
     <div class="container">
-        <h2>Our Facial Services</h2>
+        <h2>Our Facial Care Subcategories</h2>
         <div class="card-grid">
-            <div class="facial-card">
-                <a href="{%  url 'all_type_skin' %}"> <!-- Link to All Types of Skin Facials page -->
-                    <img src="{% static 'images/all-type.jpg' %}"  alt="All Types of Skin Facials">
-                    <h3>All Types of Skin Facials</h3>
-                    <p>Customized facials for all skin types for a radiant glow.</p>
-                </a>
-            </div>
-            <div class="facial-card">
-                <a href="dry_skin_facials.html"> <!-- Link to Dry Skin Facials page -->
-                    <img src="{% static 'images/dry-skin1.jpg' %}" alt="Dry Skin Facials">
-                    <h3>Dry Skin Facials</h3>
-                    <p>Deeply hydrating facials to nourish and moisturize dry skin.</p>
-                </a>
-            </div>
-            <div class="facial-card">
-                <a href="oily_skin_facials.html"> <!-- Link to Oily Skin Facials page -->
-                    <img src="{% static 'images/oily-skin.jpg' %}" alt="Oily Skin Facials">
-                    <h3>Oily Skin Facials</h3>
-                    <p>Purifying facials to help control excess oil and shine.</p>
-                </a>
-            </div>
-            <div class="facial-card">
-                <a href="sensitive_skin_facials.html"> <!-- Link to Sensitive Skin Facials page -->
-                    <img src="{% static 'images/sensitive-skin.jpg' %}" alt="Sensitive Skin Facials">
-                    <h3>Sensitive Skin Facials</h3>
-                    <p>Gentle facials designed to soothe and calm sensitive skin.</p>
-                </a>
-            </div>
-            <div class="facial-card">
-                <a href="anti_aging_facials.html"> <!-- Link to Anti-Aging Facials page -->
-                    <img src="{% static 'images/anti-skin.jpg' %}" alt="Anti-Aging Facials">
-                    <h3>Anti-Aging Facials</h3>
-                    <p>Revitalizing facials that help reduce the signs of aging.</p>
-                </a>
-            </div>
-            <div class="facial-card">
-                <a href="brightening_facials.html"> <!-- Link to Brightening Facials page -->
-                    <img src="{% static 'images/brightening-skin.jpg' %}" alt="Brightening Facials">
-                    <h3>Brightening Facials</h3>
-                    <p>Facials that enhance your skin's natural brightness and glow.</p>
-                </a>
-            </div>
+            {% for subcategory in  facial_service_subcategories %}
+                <div class="facial-card">
+                    <a href="{% url 'services_in_subcategory' subcategory.id %}"> <!-- Link to Services related to the Subcategory -->
+                        {% if subcategory.image %}
+                            <img src="{{ subcategory.image.url }}" alt="{{ subcategory.name }}">
+                        {% else %}
+                            <img src="{% static 'path/to/default/image.jpg' %}" alt="{{ subcategory.name }}">
+                        {% endif %}
+                        <h3>{{ subcategory.name }}</h3>
+                        <p>{{ subcategory.description }}</p> <!-- Displaying the description -->
+                        <p>Explore our range of services under {{ subcategory.name }}.</p>
+                    </a>
+                </div>
+            {% empty %}
+                <p>No Facial care subcategories available.</p>
+            {% endfor %}
         </div>
+        
     </div>
 
     <footer class="footer">
         &copy; 2024 GlamourQuest Hair Salon | All rights reserved.
     </footer>
+
+    <script>
+        function toggleDropdown() {
+            var dropdown = document.getElementById('profileDropdown');
+            dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+        }
+
+        // Optional: Close dropdown if clicked outside
+        window.onclick = function(event) {
+            if (!event.target.matches('.profile-icon')) {
+                var dropdowns = document.getElementsByClassName("profile-dropdown");
+                for (var i = 0; i < dropdowns.length; i++) {
+                    var openDropdown = dropdowns[i];
+                    if (openDropdown.style.display === 'block') {
+                        openDropdown.style.display = 'none';
+                    }
+                }
+            }
+        };
+    </script>
 </body>
 
 </html>
