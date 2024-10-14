@@ -6,6 +6,8 @@ from django.contrib.auth import views as auth_views
 from .views import manage_client
 from .views import  edit_services, delete_service, manage_service,service_detail,category
 from .views import hair_care_services, services_in_subcategory
+from .views import booking_service, booking_confirmation
+from .views import manage_employee, schedule_interview
 
 
 
@@ -39,7 +41,7 @@ urlpatterns = [
     path('manage_service/', views.manage_service, name='manage_service'),
     path('edit_services/<int:service_id>/', edit_services, name='edit_services'),
     path('delete_service/<int:service_id>/', delete_service, name='delete_service'),
-    
+    path('schedule_interview/', schedule_interview, name='schedule_interview'),
 
     path('client_update/', views.client_update, name='client_update'),
     path('client_profile/', views.client_profile, name='client_profile'),
@@ -60,7 +62,8 @@ urlpatterns = [
     path('toggle_employee_approval/<int:employee_id>/', views.toggle_employee_approval, name='toggle_employee_approval'),
     path('service/<int:service_id>/', service_detail, name='service_detail'),
     path('category/', views.category, name='category'),
-    path('book_service/<int:service_id>/', views.book_service, name='book_service'),
+    path('booking_service/<int:service_id>/', booking_service, name='booking_service'),
+    path('booking_confirmation/', booking_confirmation, name='booking_confirmation'),
 
     path('category/edit/<int:category_id>/', views.edit_category, name='edit_category'),
     path('category/delete/<int:category_id>/', views.delete_category, name='delete_category'),

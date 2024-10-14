@@ -6,7 +6,103 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Book {{ service.service_name }}</title>
-    <link rel="stylesheet" href="{% static 'styles.css' %}">
+    <style>
+        /* General Styles */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f8f9fa;
+            color: #333;
+        }
+
+        header {
+            background-color: #4CAF50;
+            color: white;
+            text-align: center;
+            padding: 1.5em;
+        }
+
+        h1 {
+            margin: 0;
+        }
+
+        .booking-form-container {
+            max-width: 600px;
+            margin: 3em auto;
+            background-color: white;
+            padding: 2em;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Form Styles */
+        form {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group {
+            margin-bottom: 1.5em;
+        }
+
+        label {
+            font-weight: bold;
+            margin-bottom: 0.5em;
+            display: block;
+        }
+
+        input[type="text"],
+        input[type="date"],
+        input[type="time"],
+        select,
+        textarea {
+            width: 100%;
+            padding: 0.8em;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 1em;
+        }
+
+        textarea {
+            resize: vertical;
+        }
+
+        input[disabled] {
+            background-color: #f0f0f0;
+            color: #999;
+        }
+
+        select {
+            appearance: none;
+        }
+
+        option {
+            padding: 0.5em;
+        }
+
+        button.btn {
+            background-color: #4CAF50;
+            color: white;
+            padding: 0.8em 1.5em;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1.1em;
+        }
+
+        button.btn:hover {
+            background-color: #45a049;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 1.5em;
+            background-color: #f1f1f1;
+            color: #555;
+            margin-top: 2em;
+        }
+    </style>
 </head>
 
 <body>
@@ -15,8 +111,10 @@
     </header>
 
     <section class="booking-form-container">
-        <form method="POST" action="{% url 'book_service' service.id %}">
+        <form method="POST" action="{% url 'booking_service' service.id %}">
             {% csrf_token %}
+
+            <!-- Service Details (Disabled fields) -->
             <div class="form-group">
                 <label for="service_name">Service</label>
                 <input type="text" id="service_name" value="{{ service.service_name }}" disabled>
@@ -27,11 +125,36 @@
                 <input type="text" id="rate" value="{{ service.rate }}" disabled>
             </div>
 
+            <!-- Preferred Date Field -->
+            <div class="form-group">
+                <label for="preferred_date">Preferred Date</label>
+                <input type="date" id="preferred_date" name="preferred_date" required>
+            </div>
+
+            <!-- Preferred Time Field -->
+            <div class="form-group">
+                <label for="preferred_time">Preferred Time</label>
+                <input type="time" id="preferred_time" name="preferred_time" required>
+            </div>
+
+            <!-- Staff Selection Dropdown -->
+            <div class="form-group">
+                <label for="staff">Preferred Staff (optional)</label>
+                <select id="staff" name="staff">
+                    <option value="">No Preference</option>
+                    {% for employee in employees %}
+                        <option value="{{ employee.id }}">{{ employee.first_name }} {{ employee.last_name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Additional Notes Field -->
             <div class="form-group">
                 <label for="additional_notes">Additional Notes</label>
                 <textarea id="additional_notes" name="additional_notes" rows="4" placeholder="Any special requests..."></textarea>
             </div>
 
+            <!-- Submit Button -->
             <div class="form-group">
                 <button type="submit" class="btn">Confirm Booking</button>
             </div>

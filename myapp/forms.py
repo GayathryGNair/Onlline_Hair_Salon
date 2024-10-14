@@ -31,4 +31,3 @@ class ServiceForm(forms.ModelForm):
         model = Service
         fields = ['service_name', 'description', 'rate', 'image', 'subcategory']
 
-

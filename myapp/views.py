@@ -125,6 +125,11 @@ def logout(request):
     request.session.flush()  
     return redirect('login')
 
+from django.contrib.auth import authenticate, login as auth_login
+from django.shortcuts import redirect, render
+from django.contrib import messages
+from .models import Client, Employee  # Make sure to import your models
+
 def login(request):
     if request.method == 'POST':
         email = request.POST['email']
@@ -139,11 +144,12 @@ def login(request):
             messages.success(request, 'Admin login successful!')
             return redirect('admin_dashboard')
 
-        # Try Client login first
-        try:
-            user = Client.objects.get(email=email)
-            if check_password(password, user.password):
-                if not user.status:
+        # Try to authenticate as a Client first
+        user = authenticate(request, email=email, password=password)
+
+        if user is not None:
+            if isinstance(user, Client):
+                if not user.status:  # Check if client is inactive
                     messages.error(request, "Your account is inactive. Please contact admin.")
                     return redirect('login')
                 else:
@@ -151,28 +157,21 @@ def login(request):
                     request.session['user_type'] = 'client'
                     messages.success(request, 'Login successful!')
                     return redirect('client_dashboard')
-            else:
-                messages.error(request, 'Invalid email or password.')
-                return redirect('login')
-        except Client.DoesNotExist:
-            pass
-
-        # If not a client, try Employee login
-        try:
-            user = Employee.objects.get(email=email)
-            if check_password(password, user.password):
-                request.session['user_id'] = user.id
-                request.session['user_type'] = 'employee'
-                messages.success(request, 'Login successful!')
-                return redirect('employee_dashboard')
-            else:
-                messages.error(request, 'Invalid email or password.')
-                return redirect('login')
-        except Employee.DoesNotExist:
+            elif isinstance(user, Employee):
+                if not user.is_approved:  # Check if employee is approved
+                    messages.error(request, "Your account is not approved. Please contact admin.")
+                    return redirect('login')
+                else:
+                    request.session['user_id'] = user.id
+                    request.session['user_type'] = 'employee'
+                    messages.success(request, 'Login successful!')
+                    return redirect('employee_dashboard')
+        else:
             messages.error(request, 'Invalid email or password.')
             return redirect('login')
 
     return render(request, 'login.html')
+
 
 def register(request):
     if request.method == 'POST':
@@ -422,29 +421,49 @@ def service_detail(request, service_id):
     service = get_object_or_404(Service, id=service_id)
     return render(request, 'service_detail.html', {'service': service})
 
+# views.py
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
-from .models import Service, Booking
-from django.contrib import messages
+from .models import Service, Booking, Employee
 
-def book_service(request, service_id):
-    service = get_object_or_404(Service, id=service_id)
-     # Assuming the client is logged in
+def booking_service(request, service_id):
+    service = get_object_or_404(Service, id=service_id)  # Get the service to be booked
+    employees = Employee.objects.all()  # Fetch all available staff for the dropdown
 
     if request.method == 'POST':
-        additional_notes = request.POST.get('additional_notes', '')
-        booking = Booking.objects.create(
-            service=service,
-            status='Pending',
-            additional_notes=additional_notes
-        )
-        messages.success(request, 'Booking successful! Your appointment is pending confirmation.')
-        return redirect('client_dashboard')
+        # Retrieve form data from POST request
+        preferred_date = request.POST.get('preferred_date')
+        preferred_time = request.POST.get('preferred_time')
+        staff_id = request.POST.get('staff')
+        staff = Employee.objects.get(id=staff_id) if staff_id else None
+        additional_notes = request.POST.get('additional_notes')
 
+        # Create a new booking entry
+        Booking.objects.create(
+            client=request.user.client,  # Assuming the logged-in user is a client
+            service=service,
+            preferred_date=preferred_date,
+            preferred_time=preferred_time,
+            staff=staff,
+            additional_notes=additional_notes,
+            status='Pending'  # Default booking status is 'Pending'
+        )
+
+        # Redirect to a booking confirmation page or booking list page
+        return redirect('booking_confirmation')  # Create this view or page for confirmation
+
+    # Render the booking page with the service details and staff options
     context = {
         'service': service,
+        'employees': employees
     }
-    return render(request, 'book_service.html', context)
+    return render(request, 'booking_service.html', context)
+
+# views.py
+def booking_confirmation(request):
+    return render(request, 'booking_confirmation.html')
+
+
 
 
 # admin 
@@ -700,6 +719,91 @@ def delete_subcategory(request, subcategory_id):
     subcategory.delete()
     messages.success(request, 'Subcategory deleted successfully!')
     return redirect('category')
+
+from django.shortcuts import render, redirect
+from django.core.mail import send_mail
+from django.contrib import messages
+from django.conf import settings
+from .models import Employee, Interview
+from datetime import datetime
+
+def schedule_interview(request):
+    # Fetch only employees who are not yet approved
+    employees = Employee.objects.filter(approved=False)
+
+    if request.method == 'POST':
+        # Fetch form data
+        employee_id = request.POST.get('employee_id')
+        interview_date = request.POST.get('interview_date')
+        starting_time = request.POST.get('starting_time')
+        ending_time = request.POST.get('ending_time')
+        meeting_link = request.POST.get('meeting_link')
+        interviewer_name = request.POST.get('interviewer_name')
+        notes = request.POST.get('notes')
+
+        # Check for required fields
+        if not all([employee_id, interview_date, starting_time, ending_time, meeting_link, interviewer_name]):
+            messages.error(request, 'Please fill in all the required fields.')
+            return redirect('schedule_interview')
+
+        # Validate the interview date is in the future
+        if datetime.strptime(interview_date, "%Y-%m-%d") < datetime.now().date():
+            messages.error(request, 'Interview date must be in the future.')
+            return redirect('schedule_interview')
+
+        try:
+            # Fetch the employee by id
+            employee = Employee.objects.get(id=employee_id)
+        except Employee.DoesNotExist:
+            messages.error(request, 'Employee not found.')
+            return redirect('manage_employee')
+
+        # Validate the time range
+        if starting_time >= ending_time:
+            messages.error(request, 'Starting time must be before ending time.')
+            return redirect('schedule_interview')
+
+        # Store interview details
+        interview = Interview.objects.create(
+            employee=employee,
+            interview_date=interview_date,
+            starting_time=starting_time,
+            ending_time=ending_time,
+            meeting_link=meeting_link,
+            interviewer_name=interviewer_name,
+            notes=notes
+        )
+
+        # Prepare the email content
+        subject = "Interview Scheduled"
+        message = f"""
+        Dear {employee.first_name} {employee.last_name},
+
+        Your interview is scheduled as follows:
+        - Date: {interview_date}
+        - Time: {starting_time} to {ending_time}
+        - Meeting Link: {meeting_link}
+
+        Please ensure you attend the interview promptly.
+
+        Best regards,
+        {interviewer_name}
+        """
+
+        # Attempt to send email
+        try:
+            send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [employee.email], fail_silently=False)
+            messages.success(request, f'Interview scheduled and email sent to {employee.email}.')
+        except Exception as e:
+            messages.error(request, f"An error occurred while sending the email: {str(e)}")
+            return redirect('schedule_interview')
+
+        return redirect('admin_dashboard')
+
+    return render(request, 'schedule_interview.html', {'employees': employees})
+
+
+
 
 #employee
 
