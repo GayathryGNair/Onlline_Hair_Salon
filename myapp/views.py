@@ -243,7 +243,10 @@ def for_women(request):
     return render(request, 'for_women.html')
 
 #client
-
+from django.shortcuts import render, redirect
+from django.contrib import messages
+from .forms import ClientProfileUpdateForm  # Adjust according to your project structure
+from .models import Client
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def client_dashboard(request):
     # Check if user is logged in by verifying the session
@@ -270,13 +273,14 @@ def toggle_client_status(request, client_id):
         messages.success(request, f"Client {client.first_name}'s status updated to {'Active' if client.status else 'Inactive'}.")
     return redirect('manage_client')
 
-from django.shortcuts import render, redirect
-from django.contrib import messages
-from .models import Client
-from .forms import ClientProfileUpdateForm
 
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def client_update(request):
-    user_id = request.session.get('user_id')  # Assuming you store the user ID in the session
+    user_id = request.session.get('user_id')
+    if not user_id:
+        messages.error(request, "You want to loggin to access dashboard.")
+        return redirect('login')
+
     client = Client.objects.get(id=user_id)
 
     if request.method == 'POST':
@@ -284,16 +288,20 @@ def client_update(request):
         if form.is_valid():
             form.save()
             messages.success(request, 'Profile updated successfully!')
-            return redirect('client_update')  # Redirect to the client dashboard
+            return redirect('client_dashboard')  # Redirect to the client dashboard
     else:
         form = ClientProfileUpdateForm(instance=client)
 
-    return render(request, 'client_update.html', {'form': form})
+    return render(request, 'client_update.html', {'form': form, 'client': client})
 
-
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def client_profile(request):
     # Assuming you store the user ID in the session
     user_id = request.session.get('user_id')
+    if not user_id:
+        messages.error(request, "You want to loggin to access dashboard.")
+        return redirect('login')
+
     
     # Fetch the client object based on the stored user ID
     client = Client.objects.get(id=user_id)
@@ -301,10 +309,13 @@ def client_profile(request):
     # Pass the client object to the template for display
     return render(request, 'client_profile.html', {'client': client})
 
-
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def client_services(request):
     # Assuming you store the user ID in the session, or use the request's user object
     user_id = request.session.get('user_id')  # Adjust this if needed based on how you store the session
+    if not user_id:
+        messages.error(request, "You want to loggin to access dashboard.")
+        return redirect('login')
     client = Client.objects.get(id=user_id)
 
     # Fetch all services from the database
@@ -318,27 +329,15 @@ def client_services(request):
 
     return render(request, 'client_services.html', context)
 
-def client_update(request):
-    user_id = request.session.get('user_id')  # Assuming you store the user ID in the session
-    client = Client.objects.get(id=user_id)
 
-    if request.method == 'POST':
-        form = ClientProfileUpdateForm(request.POST, instance=client)
-        if form.is_valid():
-            form.save()
-            messages.success(request, 'Profile updated successfully!')
-            return redirect('client_dashboard')  # Redirect to the client dashboard
-    else:
-        form = ClientProfileUpdateForm(instance=client)
-
-    # Pass the client object to the template context
-    return render(request, 'client_update.html', {'form': form, 'client': client})
-
-
-from django.shortcuts import render, get_object_or_404
-from .models import ServiceSubcategory, Service
-
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def hair_care_services(request):
+    user_id = request.session.get('user_id')  # Adjust this if needed based on how you store the session
+    if not user_id:
+        messages.error(request, "You want to loggin to access dashboard.")
+        return redirect('login')
+    client = Client.objects.get(id=user_id)
+    
     # Fetch all service subcategories where category ID is 1
     hair_care_subcategories = ServiceSubcategory.objects.filter(category_id=1)
     
@@ -348,7 +347,12 @@ def hair_care_services(request):
     
     return render(request, 'hair_care_services.html', context)
 
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def services_in_subcategory(request, subcategory_id):
+    user_id = request.session.get('user_id')  # Adjust this if needed based on how you store the session
+    if not user_id:
+        messages.error(request, "You want to loggin to access dashboard.")
+        return redirect('login')
     # Fetch the subcategory and its related services
     subcategory = get_object_or_404(ServiceSubcategory, id=subcategory_id)
     services = Service.objects.filter(subcategory=subcategory)
@@ -361,8 +365,12 @@ def services_in_subcategory(request, subcategory_id):
     return render(request, 'services_in_subcategory.html', context)
 
 
-
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def facial_services(request):
+    user_id = request.session.get('user_id')  # Adjust this if needed based on how you store the session
+    if not user_id:
+        messages.error(request, "You want to loggin to access dashboard.")
+        return redirect('login')
     facial_service_subcategories = ServiceSubcategory.objects.filter(category_id=2)
     
     context = {
@@ -377,7 +385,13 @@ def hair_cut_services(request):
 def all_type_skin(request):
     return render(request, 'all_type_skin.html')
 
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def mani_pedi_services(request):
+    user_id = request.session.get('user_id')  # Adjust this if needed based on how you store the session
+    if not user_id:
+        messages.error(request, "You want to loggin to access dashboard.")
+        return redirect('login')
+    
     mani_pedi_service_subcategories = ServiceSubcategory.objects.filter(category_id=2)
     
     context = {
@@ -386,7 +400,12 @@ def mani_pedi_services(request):
     
     return render(request, 'mani-pedi-services.html', context)
 
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def waxing_services(request):
+    user_id = request.session.get('user_id')  # Adjust this if needed based on how you store the session
+    if not user_id:
+        messages.error(request, "You want to loggin to access dashboard.")
+        return redirect('login')
     waxing_service_subcategories = ServiceSubcategory.objects.filter(category_id=2)
     
     context = {
@@ -395,12 +414,38 @@ def waxing_services(request):
     
     return render(request, 'waxing-services.html', context)
 
+
 from django.shortcuts import render, get_object_or_404
 from .models import Service
 
 def service_detail(request, service_id):
     service = get_object_or_404(Service, id=service_id)
     return render(request, 'service_detail.html', {'service': service})
+
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth.decorators import login_required
+from .models import Service, Booking
+from django.contrib import messages
+
+def book_service(request, service_id):
+    service = get_object_or_404(Service, id=service_id)
+     # Assuming the client is logged in
+
+    if request.method == 'POST':
+        additional_notes = request.POST.get('additional_notes', '')
+        booking = Booking.objects.create(
+            service=service,
+            status='Pending',
+            additional_notes=additional_notes
+        )
+        messages.success(request, 'Booking successful! Your appointment is pending confirmation.')
+        return redirect('client_dashboard')
+
+    context = {
+        'service': service,
+    }
+    return render(request, 'book_service.html', context)
+
 
 # admin 
 

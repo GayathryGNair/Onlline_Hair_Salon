@@ -126,6 +126,21 @@
             object-fit: cover;
         }
 
+        .book-now {
+            display: inline-block;
+            margin-top: 10px;
+            padding: 10px 15px;
+            background-color: #ff7e5f;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+        }
+
+        .book-now:hover {
+            background-color: #feb47b;
+        }
+
         .footer {
             text-align: center;
             padding: 15px;
@@ -189,6 +204,8 @@
                     {% else %}
                         <img src="{% static 'path/to/default/service_image.jpg' %}" alt="{{ service.service_name }}">
                     {% endif %}
+                    <a href="{% url 'book_service' service.id %}" class="book-now">Book Now</a>
+
                 </div>
             {% empty %}
                 <p>No services available under this subcategory.</p>

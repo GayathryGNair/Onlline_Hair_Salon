@@ -8,6 +8,8 @@ from .views import  edit_services, delete_service, manage_service,service_detail
 from .views import hair_care_services, services_in_subcategory
 
 
+
+
 urlpatterns = [
     path('', views.home, name='index'),
     path('about/', views.about, name='about'),
@@ -58,12 +60,16 @@ urlpatterns = [
     path('toggle_employee_approval/<int:employee_id>/', views.toggle_employee_approval, name='toggle_employee_approval'),
     path('service/<int:service_id>/', service_detail, name='service_detail'),
     path('category/', views.category, name='category'),
+    path('book_service/<int:service_id>/', views.book_service, name='book_service'),
+
     path('category/edit/<int:category_id>/', views.edit_category, name='edit_category'),
     path('category/delete/<int:category_id>/', views.delete_category, name='delete_category'),
     # path('subcategory/edit/<int:subcategory_id>/', views.edit_subcategory, name='edit_subcategory'),
     path('subcategory/delete/<int:subcategory_id>/', views.delete_subcategory, name='delete_subcategory'),
     path('edit-subcategory/<int:subcategory_id>/', views.edit_subcategory, name='edit_subcategory'),
     path('hair-care/<int:subcategory_id>/', services_in_subcategory, name='services_in_subcategory'),
+    
+
     
 
 ]

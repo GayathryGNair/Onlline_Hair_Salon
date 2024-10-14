@@ -50,7 +50,27 @@ class Service(models.Model):
 
     def __str__(self):
         return f"{self.service_name} ({self.subcategory.name} - {self.subcategory.category.name})"
-
-
-
     
+class Booking(models.Model):
+    client = models.ForeignKey(Client, on_delete=models.CASCADE)  # Link to the Client model
+    service = models.ForeignKey(Service, on_delete=models.CASCADE)  # Link to Service
+    booking_date = models.DateTimeField(auto_now_add=True)  # Date and time of booking
+    status = models.CharField(max_length=20, choices=[
+        ('Pending', 'Pending'),
+        ('Confirmed', 'Confirmed'),
+        ('Cancelled', 'Cancelled'),
+    ], default='Pending')  # Status of the booking
+    additional_notes = models.TextField(blank=True, null=True)  # Optional additional notes
+
+    def __str__(self):
+        return f"Booking for {self.service.service_name} by {self.client.first_name} on {self.booking_date.strftime('%Y-%m-%d %H:%M:%S')}"
+
+    @property
+    def subcategory(self):
+        return self.service.subcategory  # Accessing the subcategory through the service
+
+    @property
+    def category(self):
+        return self.service.subcategory.category  # Accessing the category through the subcategory
+
+
