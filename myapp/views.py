@@ -392,7 +392,7 @@ def mani_pedi_services(request):
         messages.error(request, "You want to loggin to access dashboard.")
         return redirect('login')
     
-    mani_pedi_service_subcategories = ServiceSubcategory.objects.filter(category_id=2)
+    mani_pedi_service_subcategories = ServiceSubcategory.objects.filter(category_id=3)
     
     context = {
         'mani_pedi_service_subcategories': mani_pedi_service_subcategories,
@@ -406,7 +406,7 @@ def waxing_services(request):
     if not user_id:
         messages.error(request, "You want to loggin to access dashboard.")
         return redirect('login')
-    waxing_service_subcategories = ServiceSubcategory.objects.filter(category_id=2)
+    waxing_service_subcategories = ServiceSubcategory.objects.filter(category_id=4)
     
     context = {
         'waxing_service_subcategories': waxing_service_subcategories,
