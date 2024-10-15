@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 
@@ -12,6 +13,10 @@
             padding: 0;
             background-color: #f4f4f4;
             color: #333;
+            display: flex;
+            flex-direction: column; /* Align children in a column */
+            min-height: 100vh; /* Ensure body takes full height */
+            overflow: hidden;
         }
 
         header {
@@ -50,7 +55,7 @@
         .profile-name {
             display: block;
             margin-top: 8px;
-            font-size: 14px; /* Adjust size as needed */
+            font-size: 14px;
             color: #ff7e5f;
             text-align: center;
         }
@@ -64,8 +69,8 @@
 
         .profile-icon {
             cursor: pointer;
-            font-size: 18px; /* Slightly smaller icon */
-            padding: 8px; /* Reduce padding */
+            font-size: 18px;
+            padding: 8px;
             border-radius: 50%;
             background-color: #ffffff;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
@@ -80,15 +85,15 @@
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
             border-radius: 5px;
             z-index: 1000;
-            width: 150px; /* Reduce width */
+            width: 150px;
         }
 
         .profile-dropdown a {
             display: block;
-            padding: 8px 10px; /* Reduce padding */
+            padding: 8px 10px;
             text-align: left;
             text-decoration: none;
-            font-size: 14px; /* Smaller font size */
+            font-size: 14px;
             color: #ff7e5f;
             border-bottom: 1px solid #f0f0f0;
             transition: background-color 0.3s ease;
@@ -99,82 +104,51 @@
             color: white;
         }
 
+        .scrolling-background {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-size: cover; /* Cover the entire area */
+            background-position: center;
+            background-repeat: no-repeat;
+            z-index: -1; /* Keep the background behind other content */
+        }
+
+        /* Content on top of background */
         .container {
-            padding: 30px;
+            position: relative;
+            z-index: 1; /* Keep content above the background */
+            padding: 20px; /* Add padding for content */
+            flex: 1; /* Allow the container to grow and fill space */
+            display: flex;
+            flex-direction: column; /* Arrange content vertically */
+            justify-content: center; /* Center content vertically */
+            align-items: center; /* Center content horizontally */
         }
 
-        .dashboard-card {
-            background-color: white;
-            border-radius: 12px;
-            padding: 25px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-            margin-bottom: 30px;
-            transition: transform 0.3s ease;
-        }
-
-        .dashboard-card:hover {
-            transform: translateY(-5px);
-        }
-
-        h2 {
-            margin-top: 0;
+        /* Arrow buttons */
+        .arrow {
+            cursor: pointer;
+            font-size: 24px;
             color: #ff7e5f;
-            font-size: 28px;
-            font-weight: 600;
-        }
-
-        .dashboard-card p {
-            font-size: 18px;
-            line-height: 1.6;
-            color: #555;
-        }
-
-        .card-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 30px;
-        }
-
-        .card {
-            background-color: #fff;
-            padding: 25px;
-            border-radius: 10px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-            text-align: center;
-            transition: box-shadow 0.3s ease;
-        }
-
-        .card:hover {
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
-        }
-
-        .card h3 {
-            color: #ff7e5f;
-            font-size: 22px;
-            margin-bottom: 10px;
-        }
-
-        .card p {
-            color: #777;
-            font-size: 16px;
-            margin-bottom: 20px;
-        }
-
-        .card a {
-            display: inline-block;
-            margin-top: 15px;
-            padding: 12px 30px;
-            background: linear-gradient(90deg, #ff7e5f, #feb47b);
-            color: white;
-            text-decoration: none;
+            background-color: rgba(255, 255, 255, 0.8);
+            border: none;
             border-radius: 5px;
-            font-weight: bold;
-            transition: background-color 0.3s ease, transform 0.2s ease;
+            padding: 10px;
+            position: absolute; /* Position absolute for placement */
+            top: 50%; /* Center vertically */
+            transform: translateY(-50%); /* Adjust to center vertically */
+            z-index: 100; /* Keep above background */
         }
 
-        .card a:hover {
-            background: linear-gradient(90deg, #feb47b, #ff7e5f);
-            transform: scale(1.05);
+        .arrow-left {
+            left: 10px; /* Position on the left */
+        }
+
+        .arrow-right {
+            right: 10px; /* Position on the right */
         }
 
         footer {
@@ -185,39 +159,27 @@
             font-size: 14px;
             position: relative;
             width: 100%;
-            bottom: 0;
-        }
-
-        @media (max-width: 768px) {
-            .card-grid {
-                grid-template-columns: 1fr;
-            }
-
-            nav a {
-                float: none;
-                width: 100%;
-                text-align: left;
-                padding: 15px;
-            }
         }
     </style>
 </head>
 
 <body>
+    <div class="scrolling-background"></div>
+
     <header>
         <marquee behavior="scroll" direction="left" scrollamount="5">
-            <em>Welcome to GlamourQuest Hair Salon</em>
+            <em style="font-family: 'Lucida Calligraphy', cursive; font-size: 24px; color: #FF69B4; text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);">
+                Welcome to GlamourQuest Hair Salon
+            </em>
         </marquee>
         <div class="profile-container">
             <div class="profile-icon" onclick="toggleDropdown()">&#128100;</div>
-            <span class="profile-name">{{ client.first_name }}</span> <!-- New name display -->
+            <span class="profile-name">{{ client.first_name }}</span>
             <div class="profile-dropdown" id="profileDropdown">
                 <a href="{% url 'client_profile' %}">View Profile</a>
                 <a href="{% url 'client_update' %}">Update Profile</a>
                 <a href="{% url 'logout' %}">Logout</a>
-            </div> 
-        </div>
-        
+            </div>
         </div>
     </header>
 
@@ -233,54 +195,58 @@
     </nav>
 
     <div class="container">
-        <div class="dashboard-card">
-            <h2>Hello {{ client.first_name }}</h2>
-            <p>Welcome to your personal dashboard. Here you can manage your bookings, view your profile, and more.</p>
-        </div>
-
-        <div class="card-grid">
-            <div class="card">
-                <h3>Your Bookings</h3>
-                <p>View or cancel your upcoming appointments.</p>
-                <a href="#">View Bookings</a>
-            </div>
-            <div class="card">
-                <h3>Profile Settings</h3>
-                <p>Update your personal information and preferences.</p>
-                <a href="{% url 'client_update' %}">Update Profile</a>
-            </div>
-            <div class="card">
-                <h3>Feedback</h3>
-                <p>Leave feedback for your recent appointments.</p>
-                <a href="#">Provide Feedback</a>
-            </div>
-        </div>
+        <!-- Add your dashboard content here -->
+        <button class="arrow arrow-left" onclick="changeBackground(-1)">&#10094;</button>
+        <button class="arrow arrow-right" onclick="changeBackground(1)">&#10095;</button>
     </div>
-
-    <br><br><br><br>
 
     <footer>
         &copy; 2024 Hair Salon | All Rights Reserved
     </footer>
 
     <script>
-        function toggleDropdown() {
-            var dropdown = document.getElementById('profileDropdown');
-            dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+        let currentIndex = 0; // Index of the current background image
+        const backgrounds = [
+            "{% static 'images/hair-styling.jpg' %}",
+            "{% static 'images/manicure.jpg' %}",
+            "{% static 'images/hair-spa.jpg' %}",
+            "{% static 'images/all-type.jpg' %}"
+        ];
+
+        // Function to change the background image based on the current index
+        function changeBackground(direction) {
+            currentIndex = (currentIndex + direction + backgrounds.length) % backgrounds.length; // Update the index
+            const scrollingBackground = document.querySelector('.scrolling-background');
+            scrollingBackground.style.backgroundImage = `url(${backgrounds[currentIndex]})`;
         }
 
-        // Optional: Close dropdown if clicked outside
-        window.onclick = function(event) {
+        // Automatic image transition
+        let intervalId = setInterval(() => changeBackground(1), 3000); // Change every 3 seconds
+
+        // Stop the automatic transition when clicking an arrow
+        function changeBackgroundWithStop(direction) {
+            clearInterval(intervalId); // Stop automatic transition
+            changeBackground(direction);
+            // Restart automatic transition after 3 seconds
+            intervalId = setInterval(() => changeBackground(1), 3000);
+        }
+
+        function toggleDropdown() {
+            document.getElementById('profileDropdown').classList.toggle('show');
+        }
+
+        // Close the dropdown if clicked outside
+        window.onclick = function (event) {
             if (!event.target.matches('.profile-icon')) {
-                var dropdowns = document.getElementsByClassName("profile-dropdown");
-                for (var i = 0; i < dropdowns.length; i++) {
-                    var openDropdown = dropdowns[i];
-                    if (openDropdown.style.display === 'block') {
-                        openDropdown.style.display = 'none';
+                const dropdowns = document.getElementsByClassName("profile-dropdown");
+                for (let i = 0; i < dropdowns.length; i++) {
+                    const openDropdown = dropdowns[i];
+                    if (openDropdown.classList.contains('show')) {
+                        openDropdown.classList.remove('show');
                     }
                 }
             }
-        };
+        }
     </script>
 </body>
 

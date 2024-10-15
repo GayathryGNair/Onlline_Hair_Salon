@@ -24,7 +24,7 @@ from .models import Client, Employee  # Make sure to import your User subclasses
 from django.contrib.auth.hashers import make_password 
 from .models import Client, Employee
 from django.db import IntegrityError
-
+from .models import Interview
 
 def home(request):
     return render(request, 'index.html')
@@ -144,12 +144,11 @@ def login(request):
             messages.success(request, 'Admin login successful!')
             return redirect('admin_dashboard')
 
-        # Try to authenticate as a Client first
-        user = authenticate(request, email=email, password=password)
-
-        if user is not None:
-            if isinstance(user, Client):
-                if not user.status:  # Check if client is inactive
+        # Try Client login first
+        try:
+            user = Client.objects.get(email=email)
+            if check_password(password, user.password):
+                if not user.status:
                     messages.error(request, "Your account is inactive. Please contact admin.")
                     return redirect('login')
                 else:
@@ -157,21 +156,28 @@ def login(request):
                     request.session['user_type'] = 'client'
                     messages.success(request, 'Login successful!')
                     return redirect('client_dashboard')
-            elif isinstance(user, Employee):
-                if not user.is_approved:  # Check if employee is approved
-                    messages.error(request, "Your account is not approved. Please contact admin.")
-                    return redirect('login')
-                else:
-                    request.session['user_id'] = user.id
-                    request.session['user_type'] = 'employee'
-                    messages.success(request, 'Login successful!')
-                    return redirect('employee_dashboard')
-        else:
+            else:
+                messages.error(request, 'Invalid email or password.')
+                return redirect('login')
+        except Client.DoesNotExist:
+            pass
+
+        # If not a client, try Employee login
+        try:
+            user = Employee.objects.get(email=email)
+            if check_password(password, user.password):
+                request.session['user_id'] = user.id
+                request.session['user_type'] = 'employee'
+                messages.success(request, 'Login successful!')
+                return redirect('employee_dashboard')
+            else:
+                messages.error(request, 'Invalid email or password.')
+                return redirect('login')
+        except Employee.DoesNotExist:
             messages.error(request, 'Invalid email or password.')
             return redirect('login')
 
     return render(request, 'login.html')
-
 
 def register(request):
     if request.method == 'POST':
@@ -720,89 +726,64 @@ def delete_subcategory(request, subcategory_id):
     messages.success(request, 'Subcategory deleted successfully!')
     return redirect('category')
 
-from django.shortcuts import render, redirect
-from django.core.mail import send_mail
-from django.contrib import messages
-from django.conf import settings
-from .models import Employee, Interview
-from datetime import datetime
+# from django.shortcuts import render, redirect, get_object_or_404
+# from django.core.mail import send_mail
+# from django.contrib import messages
+# from .models import Employee, Interview
+# from django.conf import settings
+# def schedule_interview(request):
+#     if request.method == 'POST':
+#         # Print POST data for debugging
+#         print(request.POST)
+        
+#         employee_id = request.POST.get('employee_id')
+#         employee = get_object_or_404(Employee, id=employee_id)
+#         interview_date = request.POST.get('interview_date', None)
+#         starting_time = request.POST.get('starting_time', None)
+#         ending_time = request.POST.get('ending_time', None)
+#         meeting_link = request.POST.get('meeting_link', None)
+#         interviewer_name = request.POST.get('interviewer_name', None)
+#         notes = request.POST.get('notes', '')
 
-def schedule_interview(request):
-    # Fetch only employees who are not yet approved
-    employees = Employee.objects.filter(approved=False)
+#         if interview_date and starting_time and ending_time and meeting_link and interviewer_name:
+#             # Create the interview instance
+#             Interview.objects.create(
+#                 employee=employee,
+#                 interview_date=interview_date,
+#                 starting_time=starting_time,
+#                 ending_time=ending_time,
+#                 meeting_link=meeting_link,
+#                 interviewer_name=interviewer_name,
+#                 notes=notes,
+#             )
 
-    if request.method == 'POST':
-        # Fetch form data
-        employee_id = request.POST.get('employee_id')
-        interview_date = request.POST.get('interview_date')
-        starting_time = request.POST.get('starting_time')
-        ending_time = request.POST.get('ending_time')
-        meeting_link = request.POST.get('meeting_link')
-        interviewer_name = request.POST.get('interviewer_name')
-        notes = request.POST.get('notes')
+#             # Send email to the employee
+#             subject = 'Interview Scheduled'
+#             message = f"""
+#             Dear {employee.first_name} {employee.last_name},
 
-        # Check for required fields
-        if not all([employee_id, interview_date, starting_time, ending_time, meeting_link, interviewer_name]):
-            messages.error(request, 'Please fill in all the required fields.')
-            return redirect('schedule_interview')
+#             Your interview has been scheduled on {interview_date}.
+#             Starting Time: {starting_time}
+#             Ending Time: {ending_time}
+#             Meeting Link: {meeting_link}
+#             Interviewer: {interviewer_name}
 
-        # Validate the interview date is in the future
-        if datetime.strptime(interview_date, "%Y-%m-%d") < datetime.now().date():
-            messages.error(request, 'Interview date must be in the future.')
-            return redirect('schedule_interview')
+#             Additional Notes:
+#             {notes}
 
-        try:
-            # Fetch the employee by id
-            employee = Employee.objects.get(id=employee_id)
-        except Employee.DoesNotExist:
-            messages.error(request, 'Employee not found.')
-            return redirect('manage_employee')
+#             Please make sure to attend the interview at the scheduled time.
+#             """
+#             recipient_list = [employee.email]
+#             send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, recipient_list)
 
-        # Validate the time range
-        if starting_time >= ending_time:
-            messages.error(request, 'Starting time must be before ending time.')
-            return redirect('schedule_interview')
+#             # Success message and redirect
+#             messages.success(request, 'Interview has been successfully scheduled and email sent to the employee.')
+#             return redirect('manage_employee')
+#         else:
+#             messages.error(request, 'Please fill all the required fields.')
 
-        # Store interview details
-        interview = Interview.objects.create(
-            employee=employee,
-            interview_date=interview_date,
-            starting_time=starting_time,
-            ending_time=ending_time,
-            meeting_link=meeting_link,
-            interviewer_name=interviewer_name,
-            notes=notes
-        )
-
-        # Prepare the email content
-        subject = "Interview Scheduled"
-        message = f"""
-        Dear {employee.first_name} {employee.last_name},
-
-        Your interview is scheduled as follows:
-        - Date: {interview_date}
-        - Time: {starting_time} to {ending_time}
-        - Meeting Link: {meeting_link}
-
-        Please ensure you attend the interview promptly.
-
-        Best regards,
-        {interviewer_name}
-        """
-
-        # Attempt to send email
-        try:
-            send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [employee.email], fail_silently=False)
-            messages.success(request, f'Interview scheduled and email sent to {employee.email}.')
-        except Exception as e:
-            messages.error(request, f"An error occurred while sending the email: {str(e)}")
-            return redirect('schedule_interview')
-
-        return redirect('admin_dashboard')
-
-    return render(request, 'schedule_interview.html', {'employees': employees})
-
-
+#     employees = Employee.objects.all()
+#     return render(request, 'schedule_interview.html', {'employees': employees})
 
 
 #employee
@@ -895,5 +876,62 @@ def toggle_employee_approval(request, employee_id):
     employee.save()
     return redirect('manage_employee')
 
+from django.shortcuts import render, redirect
+from myapp.models import Employee, Interview
 
+from django.shortcuts import render, redirect
+from myapp.models import Employee, Interview
 
+def schedule_interview(request):
+    # Fetch employees with approval status set to 0
+    employees = Employee.objects.filter(approval=0)  # Fetch only unapproved employees
+
+    if request.method == 'POST':
+        employee_id = request.POST.get('employee_id')
+        interview_date = request.POST.get('interview_date')
+        starting_time = request.POST.get('starting_time')
+        ending_time = request.POST.get('ending_time')
+        meeting_link = request.POST.get('meeting_link')
+        interviewer_name = request.POST.get('interviewer_name')
+
+        # Debugging logs
+        print(f"Employee ID from POST: {employee_id}")
+        print(f"Interview Date: {interview_date}")
+        print(f"Starting Time: {starting_time}")
+        print(f"Ending Time: {ending_time}")
+        print(f"Meeting Link: {meeting_link}")
+        print(f"Interviewer Name: {interviewer_name}")
+
+        if employee_id:
+            try:
+                employee = Employee.objects.get(id=employee_id)
+            except Employee.DoesNotExist:
+                return render(request, 'schedule_interview.html', {
+                    'error': 'Employee not found.',
+                    'employees': employees
+                })
+
+            if interview_date:
+                try:
+                    Interview.objects.create(
+                        employee=employee,
+                        interview_date=interview_date,
+                        starting_time=starting_time,
+                        ending_time=ending_time,
+                        meeting_link=meeting_link,
+                        interviewer_name=interviewer_name
+                    )
+                    return redirect('success_page')
+                except Exception as e:
+                    print(f"Error creating interview: {e}")
+                    return render(request, 'schedule_interview.html', {
+                        'error': 'Failed to schedule the interview.',
+                        'employees': employees
+                    })
+            else:
+                return render(request, 'schedule_interview.html', {
+                    'error': 'Interview date is required.',
+                    'employees': employees
+                })
+
+    return render(request, 'schedule_interview.html', {'employees': employees})

@@ -87,7 +87,7 @@ from .models import Employee  # Make sure to import your Employee model
 
 class Interview(models.Model):
     employee = models.ForeignKey(Employee, on_delete=models.CASCADE, related_name='interviews')
-    interview_date = models.DateField()
+    interview_date = models.DateField(null=False)
     starting_time = models.TimeField()
     ending_time = models.TimeField()
     meeting_link = models.URLField(max_length=200)

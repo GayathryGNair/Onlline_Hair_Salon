@@ -7,8 +7,6 @@ from .views import manage_client
 from .views import  edit_services, delete_service, manage_service,service_detail,category
 from .views import hair_care_services, services_in_subcategory
 from .views import booking_service, booking_confirmation
-from .views import manage_employee, schedule_interview
-
 
 
 
@@ -41,7 +39,7 @@ urlpatterns = [
     path('manage_service/', views.manage_service, name='manage_service'),
     path('edit_services/<int:service_id>/', edit_services, name='edit_services'),
     path('delete_service/<int:service_id>/', delete_service, name='delete_service'),
-    path('schedule_interview/', schedule_interview, name='schedule_interview'),
+    # path('schedule_interview/', views.schedule_interview, name='schedule_interview'),
 
     path('client_update/', views.client_update, name='client_update'),
     path('client_profile/', views.client_profile, name='client_profile'),
@@ -73,8 +71,7 @@ urlpatterns = [
     path('hair-care/<int:subcategory_id>/', services_in_subcategory, name='services_in_subcategory'),
     
 
-    
-
+    path('schedule-interview/', views.schedule_interview, name='schedule_interview'),
 ]
 
     
