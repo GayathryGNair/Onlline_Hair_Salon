@@ -11,76 +11,87 @@
             font-family: 'Poppins', sans-serif;
             margin: 0;
             padding: 0;
-            background-color: #f4f4f4;
+            background-color: #fafafa;
             color: #333;
             display: flex;
-            flex-direction: column; /* Align children in a column */
-            min-height: 100vh; /* Ensure body takes full height */
-            overflow: hidden;
+            flex-direction: column;
+            min-height: 100vh;
         }
-
+       
         header {
-            background: linear-gradient(90deg, #ff7e5f, #feb47b);
+            background: linear-gradient(135deg, #b24592, #f15f79); /* Gradient from deep purple to warm pink */
             color: white;
             padding: 15px;
             text-align: center;
             font-size: 28px;
             font-weight: bold;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
             position: relative;
         }
 
+
         nav {
-            background-color: #5fffe2aa;
-            overflow: hidden;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            position: relative;
+            background-color: #212529;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
 
         nav a {
-            float: left;
-            display: block;
-            color: #ff7e5f;
+            color: #f8f9fa;
             text-align: center;
-            padding: 16px 20px;
+            padding: 12px 16px;
             text-decoration: none;
             transition: background-color 0.3s ease;
         }
 
         nav a:hover {
-            background-color: #feb47b;
-            color: white;
+            background-color: #ff7e5f;
+            color: #fff;
         }
 
-        .profile-name {
-            display: block;
-            margin-top: 8px;
-            font-size: 14px;
-            color: #ff7e5f;
-            text-align: center;
-        }
-
-        /* Profile icon */
         .profile-container {
-            float: right;
-            position: relative;
-            padding: 16px;
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
 
         .profile-icon {
             cursor: pointer;
-            font-size: 18px;
-            padding: 8px;
+            font-size: 22px; /* Reduced from 28px */
+            padding: 8px; /* Reduced padding */
             border-radius: 50%;
-            background-color: #ffffff;
+            background-color: #fff;
+            color: #ff7e5f;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s ease;
+        }
+
+        .profile-icon:hover {
+            transform: scale(1.1);
+        }
+
+        .profile-name {
+            font-size: 14px; /* Reduced font size */
+            color: #fff;
+            margin-top: 4px; /* Reduced margin */
+            text-align: center;
+            max-width: 80px; /* Add max-width to prevent overflow */
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .profile-dropdown {
             display: none;
             position: absolute;
             right: 0;
-            top: 50px;
+            top: 60px;
             background-color: white;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
             border-radius: 5px;
@@ -90,12 +101,11 @@
 
         .profile-dropdown a {
             display: block;
-            padding: 8px 10px;
-            text-align: left;
+            padding: 10px;
             text-decoration: none;
             font-size: 14px;
             color: #ff7e5f;
-            border-bottom: 1px solid #f0f0f0;
+            border-bottom: 1px solid #e9ecef;
             transition: background-color 0.3s ease;
         }
 
@@ -104,61 +114,73 @@
             color: white;
         }
 
+        .container {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            position: relative;
+        }
+
         .scrolling-background {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background-size: cover; /* Cover the entire area */
+            background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
-            z-index: -1; /* Keep the background behind other content */
+            z-index: -1;
+            transition: background-image 1s ease-in-out;
         }
 
-        /* Content on top of background */
-        .container {
-            position: relative;
-            z-index: 1; /* Keep content above the background */
-            padding: 20px; /* Add padding for content */
-            flex: 1; /* Allow the container to grow and fill space */
-            display: flex;
-            flex-direction: column; /* Arrange content vertically */
-            justify-content: center; /* Center content vertically */
-            align-items: center; /* Center content horizontally */
-        }
-
-        /* Arrow buttons */
         .arrow {
             cursor: pointer;
-            font-size: 24px;
-            color: #ff7e5f;
-            background-color: rgba(255, 255, 255, 0.8);
+            font-size: 26px;
+            color: #fff;
+            background-color: rgba(0, 0, 0, 0.6);
             border: none;
-            border-radius: 5px;
-            padding: 10px;
-            position: absolute; /* Position absolute for placement */
-            top: 50%; /* Center vertically */
-            transform: translateY(-50%); /* Adjust to center vertically */
-            z-index: 100; /* Keep above background */
+            border-radius: 50%;
+            padding: 12px;
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 100;
+            transition: background-color 0.3s ease;
         }
 
         .arrow-left {
-            left: 10px; /* Position on the left */
+            left: 20px;
         }
 
         .arrow-right {
-            right: 10px; /* Position on the right */
+            right: 20px;
+        }
+
+        .arrow:hover {
+            background-color: #ff7e5f;
         }
 
         footer {
             text-align: center;
             padding: 15px;
-            background-color: #5fffe2aa;
-            color: #ff7e5f;
+            background-color: #212529;
+            color: #f8f9fa;
             font-size: 14px;
             position: relative;
             width: 100%;
+            box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        footer span {
+            color: #ff7e5f;
+        }
+
+        /* Show dropdown */
+        .show {
+            display: block;
         }
     </style>
 </head>
@@ -168,7 +190,7 @@
 
     <header>
         <marquee behavior="scroll" direction="left" scrollamount="5">
-            <em style="font-family: 'Lucida Calligraphy', cursive; font-size: 24px; color: #FF69B4; text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);">
+            <em style="font-family: 'Lucida Calligraphy', cursive; font-size: 24px; color: #fff; text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);">
                 Welcome to GlamourQuest Hair Salon
             </em>
         </marquee>
@@ -201,41 +223,35 @@
     </div>
 
     <footer>
-        &copy; 2024 Hair Salon | All Rights Reserved
+        &copy; <span>2024</span> Hair Salon | All Rights Reserved
     </footer>
 
     <script>
-        let currentIndex = 0; // Index of the current background image
+        let currentIndex = 0;
         const backgrounds = [
             "{% static 'images/hair-styling.jpg' %}",
             "{% static 'images/manicure.jpg' %}",
             "{% static 'images/hair-spa.jpg' %}",
             "{% static 'images/all-type.jpg' %}"
         ];
-
-        // Function to change the background image based on the current index
+    
+        // Set the initial background image when the page loads
+        window.onload = function () {
+            const scrollingBackground = document.querySelector('.scrolling-background');
+            scrollingBackground.style.backgroundImage = `url(${backgrounds[currentIndex]})`;
+            intervalId = setInterval(() => changeBackground(1), 4000);  // Automatically cycle images every 4 seconds
+        };
+    
         function changeBackground(direction) {
-            currentIndex = (currentIndex + direction + backgrounds.length) % backgrounds.length; // Update the index
+            currentIndex = (currentIndex + direction + backgrounds.length) % backgrounds.length;
             const scrollingBackground = document.querySelector('.scrolling-background');
             scrollingBackground.style.backgroundImage = `url(${backgrounds[currentIndex]})`;
         }
-
-        // Automatic image transition
-        let intervalId = setInterval(() => changeBackground(1), 3000); // Change every 3 seconds
-
-        // Stop the automatic transition when clicking an arrow
-        function changeBackgroundWithStop(direction) {
-            clearInterval(intervalId); // Stop automatic transition
-            changeBackground(direction);
-            // Restart automatic transition after 3 seconds
-            intervalId = setInterval(() => changeBackground(1), 3000);
-        }
-
+    
         function toggleDropdown() {
             document.getElementById('profileDropdown').classList.toggle('show');
         }
-
-        // Close the dropdown if clicked outside
+    
         window.onclick = function (event) {
             if (!event.target.matches('.profile-icon')) {
                 const dropdowns = document.getElementsByClassName("profile-dropdown");
@@ -248,6 +264,7 @@
             }
         }
     </script>
+    
 </body>
 
 </html>
