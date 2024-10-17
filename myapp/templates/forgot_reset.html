@@ -5,129 +5,157 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Forgot Password</title>
-    {% comment %} <link rel="stylesheet" href="{% static 'css/stylef.css' %}"> {% endcomment %}
+    <style>
+        /* General Styling */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center; /* Center vertically */
+            background-color: #f0f0f0; /* Light gray background */
+        }
+
+        /* Main Container */
+        .container {
+            display: flex;
+            width: 80%; /* Adjust width as necessary */
+            max-width: 1200px; /* Optional max width */
+            height: 60%; /* Adjust height as necessary */
+            border-radius: 10px; /* Optional: rounded corners */
+            overflow: hidden; /* Ensure contents don't overflow */
+        }
+
+        /* Left Image Section */
+        .left-section {
+            flex: 1;
+            background: url("{% static 'images/login.jpg' %}") no-repeat center center;
+            background-size: cover;
+        }
+
+        /* Right Form Section */
+        .right-section {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #fff; /* White background for the form */
+            
+        }
+
+        /* Forgot Password Container */
+        .forgot-password-container {
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0px 0px 0px rgba(0, 0, 0, 0.1);
+            max-width: 400px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .forgot-password-container h2 {
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+
+        .forgot-password-container p {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 20px;
+        }
+
+        /* Input Group */
+        .input-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .input-group label {
+            font-size: 14px;
+            color: #333;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        /* Button */
+        .input-group button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            width: 100%;
+            transition: background-color 0.3s ease;
+        }
+
+        .input-group button:hover {
+            background-color: #45a049;
+        }
+
+        /* Navbar */
+        .navbar {
+            position: absolute;
+            top: 0;
+            width: 100%;
+            background-color: #333;
+            padding: 15px 0;
+            text-align: center;
+        }
+
+        .navbar a {
+            color: #fff;
+            text-decoration: none;
+            font-size: 16px;
+            padding: 8px 20px;
+            background-color: #444;
+            border-radius: 4px;
+            transition: background-color 0.3s ease;
+        }
+
+        .navbar a:hover {
+            background-color: #555;
+        }
+    </style>
 </head>
-<style>
-    /* General Styling */
-body {
-    font-family: Arial, sans-serif;
-    background-color: #f0f0f0;
-    margin: 0;
-    padding: 0;
-    background-image: url("{% static 'images/bg-2.jpg' %}");
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    height: 100vh;
-}
-
-/* Navbar */
-.navbar {
-    position: absolute;
-    top: 0;
-    width: 100%;
-    background-color: #333;
-    padding: 15px 0;
-    text-align: center;
-}
-
-.navbar a {
-    color: #fff;
-    text-decoration: none;
-    font-size: 16px;
-    padding: 8px 20px;
-    background-color: #444;
-    border-radius: 4px;
-    transition: background-color 0.3s ease;
-}
-
-.navbar a:hover {
-    background-color: #555;
-}
-
-/* Forgot Password Container */
-.forgot-password-container {
-    background-color: #fff;
-    padding: 40px;
-    border-radius: 10px;
-    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
-    max-width: 400px;
-    width: 100%;
-    text-align: center;
-}
-
-.forgot-password-container h2 {
-    font-size: 24px;
-    margin-bottom: 20px;
-}
-
-.forgot-password-container p {
-    font-size: 14px;
-    color: #666;
-    margin-bottom: 20px;
-}
-
-/* Input Group */
-.input-group {
-    margin-bottom: 20px;
-    text-align: left;
-}
-
-.input-group label {
-    font-size: 14px;
-    color: #333;
-    display: block;
-    margin-bottom: 5px;
-}
-
-.input-group input {
-    width: 100%;
-    padding: 10px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    font-size: 14px;
-}
-
-/* Button */
-.input-group button {
-    background-color: #d67d50;
-    color: white;
-    padding: 10px 15px;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 16px;
-    width: 100%;
-    transition: background-color 0.3s ease;
-}
-
-.input-group button:hover {
-    background-color: #45a049;
-}
-
-</style>
 <body>
-    <div class="navbar">
-        <a href="{% url 'index' %}" class="back-home">Back to Home</a>
-    </div>
 
-    <div class="forgot-password-container">
-        <h2>Forgot Password</h2>
-        <p>Please enter your email address. We will send you a link to reset your password.</p>
-        <!-- Add method="POST" and csrf_token -->
-        <form id="forgotPasswordForm" method="POST" action="{% url 'forgot_reset' %}">
-            {% csrf_token %}
-            <div class="input-group">
-                <label for="email">Email:</label>
-                <input type="email" id="email" name="email" required>
-            </div>
-            <div class="input-group">
-                <button type="submit">Send Reset Link</button>
-            </div>
-        </form>
-    </div>
 
-   {% comment %}  <script src="{% static 'js/scriptf.js' %}"></script> {% endcomment %}
+    <div class="container">
+        <!-- Left Image Section -->
+        <div class="left-section"></div>
+
+        <!-- Right Form Section -->
+        <div class="right-section">
+            <div class="forgot-password-container">
+                <h2>Forgot Password</h2>
+                <p>Please enter your email address. We will send you a link to reset your password.</p>
+                <!-- Add method="POST" and csrf_token -->
+                <form id="forgotPasswordForm" method="POST" action="{% url 'forgot_reset' %}">
+                    {% csrf_token %}
+                    <div class="input-group">
+                        <label for="email">Email:</label>
+                        <input type="email" id="email" name="email" placeholder="Enter the email here...">
+                    </div>
+                    <div class="input-group">
+                        <button type="submit">Send Reset Link</button><br><br>
+                        <button type="button" onclick=window.location.href="{% url 'index' %}" class="back-home-button">Back to Home</button>
+                    </div>
+                    
+                </form>
+            </div>
+        </div>
+    </div>
 </body>
 </html>

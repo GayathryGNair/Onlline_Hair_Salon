@@ -26,7 +26,7 @@
             font-weight: bold;
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
             position: relative;
-            width: 100%; /* Cover full width */
+            width: 100%;
         }
 
         .logout-button {
@@ -52,7 +52,7 @@
             padding: 10px;
             text-align: center;
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-            width: 100%; /* Cover full width */
+            width: 100%;
         }
 
         nav a {
@@ -72,7 +72,7 @@
 
         .form-container {
             width: 90%;
-            max-width: 400px;
+            max-width: 500px; /* Adjusted for better form layout */
             padding: 20px;
             background-color: #fff;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
@@ -101,10 +101,6 @@
             width: 100%;
         }
 
-        input[type="file"] {
-            padding: 5px;
-        }
-
         button {
             background-color: #4CAF50;
             color: white;
@@ -117,16 +113,6 @@
 
         button:hover {
             background-color: #45a049;
-        }
-
-        ul {
-            color: #333;
-            list-style: none;
-            padding: 0;
-        }
-
-        li {
-            margin: 5px 0;
         }
 
         .service-list {
@@ -157,49 +143,19 @@
             gap: 10px;
         }
 
-        .delete-button {
-            background-color: #f44336;
-            padding: 10px;
-            border: none;
-            border-radius: 4px;
-            color: white;
-            cursor: pointer;
-        }
-
-        .delete-button:hover {
-            background-color: #e53935;
-        }
-
         .edit-button {
-            background-color: #007BFF; /* Blue color for edit */
+            background-color: #3498db; /* Edit button color */
             color: white;
-            padding: 10px;
+            padding: 5px 10px;
             border: none;
             border-radius: 4px;
-            cursor: pointer;
-            text-align: center;
-        }
-
-        .edit-button:hover {
-            background-color: #0056b3; /* Darker blue on hover */
-        }
-
-        .add-category-button {
-            background-color: #008CBA;
-            padding: 10px;
-            border: none;
-            border-radius: 4px;
-            color: white;
-            cursor: pointer;
-            text-align: center;
-            display: inline-block;
-            margin-bottom: 20px;
             text-decoration: none;
         }
 
-        .add-category-button:hover {
-            background-color: #007B9A;
+        .edit-button:hover {
+            background-color: #2980b9; /* Darker shade on hover */
         }
+
     </style>
 </head>
 
@@ -252,7 +208,7 @@
             <select id="subcategory" name="subcategory" required aria-label="Service Subcategory">
                 <option value="" disabled selected>Choose a Subcategory</option>
                 {% for subcategory in subcategories %}
-                <option value="{{ subcategory.id }}">{{ subcategory.name }} ({{ subcategory.category.name }})</option>
+                <option value="{{ subcategory.id }}" data-category="{{ subcategory.category.id }}">{{ subcategory.name }}</option>
                 {% endfor %}
             </select>
 
@@ -290,13 +246,43 @@
                     {% csrf_token %}
                     <button type="submit" class="btn btn-danger">Delete</button>
                 </form>
-                
-                </form>
             </div>
         </div>
         {% empty %}
         <div>No services available.</div>
         {% endfor %}
     </div>
+
+    <script>
+        // Get references to the category and subcategory dropdowns
+        const categoryDropdown = document.getElementById('category');
+        const subcategoryDropdown = document.getElementById('subcategory');
+
+        // Function to filter subcategories based on selected category
+        function filterSubcategories() {
+            const selectedCategory = categoryDropdown.value;
+            
+            // Loop through subcategory options and show/hide based on selected category
+            for (let i = 0; i < subcategoryDropdown.options.length; i++) {
+                const option = subcategoryDropdown.options[i];
+                const category = option.getAttribute('data-category');
+
+                if (category === selectedCategory) {
+                    option.style.display = 'block';
+                } else {
+                    option.style.display = 'none';
+                }
+            }
+
+            // Reset subcategory selection
+            subcategoryDropdown.value = '';
+        }
+
+        // Add event listener to category dropdown to trigger filtering
+        categoryDropdown.addEventListener('change', filterSubcategories);
+
+        // Initialize the filter when the page loads
+        filterSubcategories();
+    </script>
 </body>
 </html>

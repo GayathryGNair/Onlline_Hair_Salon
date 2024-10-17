@@ -1,126 +1,155 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Login</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css">
-    <style>
-        @import "https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css";
-        body {
-            margin: 0;
-            padding: 0;
-            font-family: 'Arial', sans-serif;
-            background-color: #f8f9fa;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-        }
-        .login-box {
-            width: 350px;
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        }
-        .login-box h1 {
-            font-size: 28px;
-            color: #333;
-            margin-bottom: 15px;
-            text-align: center;
-        }
-        .textbox {
-            margin-bottom: 10px;
-            position: relative;
-        }
-        .textbox i {
-            position: absolute;
-            left: 10px;
-            top: 10px;
-            color: #007bff;
-        }
-        .textbox input {
-            width: 100%;
-            padding: 8px 30px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            font-size: 14px;
-            transition: border 0.3s;
-        }
-        .textbox input:focus {
-            border-color: #007bff;
-            outline: none;
-        }
-        .btn {
-            width: 100%;
-            background: #007bff;
-            border: none;
-            color: white;
-            padding: 8px;
-            font-size: 16px;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: background 0.3s;
-        }
-        .btn:hover {
-            background: #0056b3;
-        }
-        .radio-group {
-            text-align: center;
-            margin: 15px 0;
-        }
-        h4 {
-            text-align: center;
-            color: #555;
-            font-size: 14px;
-            margin-top: 20px; /* Added space above this section */
-        }
-    </style>
-</head>
+    <head>
+        <meta charset="UTF-8">
+        <title>Login</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta http-equiv="X-UA-Compatible" content="ie=edge">
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css">
+        <style>
+            @import "https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css";
+            body {
+                margin: 0;
+                padding: 0;
+                font-family: 'Arial', sans-serif;
+                background-color: #f8f9fa;
+                height: 100vh; /* Keep body at full height */
+                display: flex;
+                justify-content: center;
+                align-items: center;
+            }
+            html {
+                overflow-x: hidden;
+                overflow-y: hidden;
+            }
 
-<body>
-<div class="login-box">
-    <h1>Login</h1>
-    {% if messages %}
-        <div id="message-box" class="alert alert-success" role="alert">
-            {% for message in messages %}
-                <span>{{ message }}</span>
-            {% endfor %}
+            .wrapper {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                width: 100%;
+                height: 100%;
+            }
+            .login-container {
+                display: flex;
+                width: 80%;
+                max-width: 1200px;
+                height: 70vh;
+                background: white;
+                border-radius: 8px;
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+                overflow: hidden;
+            }
+            .login-image {
+                flex: 1;
+                background: url("{% static 'images/login.jpg' %}") no-repeat center center;
+                background-size: cover;
+            }
+            .login-box {
+                flex: 1;
+                padding: 40px;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+            }
+            .login-box h1 {
+                font-size: 28px;
+                color: #333;
+                margin-bottom: 15px;
+                margin-left: 47%;
+            }
+            .textbox {
+                margin-bottom: 10px;
+                position: relative;
+            }
+            .textbox i {
+                position: absolute;
+                left: 10px;
+                top: 10px;
+                color: #007bff;
+                margin-left: 20%;
+            }
+            .textbox input {
+                width: 70%;
+                padding: 8px 30px;
+                border: 1px solid #ccc;
+                border-radius: 5px;
+                font-size: 14px;
+                transition: border 0.3s;
+                margin-left: 20%;
+            }
+            .textbox input:focus {
+                border-color: #007bff;
+                outline: none;
+            }
+            .btn {
+                width: 70%;
+                background: #007bff;
+                border: none;
+                color: white;
+                padding: 8px;
+                font-size: 16px;
+                border-radius: 5px;
+                cursor: pointer;
+                transition: background 0.3s;
+                margin-left: 20%;
+            }
+            .btn:hover {
+                background: #0056b3;
+            }
+            h4 {
+                text-align: center;
+                color: #555;
+                font-size: 14px;
+                margin-top: 20px;
+            }
+        </style> 
+    </head>
+
+    <body>
+
+        <div class="wrapper">
+            <div class="login-container">
+                <!-- Image Section -->
+                <div class="login-image"></div>
+        
+                <!-- Login Form Section -->
+                <div class="login-box">
+                    <h1>LOGIN</h1>
+                    {% if messages %}
+                    <div id="message-box" class="alert alert-success" role="alert">
+                        {% for message in messages %}
+                        <span>{{ message }}</span>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                    <form method="POST" action="{% url 'login' %}">
+                        {% csrf_token %}
+                        <div class="textbox">
+                            <i class="fa fa-user" aria-hidden="true"></i>
+                            <input type="email" id="email" placeholder="Email" name="email" required>
+                        </div>
+                        <div class="textbox">
+                            <i class="fa fa-lock" aria-hidden="true"></i>
+                            <input type="password" id="password" placeholder="Password" name="password" required>
+                        </div>
+                        <button type="submit" id="login" class="btn">Submit</button>
+                    </form>
+                    <h4>Don't have an account? <a style="color: #007bff" href="{% url 'register' %}"><b>SIGN UP</b></a></h4>
+                    <h4>Forget Password? <a style="color: #007bff" href="{% url 'forgot_reset' %}"><b>Recover</b></a></h4>
+                </div>
+            </div>
         </div>
-    {% endif %}
     
-    <form method="POST" action="{% url 'login' %}">
-        {% csrf_token %}
-        <div class="textbox">
-            <i class="fa fa-user" aria-hidden="true"></i>
-            <input type="email" id="email" placeholder="Email" name="email" required>
-        </div>
-        <div class="textbox">
-            <i class="fa fa-lock" aria-hidden="true"></i>
-            <input type="password"id="password" placeholder="Password" name="password" required>
-        </div>
+        <script src="//cdn.bootcss.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+        <script>
+            setTimeout(function() {
+                $('#message-box').fadeOut('slow');
+            }, 1000);
+        </script>
         
-        
-        
-        <button type="submit" id="login" class="btn">Submit</button>
-    </form>
     
-    <h4>Don't have an account? <a style="color: #007bff" href="{% url 'register' %}"><b>SIGN UP</b></a></h4>
-    <h4>Forget Password? <a style="color: #007bff" href="{% url 'forgot_reset' %}"><b>Recover</b></a></h4>
-</div>
-
-<script src="//cdn.bootcss.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
-
-<script>
-    // Hide the message box after 1 seconds
-    setTimeout(function() {
-        $('#message-box').fadeOut('slow');
-    }, 1000);  // 1000 milliseconds = 1 seconds
-</script>
-
-</body>
+    </body>
 </html>
