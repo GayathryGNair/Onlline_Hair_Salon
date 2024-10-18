@@ -233,12 +233,18 @@ def register(request):
             return render(request, 'register.html')  # Re-render the form with error
 
     return render(request, 'register.html')  
-
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.contrib.auth.hashers import make_password
 from .models import Employee, Specialization
+from django.shortcuts import render, redirect
+from django.contrib import messages
+from django.contrib.auth.hashers import make_password
+from .models import Employee, Specialization
+
 def employee_registeration(request):
+    specializations = Specialization.objects.all()
+    
     if request.method == 'POST':
         first_name = request.POST['first_name']
         last_name = request.POST['last_name']
@@ -246,12 +252,13 @@ def employee_registeration(request):
         password = request.POST['password']
         dob = request.POST['dob']
         contact = request.POST['contact']
+        qualification = request.POST.get('qualification', '')
         qualification_certificate = request.FILES.get('qualification_certificate')
         specialization_ids = request.POST.getlist('specializations')
 
         if Employee.objects.filter(email=email).exists():
             messages.error(request, 'Email already exists')
-            return render(request, 'employee_registeration.html', {'specializations': Specialization.objects.all()})
+            return render(request, 'employee_registeration.html', {'specializations': specializations})
 
         employee = Employee(
             first_name=first_name,
@@ -260,6 +267,7 @@ def employee_registeration(request):
             password=make_password(password),
             dob=dob,
             contact=contact,
+            qualification=qualification,
             qualification_certificate=qualification_certificate
         )
         employee.save()
@@ -270,9 +278,7 @@ def employee_registeration(request):
         messages.success(request, 'Registration successful. Please wait for admin approval.')
         return redirect('login')
 
-    specializations = Specialization.objects.all()
     return render(request, 'employee_registeration.html', {'specializations': specializations})
-
 def for_men(request):
     return render(request, 'for_men.html')
 
@@ -369,10 +375,11 @@ def client_services(request):
 
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def hair_care_services(request):
-    user_id = request.session.get('user_id')  # Adjust this if needed based on how you store the session
+    user_id = request.session.get('user_id')
     if not user_id:
-        messages.error(request, "You want to loggin to access dashboard.")
+        messages.error(request, "You need to log in to access the dashboard.")
         return redirect('login')
+    
     client = Client.objects.get(id=user_id)
     
     # Fetch all service subcategories where category ID is 1
@@ -380,16 +387,18 @@ def hair_care_services(request):
     
     context = {
         'hair_care_subcategories': hair_care_subcategories,
+        'client': client,
     }
     
     return render(request, 'hair_care_services.html', context)
-
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def services_in_subcategory(request, subcategory_id):
     user_id = request.session.get('user_id')  # Adjust this if needed based on how you store the session
     if not user_id:
         messages.error(request, "You want to loggin to access dashboard.")
         return redirect('login')
+    client = Client.objects.get(id=user_id)
+    
     # Fetch the subcategory and its related services
     subcategory = get_object_or_404(ServiceSubcategory, id=subcategory_id)
     services = Service.objects.filter(subcategory=subcategory)
@@ -397,6 +406,7 @@ def services_in_subcategory(request, subcategory_id):
     context = {
         'subcategory': subcategory,
         'services': services,
+        'client': client,
     }
     
     return render(request, 'services_in_subcategory.html', context)
@@ -408,10 +418,12 @@ def facial_services(request):
     if not user_id:
         messages.error(request, "You want to loggin to access dashboard.")
         return redirect('login')
+    client = Client.objects.get(id=user_id)
     facial_service_subcategories = ServiceSubcategory.objects.filter(category_id=2)
     
     context = {
         'facial_service_subcategories': facial_service_subcategories,
+        'client': client,
     }
     
     return render(request, 'facial_services.html', context)
@@ -428,11 +440,13 @@ def mani_pedi_services(request):
     if not user_id:
         messages.error(request, "You want to loggin to access dashboard.")
         return redirect('login')
+    client = Client.objects.get(id=user_id)
     
     mani_pedi_service_subcategories = ServiceSubcategory.objects.filter(category_id=3)
     
     context = {
         'mani_pedi_service_subcategories': mani_pedi_service_subcategories,
+        'client': client,
     }
     
     return render(request, 'mani-pedi-services.html', context)
@@ -443,10 +457,12 @@ def waxing_services(request):
     if not user_id:
         messages.error(request, "You want to loggin to access dashboard.")
         return redirect('login')
+    client = Client.objects.get(id=user_id)
     waxing_service_subcategories = ServiceSubcategory.objects.filter(category_id=4)
     
     context = {
         'waxing_service_subcategories': waxing_service_subcategories,
+        'client': client,
     }
     
     return render(request, 'waxing-services.html', context)

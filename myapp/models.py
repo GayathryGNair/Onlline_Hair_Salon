@@ -28,7 +28,7 @@ class Employee(User):
     approved = models.BooleanField(default=False)
     specializations = models.ManyToManyField('Specialization', blank=True)
     qualification_certificate = models.FileField(upload_to='employee_certificates/', null=True, blank=True)
-
+        
 class Specialization(models.Model):
     name = models.CharField(max_length=200, unique=True)
     description = models.TextField(blank=True)
