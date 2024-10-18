@@ -26,8 +26,13 @@ from django.contrib.auth.hashers import make_password
 class Employee(User):
     reset_token = models.CharField(max_length=64, null=True, blank=True)
     approved = models.BooleanField(default=False)
-    specialization = models.CharField(max_length=200, blank=True)
+    specializations = models.ManyToManyField('Specialization', blank=True)
     qualification_certificate = models.FileField(upload_to='employee_certificates/', null=True, blank=True)
+
+class Specialization(models.Model):
+    name = models.CharField(max_length=200, unique=True)
+    description = models.TextField(blank=True)
+
 
 class ServiceCategory(models.Model):
     name = models.CharField(max_length=100)

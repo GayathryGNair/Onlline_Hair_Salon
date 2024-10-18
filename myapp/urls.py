@@ -41,7 +41,7 @@ urlpatterns = [
     path('delete_service/<int:service_id>/', delete_service, name='delete_service'),
     path('employee_registeration', views.employee_registeration, name='employee_registeration'),
     # path('schedule_interview/', views.schedule_interview, name='schedule_interview'),
-
+    path('employee/update-profile/', views.update_employee_profile, name='update_employee_profile'),
     path('client_update/', views.client_update, name='client_update'),
     path('client_profile/', views.client_profile, name='client_profile'),
     path('client_services/', views.client_services, name='client_services'),
@@ -50,7 +50,8 @@ urlpatterns = [
     path('facial_services/', views.facial_services, name='facial_services'),
     path('all_type_skin/', views.all_type_skin, name='all_type_skin'),
     path('mani-pedi-services/', views.mani_pedi_services, name='mani-pedi-services'),
-     path('waxing-services/', views.waxing_services, name='waxing-services'),
+    path('waxing-services/', views.waxing_services, name='waxing-services'),
+    
 
     path('toggle-client-status/<int:client_id>/', views.toggle_client_status, name='toggle_client_status'),
     path('toggle-employee-status/<int:employee_id>/', views.toggle_employee_status, name='toggle_employee_status'),

@@ -1,57 +1,154 @@
-<!-- edit_service.html -->
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Edit Service</title>
-    <link rel="stylesheet" href="style.css"> <!-- Link to your CSS file -->
+    <title>Employee Dashboard</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .dashboard-container {
+            max-width: 1200px;
+            margin: 50px auto;
+            background-color: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            padding: 30px;
+        }
+        .welcome-section {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .specialization-card {
+            background-color: #f1f3f5;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+        }
+        .specialization-card:hover {
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transform: translateY(-5px);
+        }
+        .logout-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+        }
+        .view-more-btn {
+            color: #007bff;
+            cursor: pointer;
+        }
+        .view-more-btn:hover {
+            text-decoration: underline;
+        }
+    </style>
 </head>
 <body>
-    <div class="form-container">
-        <h2>Edit Service</h2>
+    <div class="dashboard-container">
+        <a href="{% url 'logout' %}" class="btn btn-danger logout-btn">
+            <i class="fas fa-sign-out-alt"></i> Logout
+        </a>
+        
+        <div class="welcome-section">
+            <h1>Welcome, {{ employee.first_name }} {{ employee.last_name }}!</h1>
+            <p>Employee ID: {{ employee.id }}</p>
+            <button class="btn btn-primary" data-toggle="modal" data-target="#profileModal">View Profile</button>
+        </div>
 
-        {% if messages %}
-            <ul>
-                {% for message in messages %}
-                    <li>{{ message }}</li>
+        <h2 class="mb-4">Your Specializations</h2>
+        
+        {% if employee.specializations.all %}
+            <div class="row">
+                {% for specialization in employee.specializations.all %}
+                    <div class="col-md-4">
+                        <div class="specialization-card">
+                            <h3>{{ specialization.name }}</h3>
+                            <p>{{ specialization.description|truncatewords:20 }} 
+                                <span class="view-more-btn" data-toggle="modal" data-target="#modal{{ specialization.id }}">View More</span>
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <!-- Modal for full description -->
+                    <div class="modal fade" id="modal{{ specialization.id }}" tabindex="-1" role="dialog" aria-labelledby="modalLabel{{ specialization.id }}" aria-hidden="true">
+                        <div class="modal-dialog" role="document">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="modalLabel{{ specialization.id }}">{{ specialization.name }}</h5>
+                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                                <div class="modal-body">
+                                    {{ specialization.description }}
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 {% endfor %}
-            </ul>
+            </div>
+        {% else %}
+            <p>You don't have any specializations assigned yet.</p>
         {% endif %}
 
-        <form method="POST" enctype="multipart/form-data">
-            {% csrf_token %}
+        <!-- Profile Modal -->
+        <div class="modal fade" id="profileModal" tabindex="-1" role="dialog" aria-labelledby="profileModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="profileModalLabel">Employee Profile</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <h3>{{ employee.first_name }} {{ employee.last_name }}</h3>
+                        <p><strong>Email:</strong> {{ employee.email }}</p>
+                        <p><strong>Date of Birth:</strong> {{ employee.dob }}</p>
+                        <p><strong>Contact:</strong> {{ employee.contact }}</p>
+                        <p><strong>Status:</strong> {% if employee.status %}Active{% else %}Inactive{% endif %}</p>
+                        <p><strong>Approved:</strong> {% if employee.approved %}Yes{% else %}No{% endif %}</p>
+                        
+                        <h4>Specializations:</h4>
+                        <ul>
+                            {% for spec in employee.specializations.all %}
+                                <li>{{ spec.name }}</li>
+                            {% empty %}
+                                <li>No specializations assigned</li>
+                            {% endfor %}
+                        </ul>
+                        
+                        {% if employee.qualification_certificate %}
+                            <p><strong>Qualification Certificate:</strong> <a href="{{ employee.qualification_certificate.url }}" target="_blank">View Certificate</a></p>
+                        {% else %}
+                            <p><strong>Qualification Certificate:</strong> Not uploaded</p>
+                        {% endif %}
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    </div>
+                    <div class="welcome-section">
+                        <h1>Welcome, {{ employee.first_name }} {{ employee.last_name }}!</h1>
+                        <p>Employee ID: {{ employee.id }}</p>
+                        <button class="btn btn-primary mr-2" data-toggle="modal" data-target="#profileModal">View Profile</button>
+                        <a href="{% url 'update_employee_profile' %}" class="btn btn-success">Update Profile</a>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-            <label for="category">Select Category:</label>
-            <select id="category" name="category" required>
-                <option value="" disabled>Choose a Category</option>
-                {% for category in categories %}
-                    <option value="{{ category.id }}" {% if category.id == service.subcategory.category.id %}selected{% endif %}>{{ category.name }}</option>
-                {% endfor %}
-            </select>
-
-            <label for="subcategory">Select Subcategory:</label>
-            <select id="subcategory" name="subcategory" required>
-                <option value="" disabled>Choose a Subcategory</option>
-                {% for subcategory in subcategories %}
-                    <option value="{{ subcategory.id }}" {% if subcategory.id == service.subcategory.id %}selected{% endif %}>{{ subcategory.name }}</option>
-                {% endfor %}
-            </select>
-
-            <label for="service_name">Service Name:</label>
-            <input type="text" id="service_name" name="service_name" value="{{ service.service_name }}" required>
-
-            <label for="description">Description:</label>
-            <textarea id="description" name="description" required>{{ service.description }}</textarea>
-
-            <label for="rate">Rate (INR):</label>
-            <input type="number" step="0.01" id="rate" name="rate" value="{{ service.rate }}" required>
-
-            <label for="image">Upload Image:</label>
-            <input type="file" id="image" name="image">
-
-            <button type="submit">Update Service</button>
-        </form>
     </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 </body>
 </html>

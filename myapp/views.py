@@ -236,9 +236,8 @@ def register(request):
 
 from django.shortcuts import render, redirect
 from django.contrib import messages
-from .models import Employee
 from django.contrib.auth.hashers import make_password
-
+from .models import Employee, Specialization
 def employee_registeration(request):
     if request.method == 'POST':
         first_name = request.POST['first_name']
@@ -247,12 +246,12 @@ def employee_registeration(request):
         password = request.POST['password']
         dob = request.POST['dob']
         contact = request.POST['contact']
-        qualification = request.POST.get('qualification', '')
         qualification_certificate = request.FILES.get('qualification_certificate')
+        specialization_ids = request.POST.getlist('specializations')
 
         if Employee.objects.filter(email=email).exists():
             messages.error(request, 'Email already exists')
-            return render(request, 'employee_registeration.html')
+            return render(request, 'employee_registeration.html', {'specializations': Specialization.objects.all()})
 
         employee = Employee(
             first_name=first_name,
@@ -261,14 +260,18 @@ def employee_registeration(request):
             password=make_password(password),
             dob=dob,
             contact=contact,
-            qualification=qualification,
             qualification_certificate=qualification_certificate
         )
         employee.save()
+
+        # Add specializations
+        employee.specializations.set(specialization_ids)
+
         messages.success(request, 'Registration successful. Please wait for admin approval.')
         return redirect('login')
 
-    return render(request, 'employee_registeration.html')
+    specializations = Specialization.objects.all()
+    return render(request, 'employee_registeration.html', {'specializations': specializations})
 
 def for_men(request):
     return render(request, 'for_men.html')
@@ -817,24 +820,73 @@ def delete_subcategory(request, subcategory_id):
 
 #employee
 
-@cache_control(no_cache=True, must_revalidate=True, no_store=True)
-def employee_dashboard(request):
-     # Check if user is logged in by verifying the session
-    user_id = request.session.get('user_id')
+from django.shortcuts import render, redirect
+from django.contrib import messages
+from .models import Employee, Specialization, Booking, Interview
+from django.utils import timezone
+from django.views.decorators.cache import cache_control
+from django.contrib.auth.decorators import login_required
+from django.http import HttpResponseForbidden
 
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
+
+def employee_dashboard(request):
+    user_id = request.session.get('user_id')
     
-    # Fetch the Client object using the user's ID
     try:
         employee = Employee.objects.get(id=user_id)
     except Employee.DoesNotExist:
-        messages.error(request, "You want to loggin to access dashboard.")
-        return redirect('login')  # Redirect if client not found
+        messages.error(request, "You need to log in to access the dashboard.")
+        return redirect('login')
+
+    upcoming_bookings = Booking.objects.filter(
+        staff=employee,
+        preferred_date__gte=timezone.now().date(),
+        status='Confirmed'
+    ).order_by('preferred_date', 'preferred_time')[:5]
+
+    upcoming_interviews = Interview.objects.filter(
+        employee=employee,
+        interview_date__gte=timezone.now().date()
+    ).order_by('interview_date', 'starting_time')[:3]
+
+    context = {
+        'employee': employee,
+        'upcoming_bookings': upcoming_bookings,
+        'upcoming_interviews': upcoming_interviews,
+    }
+    return render(request, 'employee_dashboard.html', context)
+
+
+def update_employee_profile(request):
+    user_id = request.session.get('user_id')
+    
+    try:
+        employee = Employee.objects.get(id=user_id)
+    except Employee.DoesNotExist:
+        messages.error(request, "Employee not found.")
+        return redirect('login')
+
+    if request.method == 'POST':
+        # Update employee information
+        employee.first_name = request.POST.get('first_name', employee.first_name)
+        employee.last_name = request.POST.get('last_name', employee.last_name)
+        employee.email = request.POST.get('email', employee.email)
+        employee.dob = request.POST.get('dob', employee.dob)
+        employee.contact = request.POST.get('contact', employee.contact)
+
+        # Handle file upload for qualification certificate
+        if 'qualification_certificate' in request.FILES:
+            employee.qualification_certificate = request.FILES['qualification_certificate']
+
+        employee.save()
+        messages.success(request, "Profile updated successfully.")
+        return redirect('employee_dashboard')
 
     context = {
         'employee': employee,
     }
-    return render(request, 'employee_dashboard.html', context)
-
+    return render(request, 'update_employee_profile.html', context)
 def user_profile(request):
     return render(request, 'user_profile.html')
 
