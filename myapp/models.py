@@ -19,10 +19,15 @@ class User(models.Model):
 class Client(User):
     reset_token = models.CharField(max_length=64, null=True, blank=True)  # Add reset_token field
 
+
+from django.db import models
+from django.contrib.auth.hashers import make_password
+
 class Employee(User):
-    
-    reset_token = models.CharField(max_length=64, null=True, blank=True) 
-    approved = models.BooleanField(default=False)  # Add reset_token field
+    reset_token = models.CharField(max_length=64, null=True, blank=True)
+    approved = models.BooleanField(default=False)
+    specialization = models.CharField(max_length=200, blank=True)
+    qualification_certificate = models.FileField(upload_to='employee_certificates/', null=True, blank=True)
 
 class ServiceCategory(models.Model):
     name = models.CharField(max_length=100)

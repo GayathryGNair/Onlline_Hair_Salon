@@ -63,6 +63,7 @@
 
         .container {
             margin-top: 30px;
+            width: 100%;
         }
 
         h1 {
@@ -77,16 +78,19 @@
 
         table, th, td {
             border: 1px solid #ccc;
+            width: 100%;
         }
 
         th, td {
             padding: 10px;
             text-align: left;
+            width: 40%;
         }
 
         th {
             background-color: #95a5a6;
             color: white;
+            
         }
 
         tr:nth-child(even) {
@@ -131,9 +135,11 @@
                     <th>Email</th>
                     <th>Date of Birth</th>
                     <th>Contact</th>
+                    <th>Qualification</th>
+                    <th>Qualification Certificate</th>
                     <th>Status</th>
                     <th>Approval</th>
-                    <th>Interview</th>
+                   
                 </tr>
             </thead>
             <tbody>
@@ -145,6 +151,16 @@
                     <td>{{ employee.email }}</td>
                     <td>{{ employee.dob }}</td>
                     <td>{{ employee.contact }}</td>
+                    <td>{{ employee.qualification }}</td>
+<td>
+    {% if employee.qualification_certificate %}
+        <a href="{{ employee.qualification_certificate.url }}" target="_blank">
+            <img src="{{ employee.qualification_certificate.url }}" alt="Certificate" style="width: 50px; height: 50px; object-fit: cover;">
+        </a>
+    {% else %}
+        No certificate
+    {% endif %}
+</td>
 
                     <!-- Status Button -->
                     <td>
@@ -167,13 +183,13 @@
                     </td>
 
                     <!-- Schedule Interview Button -->
-                    <td>
+                    <!-- <td>
                         <form method="POST" action="{% url 'schedule_interview' %}">
                             {% csrf_token %}
                             <input type="hidden" name="employee_id" value="{{ employee.id }}">
                             <button type="submit" class="btn btn-sm btn-warning btn-space">Interview</button>
                         </form>
-                    </td>
+                    </td> -->
                 </tr>
                 {% empty %}
                 <tr>

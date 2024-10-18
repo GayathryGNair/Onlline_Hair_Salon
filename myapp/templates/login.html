@@ -97,7 +97,41 @@
                 margin-left: 20%;
             }
             .btn:hover {
-                background: #0056b3;
+                background: #007bff;
+            }
+            .dropdown {
+                position: relative;
+                display: inline-block;
+            }
+            .dropdown-content {
+                display: none;
+                position: absolute;
+                background-color: #f9f9f9;
+                min-width: 160px;
+                box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+                z-index: 1;
+            }
+            .dropdown-content a {
+                color: black;
+                padding: 12px 16px;
+                text-decoration: none;
+                display: block;
+            }
+            .dropdown-content a:hover {background-color: #f1f1f1}
+            .dropdown:hover .dropdown-content {
+                display: block;
+            }
+            .dropdown-btn {
+                background-color: #007bff;
+                color: white;
+                padding: 10px;
+                font-size: 16px;
+                border: none;
+                cursor: pointer;
+                border-radius: 5px;
+            }
+            .dropdown-btn:hover, .dropdown-btn:focus {
+                background-color: #007bff;
             }
             h4 {
                 text-align: center;
@@ -137,7 +171,16 @@
                         </div>
                         <button type="submit" id="login" class="btn">Submit</button>
                     </form>
-                    <h4>Don't have an account? <a style="color: #007bff" href="{% url 'register' %}"><b>SIGN UP</b></a></h4>
+                    <h4>
+                        Don't have an account? 
+                        <div class="dropdown">
+                            <button class="dropdown-btn">Sign Up <i class="fas fa-caret-down"></i></button>
+                            <div class="dropdown-content">
+                                <a href="{% url 'register' %}">Sign Up as Client</a>
+                                <a href="{% url 'employee_registeration' %}">Sign Up as Employee</a>
+                            </div>
+                        </div>
+                    </h4>
                     <h4>Forget Password? <a style="color: #007bff" href="{% url 'forgot_reset' %}"><b>Recover</b></a></h4>
                 </div>
             </div>

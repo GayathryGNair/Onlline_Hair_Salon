@@ -166,10 +166,17 @@ def login(request):
         try:
             user = Employee.objects.get(email=email)
             if check_password(password, user.password):
-                request.session['user_id'] = user.id
-                request.session['user_type'] = 'employee'
-                messages.success(request, 'Login successful!')
-                return redirect('employee_dashboard')
+                if not user.approved:
+                    messages.error(request, "Your account is not yet approved. Please wait for admin approval.")
+                    return redirect('login')
+                elif not user.status:
+                    messages.error(request, "Your account is inactive. Please contact admin.")
+                    return redirect('login')
+                else:
+                    request.session['user_id'] = user.id
+                    request.session['user_type'] = 'employee'
+                    messages.success(request, 'Login successful!')
+                    return redirect('employee_dashboard')
             else:
                 messages.error(request, 'Invalid email or password.')
                 return redirect('login')
@@ -178,7 +185,6 @@ def login(request):
             return redirect('login')
 
     return render(request, 'login.html')
-
 def register(request):
     if request.method == 'POST':
         first_name = request.POST['first_name']
@@ -187,7 +193,6 @@ def register(request):
         password = request.POST['password']
         dob = request.POST['dob']
         contact = request.POST['contact']
-        status = request.POST['status']
 
         # Check if email or contact already exists in both Client and Employee
         if Client.objects.filter(email=email).exists() or Employee.objects.filter(email=email).exists():
@@ -201,30 +206,18 @@ def register(request):
         # Hash the password
         hashed_password = make_password(password)
 
-        # Create user depending on status
+        # Create client
         try:
-            if status == 'client':
-                client = Client(
-                    first_name=first_name,
-                    last_name=last_name,
-                    email=email,
-                    password=hashed_password,  # Store hashed password
-                    dob=dob,
-                    contact=contact
-                )
-                client.save()
-                messages.success(request, 'Registration successful! You can now log in.')
-            elif status == 'employee':
-                employee = Employee(
-                    first_name=first_name,
-                    last_name=last_name,
-                    email=email,
-                    password=hashed_password,  # Store hashed password
-                    dob=dob,
-                    contact=contact
-                )
-                employee.save()
-                messages.success(request, 'Registration successful! You can now log in.')
+            client = Client(
+                first_name=first_name,
+                last_name=last_name,
+                email=email,
+                password=hashed_password,  # Store hashed password
+                dob=dob,
+                contact=contact
+            )
+            client.save()
+            messages.success(request, 'Registration successful! You can now log in.')
 
             # Send confirmation email
             subject = 'Welcome to Our Service'
@@ -239,7 +232,43 @@ def register(request):
             messages.error(request, 'An error occurred during registration. Please try again.')
             return render(request, 'register.html')  # Re-render the form with error
 
-    return render(request, 'register.html')  # Render the registration form
+    return render(request, 'register.html')  
+
+from django.shortcuts import render, redirect
+from django.contrib import messages
+from .models import Employee
+from django.contrib.auth.hashers import make_password
+
+def employee_registeration(request):
+    if request.method == 'POST':
+        first_name = request.POST['first_name']
+        last_name = request.POST['last_name']
+        email = request.POST['email']
+        password = request.POST['password']
+        dob = request.POST['dob']
+        contact = request.POST['contact']
+        qualification = request.POST.get('qualification', '')
+        qualification_certificate = request.FILES.get('qualification_certificate')
+
+        if Employee.objects.filter(email=email).exists():
+            messages.error(request, 'Email already exists')
+            return render(request, 'employee_registeration.html')
+
+        employee = Employee(
+            first_name=first_name,
+            last_name=last_name,
+            email=email,
+            password=make_password(password),
+            dob=dob,
+            contact=contact,
+            qualification=qualification,
+            qualification_certificate=qualification_certificate
+        )
+        employee.save()
+        messages.success(request, 'Registration successful. Please wait for admin approval.')
+        return redirect('login')
+
+    return render(request, 'employee_registeration.html')
 
 def for_men(request):
     return render(request, 'for_men.html')
