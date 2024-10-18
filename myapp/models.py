@@ -36,6 +36,7 @@ class Specialization(models.Model):
 
 class ServiceCategory(models.Model):
     name = models.CharField(max_length=100)
+    specialization = models.ForeignKey(Specialization, on_delete=models.SET_NULL, null=True, blank=True, related_name='service_categories')
 
     def __str__(self):
         return self.name

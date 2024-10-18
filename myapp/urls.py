@@ -41,7 +41,7 @@ urlpatterns = [
     path('delete_service/<int:service_id>/', delete_service, name='delete_service'),
     path('employee_registeration', views.employee_registeration, name='employee_registeration'),
     # path('schedule_interview/', views.schedule_interview, name='schedule_interview'),
-    path('employee/update-profile/', views.update_employee_profile, name='update_employee_profile'),
+    # path('employee/update-profile/', views.update_employee_profile, name='update_employee_profile'),
     path('client_update/', views.client_update, name='client_update'),
     path('client_profile/', views.client_profile, name='client_profile'),
     path('client_services/', views.client_services, name='client_services'),
@@ -62,7 +62,9 @@ urlpatterns = [
     path('toggle_employee_approval/<int:employee_id>/', views.toggle_employee_approval, name='toggle_employee_approval'),
     path('service/<int:service_id>/', service_detail, name='service_detail'),
     path('category/', views.category, name='category'),
-    path('booking_service/<int:service_id>/', booking_service, name='booking_service'),
+    
+    path('booking/service/<int:service_id>/', views.booking_service, name='booking_service'),
+   
     path('booking_confirmation/', booking_confirmation, name='booking_confirmation'),
 
     path('category/edit/<int:category_id>/', views.edit_category, name='edit_category'),
