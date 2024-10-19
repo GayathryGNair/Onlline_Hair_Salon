@@ -1,169 +1,28 @@
-{% load static %}
-<!DOCTYPE html>
-<html lang="en">
+from django.db import models
+from django.utils import timezone
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Book {{ service.service_name }}</title>
-    <style>
-        /* General Styles */
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f8f9fa;
-            color: #333;
-        }
+class Booking(models.Model):
+    client = models.ForeignKey(Client, on_delete=models.CASCADE)  # Link to the Client model
+    service = models.ForeignKey(Service, on_delete=models.CASCADE)  # Link to Service
+    booking_date = models.DateTimeField(auto_now_add=True)  # Date and time of booking
+    preferred_date = models.DateField(null=True, blank=True)  # Preferred date for the service
+    preferred_time = models.TimeField(null=True, blank=True)  # Preferred time for the service
+    staff = models.ForeignKey(Employee, on_delete=models.SET_NULL, null=True, blank=True)  # Link to the Employee (staff)
+    status = models.CharField(max_length=20, choices=[
+        ('Pending', 'Pending'),
+        ('Confirmed', 'Confirmed'),
+        ('Cancelled', 'Cancelled'),
+    ], default='Pending')  # Status of the booking
+    additional_notes = models.TextField(blank=True, null=True)  # Optional additional notes
 
-        header {
-            background-color: #4CAF50;
-            color: white;
-            text-align: center;
-            padding: 1.5em;
-        }
+    def __str__(self):
+        return f"Booking for {self.service.service_name} by {self.client.first_name} on {self.booking_date.strftime('%Y-%m-%d %H:%M:%S')}"
 
-        h1 {
-            margin: 0;
-        }
+    @property
+    def subcategory(self):
+        return self.service.subcategory  # Accessing the subcategory through the service
 
-        .booking-form-container {
-            max-width: 600px;
-            margin: 3em auto;
-            background-color: white;
-            padding: 2em;
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        }
+    @property
+    def category(self):
+        return self.service.subcategory.category  # Accessing the category through the subcategory
 
-        /* Form Styles */
-        form {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .form-group {
-            margin-bottom: 1.5em;
-        }
-
-        label {
-            font-weight: bold;
-            margin-bottom: 0.5em;
-            display: block;
-        }
-
-        input[type="text"],
-        input[type="date"],
-        input[type="time"],
-        select,
-        textarea {
-            width: 100%;
-            padding: 0.8em;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            font-size: 1em;
-        }
-
-        textarea {
-            resize: vertical;
-        }
-
-        input[disabled] {
-            background-color: #f0f0f0;
-            color: #999;
-        }
-
-        select {
-            appearance: none;
-        }
-
-        option {
-            padding: 0.5em;
-        }
-
-        button.btn {
-            background-color: #4CAF50;
-            color: white;
-            padding: 0.8em 1.5em;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 1.1em;
-        }
-
-        button.btn:hover {
-            background-color: #45a049;
-        }
-
-        .footer {
-            text-align: center;
-            padding: 1.5em;
-            background-color: #f1f1f1;
-            color: #555;
-            margin-top: 2em;
-        }
-    </style>
-</head>
-
-<body>
-    <header>
-        <h1>Book Now: {{ service.service_name }}</h1>
-    </header>
-
-    <section class="booking-form-container">
-        <form method="POST" action="{% url 'booking_service' service.id %}">
-            {% csrf_token %}
-
-            <!-- Service Details (Disabled fields) -->
-            <div class="form-group">
-                <label for="service_name">Service</label>
-                <input type="text" id="service_name" value="{{ service.service_name }}" disabled>
-            </div>
-
-            <div class="form-group">
-                <label for="rate">Rate (₹)</label>
-                <input type="text" id="rate" value="{{ service.rate }}" disabled>
-            </div>
-
-            <!-- Preferred Date Field -->
-            <div class="form-group">
-                <label for="preferred_date">Preferred Date</label>
-                <input type="date" id="preferred_date" name="preferred_date" required>
-            </div>
-
-            <!-- Preferred Time Field -->
-            <div class="form-group">
-                <label for="preferred_time">Preferred Time</label>
-                <input type="time" id="preferred_time" name="preferred_time" required>
-            </div>
-
-            <!-- Staff Selection Dropdown -->
-            <div class="form-group">
-                <label for="staff">Preferred Staff (optional)</label>
-                <select id="staff" name="staff">
-                    <option value="">No Preference</option>
-                    {% for employee in employees %}
-                        <option value="{{ employee.id }}">{{ employee.first_name }} {{ employee.last_name }} </option>
-                    {% endfor %}
-                </select>
-            </div>
-
-            <!-- Additional Notes Field -->
-            <div class="form-group">
-                <label for="additional_notes">Additional Notes</label>
-                <textarea id="additional_notes" name="additional_notes" rows="4" placeholder="Any special requests..."></textarea>
-            </div>
-
-            <!-- Submit Button -->
-            <div class="form-group">
-                <button type="submit" class="btn">Confirm Booking</button>
-            </div>
-        </form>
-    </section>
-
-    <footer class="footer">
-        &copy; 2024 GlamourQuest Hair Salon | All rights reserved.
-    </footer>
-</body>
-
-</html>
