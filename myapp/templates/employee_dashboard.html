@@ -4,27 +4,101 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Employee Dashboard</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css">
+    <title>GlamourQuest Employee Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
+        :root {
+            --primary-color: #FF69B4;    /* Hot Pink */
+            --secondary-color: #FFB6C1;  /* Light Pink */
+            --accent-color: #FF1493;     /* Deep Pink */
+            --text-color: #333;
+            --bg-color: #FFF0F5;         /* Lavender Blush */
+            --card-bg: #ffffff;
+        }
         body {
-            background-color: #f8f9fa;
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
         }
-        .dashboard-container {
-            max-width: 1200px;
-            margin: 50px auto;
-            background-color: #ffffff;
+        .sidebar {
+            height: 100vh;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding-top: 20px;
+        }
+        .sidebar-sticky {
+            position: sticky;
+            top: 0;
+            height: calc(100vh - 48px);
+            padding-top: .5rem;
+            overflow-x: hidden;
+            overflow-y: auto;
+        }
+        .sidebar .nav-link {
+            color: white;
+            margin-bottom: 10px;
+            transition: all 0.3s;
+        }
+        .sidebar .nav-link:hover {
+            background-color: rgba(255,255,255,0.1);
+            transform: translateX(5px);
+        }
+        .sidebar .nav-link.active {
+            background-color: rgba(255,255,255,0.2);
+        }
+        .main-content {
+            padding: 20px;
+        }
+        .header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            padding: 15px 20px;
+            margin-bottom: 1rem;
             border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-            padding: 30px;
         }
-        .welcome-section {
+        .header h1 {
+            margin: 0;
+            font-size: 1.5rem;
+        }
+        .header .profile-dropdown .dropdown-toggle {
+            color: white;
+        }
+        .header .profile-dropdown .dropdown-menu {
+            background-color: var(--card-bg);
+        }
+        .header .profile-dropdown .dropdown-item:hover {
+            background-color: var(--secondary-color);
+            color: white;
+        }
+        .profile-dropdown .dropdown-toggle::after {
+            display: none;
+        }
+        .card {
+            border: none;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: all 0.3s;
+            margin-bottom: 20px;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 8px rgba(0,0,0,0.15);
+        }
+        .logo-container {
             text-align: center;
-            margin-bottom: 30px;
+            padding: 20px 0;
+        }
+        .logo {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
         .specialization-card {
-            background-color: #f1f3f5;
+            background-color: var(--card-bg);
             border-radius: 8px;
             padding: 20px;
             margin-bottom: 20px;
@@ -34,13 +108,8 @@
             box-shadow: 0 5px 15px rgba(0,0,0,0.1);
             transform: translateY(-5px);
         }
-        .logout-btn {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-        }
         .view-more-btn {
-            color: #007bff;
+            color: var(--accent-color);
             cursor: pointer;
         }
         .view-more-btn:hover {
@@ -49,106 +118,138 @@
     </style>
 </head>
 <body>
-    <div class="dashboard-container">
-        <a href="{% url 'logout' %}" class="btn btn-danger logout-btn">
-            <i class="fas fa-sign-out-alt"></i> Logout
-        </a>
-        
-        <div class="welcome-section">
-            <h1>Welcome, {{ employee.first_name }} {{ employee.last_name }}!</h1>
-            <p>Employee ID: {{ employee.id }}</p>
-            <button class="btn btn-primary" data-toggle="modal" data-target="#profileModal">View Profile</button>
-        </div>
-
-        <h2 class="mb-4">Your Specializations</h2>
-        
-        {% if employee.specializations.all %}
-            <div class="row">
-                {% for specialization in employee.specializations.all %}
-                    <div class="col-md-4">
-                        <div class="specialization-card">
-                            <h3>{{ specialization.name }}</h3>
-                            <p>{{ specialization.description|truncatewords:20 }} 
-                                <span class="view-more-btn" data-toggle="modal" data-target="#modal{{ specialization.id }}">View More</span>
-                            </p>
-                        </div>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <nav id="sidebar" class="col-md-3 col-lg-2 d-md-block sidebar collapse">
+                <div class="position-sticky sidebar-sticky">
+                    <h2 class="text-center mb-4">GlamourQuest</h2>
+                    <div class="logo-container">
+                        <img src="{% static 'images/logo.png' %}" alt="GlamourQuest Logo" class="logo">
                     </div>
-                    
-                    <!-- Modal for full description -->
-                    <div class="modal fade" id="modal{{ specialization.id }}" tabindex="-1" role="dialog" aria-labelledby="modalLabel{{ specialization.id }}" aria-hidden="true">
-                        <div class="modal-dialog" role="document">
-                            <div class="modal-content">
-                                <div class="modal-header">
-                                    <h5 class="modal-title" id="modalLabel{{ specialization.id }}">{{ specialization.name }}</h5>
-                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                        <span aria-hidden="true">&times;</span>
-                                    </button>
-                                </div>
-                                <div class="modal-body">
-                                    {{ specialization.description }}
-                                </div>
-                                <div class="modal-footer">
-                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link active" href="{% url 'employee_dashboard' %}">
+                                <i class="fas fa-home me-2"></i> Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#" data-bs-toggle="modal" data-bs-target="#profileModal">
+                                <i class="fas fa-user me-2"></i> Profile
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#">
+                                <i class="fas fa-calendar-alt me-2"></i> Appointments
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#">
+                                <i class="fas fa-cog me-2"></i> Settings
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+
+            <!-- Main content -->
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+                <!-- Header -->
+                <header class="header d-flex justify-content-between align-items-center mb-4 p-3 bg-white rounded shadow-sm">
+                    <h1 class="h3 mb-0">Welcome, {{ employee.first_name }}!</h1>
+                    <div class="profile-dropdown dropdown">
+                        <a href="#" class="d-flex align-items-center text-decoration-none dropdown-toggle" id="dropdownUser1" data-bs-toggle="dropdown" aria-expanded="false">
+                            <img src="{% static 'images/profile.png' %}" alt="Profile" width="32" height="32" class="rounded-circle me-2">
+                            <strong>{{ employee.first_name }}</strong>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end text-small shadow" aria-labelledby="dropdownUser1">
+                            <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#profileModal">Profile</a></li>
+                            <li><a class="dropdown-item" href="#">Settings</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{% url 'logout' %}">Sign out</a></li>
+                        </ul>
+                    </div>
+                </header>
+
+                <!-- Specializations -->
+                <h2 class="mb-4">Your Specializations</h2>
+                <div class="row">
+                    {% if employee.specializations.all %}
+                        {% for specialization in employee.specializations.all %}
+                            <div class="col-md-4">
+                                <div class="specialization-card">
+                                    <h3>{{ specialization.name }}</h3>
+                                    <p>{{ specialization.description|truncatewords:20 }} 
+                                        <span class="view-more-btn" data-bs-toggle="modal" data-bs-target="#modal{{ specialization.id }}">View More</span>
+                                    </p>
                                 </div>
                             </div>
-                        </div>
-                    </div>
-                {% endfor %}
-            </div>
-        {% else %}
-            <p>You don't have any specializations assigned yet.</p>
-        {% endif %}
+                            
+                            <!-- Modal for full description -->
+                            <div class="modal fade" id="modal{{ specialization.id }}" tabindex="-1" aria-labelledby="modalLabel{{ specialization.id }}" aria-hidden="true">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title" id="modalLabel{{ specialization.id }}">{{ specialization.name }}</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            {{ specialization.description }}
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <p>You don't have any specializations assigned yet.</p>
+                    {% endif %}
+                </div>
+            </main>
+        </div>
+    </div>
 
-        <!-- Profile Modal -->
-        <div class="modal fade" id="profileModal" tabindex="-1" role="dialog" aria-labelledby="profileModalLabel" aria-hidden="true">
-            <div class="modal-dialog modal-lg" role="document">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="profileModalLabel">Employee Profile</h5>
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
-                    </div>
-                    <div class="modal-body">
-                        <h3>{{ employee.first_name }} {{ employee.last_name }}</h3>
-                        <p><strong>Email:</strong> {{ employee.email }}</p>
-                        <p><strong>Date of Birth:</strong> {{ employee.dob }}</p>
-                        <p><strong>Contact:</strong> {{ employee.contact }}</p>
-                        <p><strong>Status:</strong> {% if employee.status %}Active{% else %}Inactive{% endif %}</p>
-                        <p><strong>Approved:</strong> {% if employee.approved %}Yes{% else %}No{% endif %}</p>
-                        
-                        <h4>Specializations:</h4>
-                        <ul>
-                            {% for spec in employee.specializations.all %}
-                                <li>{{ spec.name }}</li>
-                            {% empty %}
-                                <li>No specializations assigned</li>
-                            {% endfor %}
-                        </ul>
-                        
-                        {% if employee.qualification_certificate %}
-                            <p><strong>Qualification Certificate:</strong> <a href="{{ employee.qualification_certificate.url }}" target="_blank">View Certificate</a></p>
-                        {% else %}
-                            <p><strong>Qualification Certificate:</strong> Not uploaded</p>
-                        {% endif %}
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                    </div>
-                    <div class="welcome-section">
-                        <h1>Welcome, {{ employee.first_name }} {{ employee.last_name }}!</h1>
-                        <p>Employee ID: {{ employee.id }}</p>
-                        <button class="btn btn-primary mr-2" data-toggle="modal" data-target="#profileModal">View Profile</button>
-                        <a href="{% url 'update_employee_profile' %}" class="btn btn-success">Update Profile</a>
-                    </div>
+    <!-- Profile Modal -->
+    <div class="modal fade" id="profileModal" tabindex="-1" aria-labelledby="profileModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="profileModalLabel">Employee Profile</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <h3>{{ employee.first_name }} {{ employee.last_name }}</h3>
+                    <p><strong>Email:</strong> {{ employee.email }}</p>
+                    <p><strong>Date of Birth:</strong> {{ employee.dob }}</p>
+                    <p><strong>Contact:</strong> {{ employee.contact }}</p>
+                    <p><strong>Status:</strong> {% if employee.status %}Active{% else %}Inactive{% endif %}</p>
+                    <p><strong>Approved:</strong> {% if employee.approved %}Yes{% else %}No{% endif %}</p>
+                    
+                    <h4>Specializations:</h4>
+                    <ul>
+                        {% for spec in employee.specializations.all %}
+                            <li>{{ spec.name }}</li>
+                        {% empty %}
+                            <li>No specializations assigned</li>
+                        {% endfor %}
+                    </ul>
+                    
+                    {% if employee.qualification_certificate %}
+                        <p><strong>Qualification Certificate:</strong> <a href="{{ employee.qualification_certificate.url }}" target="_blank">View Certificate</a></p>
+                    {% else %}
+                        <p><strong>Qualification Certificate:</strong> Not uploaded</p>
+                    {% endif %}
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <a href="#" class="btn btn-primary">Update Profile</a>
                 </div>
             </div>
         </div>
-
     </div>
 
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

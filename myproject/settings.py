@@ -84,12 +84,14 @@ WSGI_APPLICATION = 'myproject.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'hair1_db',  # Replace with your actual database name
+        'NAME': 'hair2_db',  # Replace with your actual database name
         'USER': 'root',  # Replace with your MySQL username (default is 'root')  
         'PASSWORD': '',  # Replace with your MySQL password (default is empty)
         'HOST': 'localhost',
         'PORT': '3306',
     }
+
+    
 }
 
 # Password validation

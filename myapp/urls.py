@@ -31,7 +31,7 @@ urlpatterns = [
     path('client_dashboard/', views.client_dashboard, name='client_dashboard'),
     path('user_profile/', views.user_profile, name='user_profile'),
     path('user_profile/', views.user_profile, name='user_profile'),
-
+ 
     # path('admin_login/', views.admin_login, name='admin_login'),
     path('admin_dashboard/', views.admin_dashboard, name='admin_dashboard'),
     path('manage_client/', views.manage_client, name='manage_client'),
@@ -40,7 +40,6 @@ urlpatterns = [
     path('edit_services/<int:service_id>/', edit_services, name='edit_services'),
     path('delete_service/<int:service_id>/', delete_service, name='delete_service'),
     path('employee_registeration', views.employee_registeration, name='employee_registeration'),
-    # path('schedule_interview/', views.schedule_interview, name='schedule_interview'),
     # path('employee/update-profile/', views.update_employee_profile, name='update_employee_profile'),
     path('client_update/', views.client_update, name='client_update'),
     path('client_profile/', views.client_profile, name='client_profile'),
@@ -74,8 +73,6 @@ urlpatterns = [
     path('edit-subcategory/<int:subcategory_id>/', views.edit_subcategory, name='edit_subcategory'),
     path('hair-care/<int:subcategory_id>/', services_in_subcategory, name='services_in_subcategory'),
     
-
-    path('schedule-interview/', views.schedule_interview, name='schedule_interview'),
 ]
 
     

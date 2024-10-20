@@ -22,13 +22,34 @@ class Client(User):
 
 from django.db import models
 from django.contrib.auth.hashers import make_password
+from datetime import datetime
 
 class Employee(User):
     reset_token = models.CharField(max_length=64, null=True, blank=True)
     approved = models.BooleanField(default=False)
     specializations = models.ManyToManyField('Specialization', blank=True)
     qualification_certificate = models.FileField(upload_to='employee_certificates/', null=True, blank=True)
-        
+    is_on_leave = models.BooleanField(default=False)
+    leave_start = models.DateTimeField(null=True, blank=True)
+    leave_end = models.DateTimeField(null=True, blank=True)
+
+    def is_available(self, date, time):
+        if self.is_on_leave:
+            if self.leave_start <= datetime.combine(date, time) <= self.leave_end:
+                return False
+        return True
+
+class EmployeeAvailability(models.Model):
+    employee = models.ForeignKey(Employee, on_delete=models.CASCADE, related_name='availabilities')
+    day_of_week = models.IntegerField(choices=[(i, day) for i, day in enumerate(['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'])])
+    start_time = models.TimeField()
+    end_time = models.TimeField()
+
+    class Meta:
+        unique_together = ('employee', 'day_of_week')
+    def is_specialist_for(self, service):
+        return self.specializations.filter(servicecategory__servicesubcategory__service=service).exists()
+
 class Specialization(models.Model):
     name = models.CharField(max_length=200, unique=True)
     description = models.TextField(blank=True)
@@ -67,18 +88,18 @@ from django.db import models
 from django.utils import timezone
 
 class Booking(models.Model):
-    client = models.ForeignKey(Client, on_delete=models.CASCADE)  # Link to the Client model
-    service = models.ForeignKey(Service, on_delete=models.CASCADE)  # Link to Service
-    booking_date = models.DateTimeField(auto_now_add=True)  # Date and time of booking
-    preferred_date = models.DateField(null=True, blank=True)  # Preferred date for the service
-    preferred_time = models.TimeField(null=True, blank=True)  # Preferred time for the service
-    staff = models.ForeignKey(Employee, on_delete=models.SET_NULL, null=True, blank=True)  # Link to the Employee (staff)
+    client = models.ForeignKey(Client, on_delete=models.CASCADE)
+    service = models.ForeignKey(Service, on_delete=models.CASCADE)
+    booking_date = models.DateTimeField(auto_now_add=True)
+    preffered_date = models.DateField()
+    preffered_time = models.TimeField()
+    staff = models.ForeignKey(Employee, on_delete=models.SET_NULL, null=True, blank=True)
     status = models.CharField(max_length=20, choices=[
         ('Pending', 'Pending'),
         ('Confirmed', 'Confirmed'),
         ('Cancelled', 'Cancelled'),
-    ], default='Pending')  # Status of the booking
-    additional_notes = models.TextField(blank=True, null=True)  # Optional additional notes
+    ], default='Pending')
+    additional_notes = models.TextField(blank=True, null=True)
 
     def __str__(self):
         return f"Booking for {self.service.service_name} by {self.client.first_name} on {self.booking_date.strftime('%Y-%m-%d %H:%M:%S')}"
@@ -93,17 +114,3 @@ class Booking(models.Model):
 
 
 
-from django.db import models
-from .models import Employee  # Make sure to import your Employee model
-
-class Interview(models.Model):
-    employee = models.ForeignKey(Employee, on_delete=models.CASCADE, related_name='interviews')
-    interview_date = models.DateField(null=False)
-    starting_time = models.TimeField()
-    ending_time = models.TimeField()
-    meeting_link = models.URLField(max_length=200)
-    interviewer_name = models.CharField(max_length=150)
-    notes = models.TextField(blank=True, null=True)
-
-    def __str__(self):
-        return f"Interview for {self.employee.first_name} {self.employee.last_name} on {self.interview_date}"

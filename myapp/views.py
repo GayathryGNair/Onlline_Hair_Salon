@@ -24,7 +24,7 @@ from .models import Client, Employee  # Make sure to import your User subclasses
 from django.contrib.auth.hashers import make_password 
 from .models import Client, Employee
 from django.db import IntegrityError
-from .models import Interview
+
 
 def home(request):
     return render(request, 'index.html')
@@ -480,36 +480,46 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from .models import Service, Booking, Employee
 
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth.decorators import login_required
+from .models import Service, Booking, Employee, Specialization
+
+
 def booking_service(request, service_id):
-    service = get_object_or_404(Service, id=service_id)  # Get the service to be booked
-    employees = Employee.objects.all()  # Fetch all available staff for the dropdown
+    service = get_object_or_404(Service, id=service_id)
+    
+    # Get the specialization related to this service's category
+    specialization = service.subcategory.category.specialization
+    
+    # Get all employees specialized in the service's category
+    specialized_employees = Employee.objects.filter(
+        specializations=specialization,
+        approved=True,
+        status=True
+    ).distinct()
 
     if request.method == 'POST':
-        # Retrieve form data from POST request
         preferred_date = request.POST.get('preferred_date')
         preferred_time = request.POST.get('preferred_time')
         staff_id = request.POST.get('staff')
         staff = Employee.objects.get(id=staff_id) if staff_id else None
         additional_notes = request.POST.get('additional_notes')
 
-        # Create a new booking entry
         Booking.objects.create(
-            client=request.user.client,  # Assuming the logged-in user is a client
+            client=request.user.client,
             service=service,
             preferred_date=preferred_date,
             preferred_time=preferred_time,
             staff=staff,
             additional_notes=additional_notes,
-            status='Pending'  # Default booking status is 'Pending'
+            status='Pending'
         )
 
-        # Redirect to a booking confirmation page or booking list page
-        return redirect('booking_confirmation')  # Create this view or page for confirmation
+        return redirect('booking_confirmation')
 
-    # Render the booking page with the service details and staff options
     context = {
         'service': service,
-        'employees': employees
+        'specialized_employees': specialized_employees
     }
     return render(request, 'booking_service.html', context)
 
@@ -774,66 +784,6 @@ def delete_subcategory(request, subcategory_id):
     messages.success(request, 'Subcategory deleted successfully!')
     return redirect('category')
 
-# from django.shortcuts import render, redirect, get_object_or_404
-# from django.core.mail import send_mail
-# from django.contrib import messages
-# from .models import Employee, Interview
-# from django.conf import settings
-# def schedule_interview(request):
-#     if request.method == 'POST':
-#         # Print POST data for debugging
-#         print(request.POST)
-        
-#         employee_id = request.POST.get('employee_id')
-#         employee = get_object_or_404(Employee, id=employee_id)
-#         interview_date = request.POST.get('interview_date', None)
-#         starting_time = request.POST.get('starting_time', None)
-#         ending_time = request.POST.get('ending_time', None)
-#         meeting_link = request.POST.get('meeting_link', None)
-#         interviewer_name = request.POST.get('interviewer_name', None)
-#         notes = request.POST.get('notes', '')
-
-#         if interview_date and starting_time and ending_time and meeting_link and interviewer_name:
-#             # Create the interview instance
-#             Interview.objects.create(
-#                 employee=employee,
-#                 interview_date=interview_date,
-#                 starting_time=starting_time,
-#                 ending_time=ending_time,
-#                 meeting_link=meeting_link,
-#                 interviewer_name=interviewer_name,
-#                 notes=notes,
-#             )
-
-#             # Send email to the employee
-#             subject = 'Interview Scheduled'
-#             message = f"""
-#             Dear {employee.first_name} {employee.last_name},
-
-#             Your interview has been scheduled on {interview_date}.
-#             Starting Time: {starting_time}
-#             Ending Time: {ending_time}
-#             Meeting Link: {meeting_link}
-#             Interviewer: {interviewer_name}
-
-#             Additional Notes:
-#             {notes}
-
-#             Please make sure to attend the interview at the scheduled time.
-#             """
-#             recipient_list = [employee.email]
-#             send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, recipient_list)
-
-#             # Success message and redirect
-#             messages.success(request, 'Interview has been successfully scheduled and email sent to the employee.')
-#             return redirect('manage_employee')
-#         else:
-#             messages.error(request, 'Please fill all the required fields.')
-
-#     employees = Employee.objects.all()
-#     return render(request, 'schedule_interview.html', {'employees': employees})
-
-
 #employee
 
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
@@ -924,62 +874,3 @@ def toggle_employee_approval(request, employee_id):
     employee.save()
     return redirect('manage_employee')
 
-from django.shortcuts import render, redirect
-from myapp.models import Employee, Interview
-
-from django.shortcuts import render, redirect
-from myapp.models import Employee, Interview
-
-def schedule_interview(request):
-    # Fetch employees with approval status set to 0
-    employees = Employee.objects.filter(approval=0)  # Fetch only unapproved employees
-
-    if request.method == 'POST':
-        employee_id = request.POST.get('employee_id')
-        interview_date = request.POST.get('interview_date')
-        starting_time = request.POST.get('starting_time')
-        ending_time = request.POST.get('ending_time')
-        meeting_link = request.POST.get('meeting_link')
-        interviewer_name = request.POST.get('interviewer_name')
-
-        # Debugging logs
-        print(f"Employee ID from POST: {employee_id}")
-        print(f"Interview Date: {interview_date}")
-        print(f"Starting Time: {starting_time}")
-        print(f"Ending Time: {ending_time}")
-        print(f"Meeting Link: {meeting_link}")
-        print(f"Interviewer Name: {interviewer_name}")
-
-        if employee_id:
-            try:
-                employee = Employee.objects.get(id=employee_id)
-            except Employee.DoesNotExist:
-                return render(request, 'schedule_interview.html', {
-                    'error': 'Employee not found.',
-                    'employees': employees
-                })
-
-            if interview_date:
-                try:
-                    Interview.objects.create(
-                        employee=employee,
-                        interview_date=interview_date,
-                        starting_time=starting_time,
-                        ending_time=ending_time,
-                        meeting_link=meeting_link,
-                        interviewer_name=interviewer_name
-                    )
-                    return redirect('success_page')
-                except Exception as e:
-                    print(f"Error creating interview: {e}")
-                    return render(request, 'schedule_interview.html', {
-                        'error': 'Failed to schedule the interview.',
-                        'employees': employees
-                    })
-            else:
-                return render(request, 'schedule_interview.html', {
-                    'error': 'Interview date is required.',
-                    'employees': employees
-                })
-
-    return render(request, 'schedule_interview.html', {'employees': employees})
