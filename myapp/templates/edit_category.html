@@ -1,146 +1,182 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
-{% load static %}
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Edit Category</title>
-    <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
+    <title>GlamourQuest Edit Category</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
+        :root {
+            --primary-color: #7f8c8d;    /* Gray */
+            --secondary-color: #95a5a6;  /* Light Gray */
+            --accent-color: #34495e;     /* Dark Blue */
+            --text-color: #333;
+            --bg-color: #ecf0f1;         /* Light Gray Background */
+            --card-bg: #ffffff;
+        }
         body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            background-color: #f4f4f9;
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
         }
-
-        header {
-            background: linear-gradient(90deg, #7f8c8d, #95a5a6);
+        .sidebar {
+            height: 100vh;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
             color: white;
-            padding: 15px;
-            text-align: center;
-            font-size: 28px;
-            font-weight: bold;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-            position: relative;
-            width: 100%; /* Cover full width */
+            padding-top: 20px;
         }
-
-        .logout-button {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            background-color: #e74c3c;
+        .sidebar-sticky {
+            position: sticky;
+            top: 0;
+            height: calc(100vh - 48px);
+            padding-top: .5rem;
+            overflow-x: hidden;
+            overflow-y: auto;
+        }
+        .sidebar .nav-link {
             color: white;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 5px;
-            font-size: 16px;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
+            margin-bottom: 10px;
+            transition: all 0.3s;
         }
-
-        .logout-button:hover {
-            background-color: #c0392b;
+        .sidebar .nav-link:hover {
+            background-color: rgba(255,255,255,0.1);
+            transform: translateX(5px);
         }
-
-        nav {
-            background: linear-gradient(90deg, #7f8c8d, #95a5a6);
-            padding: 10px;
-            text-align: center;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-            width: 100%; /* Cover full width */
+        .sidebar .nav-link.active {
+            background-color: rgba(255,255,255,0.2);
         }
-
-        nav a {
-            color: white;
-            text-decoration: none;
-            margin: 0 15px;
-            font-size: 18px;
-        }
-
-        nav a:hover {
-            text-decoration: underline;
-        }
-
-        .form-container {
-            width: 90%;
-            max-width: 400px;
+        .main-content {
             padding: 20px;
-            background-color: #fff;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            border-radius: 8px;
-            margin-bottom: 20px;
         }
-
-        form {
-            display: flex;
-            flex-direction: column;
-        }
-
-        label {
-            margin-top: 10px;
-            font-weight: bold;
-        }
-
-        input {
-            padding: 10px;
-            margin-top: 5px;
-            margin-bottom: 15px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            width: 100%;
-        }
-
-        button {
-            background-color: #4CAF50;
+        .header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
             color: white;
-            padding: 10px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            padding: 15px 20px;
+            margin-bottom: 1rem;
+            border-radius: 10px;
         }
-
-        button:hover {
-            background-color: #45a049;
+        .header h1 {
+            margin: 0;
+            font-size: 1.5rem;
+        }
+        .header .profile-dropdown .dropdown-toggle {
+            color: white;
+        }
+        .header .profile-dropdown .dropdown-menu {
+            background-color: var(--card-bg);
+        }
+        .header .profile-dropdown .dropdown-item:hover {
+            background-color: var(--secondary-color);
+            color: white;
+        }
+        .profile-dropdown .dropdown-toggle::after {
+            display: none;
+        }
+        .card {
+            border: none;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: all 0.3s;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 8px rgba(0,0,0,0.15);
+        }
+        .logo-container {
+            text-align: center;
+            padding: 20px 0;
+        }
+        .logo {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
     </style>
 </head>
-
 <body>
-    <header>
-        <marquee behavior="scroll" direction="left" scrollamount="5">
-            <em>Welcome to GlamourQuest Hair Salon Admin Dashboard</em>
-        </marquee>
-        <!-- Logout Button -->
-        <form method="POST" action="{% url 'logout' %}" style="display:inline;">
-            {% csrf_token %}
-            <button class="logout-button">Logout</button>
-        </form>
-    </header>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <nav id="sidebar" class="col-md-3 col-lg-2 d-md-block sidebar collapse">
+                <div class="position-sticky sidebar-sticky">
+                    <div class="logo-container">
+                        <img src="{% static 'images/logo.png' %}" alt="GlamourQuest Logo" class="logo">
+                    </div>
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'admin_dashboard' %}">
+                                <i class="fas fa-home me-2"></i> Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'manage_client' %}">
+                                <i class="fas fa-users me-2"></i> Manage Clients
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'manage_employee' %}">
+                                <i class="fas fa-user-tie me-2"></i> Manage Employees
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#">
+                                <i class="fas fa-calendar-alt me-2"></i> View Appointments
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'manage_service' %}">
+                                <i class="fas fa-concierge-bell me-2"></i> Manage Services
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link active" href="{% url 'category' %}">
+                                <i class="fas fa-tags me-2"></i> Manage Categories
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
 
-    <nav>
-        <a href="{% url 'admin_dashboard' %}">Home</a>
-        <a href="{% url 'manage_client' %}">Manage Clients</a>
-        <a href="{% url 'manage_employee' %}">Manage Employees</a>
-        <a href="#">View Appointments</a>
-        <a href="{% url 'manage_service' %}">Manage Services</a>
-        <a href="{% url 'category' %}">Add Categories</a>
-    </nav>
+            <!-- Main content -->
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+                <div class="header d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3">
+                    <h1>Edit Category</h1>
+                    <div class="profile-dropdown">
+                        <a href="#" class="d-flex align-items-center text-decoration-none dropdown-toggle" id="dropdownUser1" data-bs-toggle="dropdown" aria-expanded="false">
+                            <img src="{% static 'images/profile.png' %}" alt="Profile" width="32" height="32" class="rounded-circle me-2">
+                            <strong>Admin</strong>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end text-small shadow" aria-labelledby="dropdownUser1">
+                            <li><a class="dropdown-item" href="#">Settings</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{% url 'logout' %}">Sign out</a></li>
+                        </ul>
+                    </div>
+                </div>
 
-    <div class="form-container">
-        <h2>Edit Category</h2>
-
-        <form method="POST" action="{% url 'edit_category' category.id %}">
-            {% csrf_token %}
-            <label for="category_name">Category Name:</label>
-            <input type="text" id="category_name" name="category_name" value="{{ category.name }}" required aria-label="Category Name">
-            <button type="submit">Update Category</button>
-        </form>
+                <!-- Edit Category Form -->
+                <div class="card">
+                    <div class="card-body">
+                        <h2 class="card-title">Edit Category</h2>
+                        <form method="POST" action="{% url 'edit_category' category.id %}">
+                            {% csrf_token %}
+                            <div class="mb-3">
+                                <label for="category_name" class="form-label">Category Name:</label>
+                                <input type="text" id="category_name" name="category_name" value="{{ category.name }}" class="form-control" required aria-label="Category Name">
+                            </div>
+                            <button type="submit" class="btn btn-primary">Update Category</button>
+                        </form>
+                    </div>
+                </div>
+            </main>
+        </div>
     </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

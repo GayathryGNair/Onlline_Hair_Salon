@@ -115,6 +115,56 @@
         .view-more-btn:hover {
             text-decoration: underline;
         }
+        .scrolling-background {
+            height: 500px;
+            background-size: cover;
+            background-position: center;
+            transition: background-image 1s ease-in-out;
+            border-radius: 15px;
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+            margin-bottom: 2rem;
+            position: relative;
+        }
+        .scrolling-background::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(rgba(255,105,180,0.3), rgba(255,182,193,0.3));
+            z-index: 1;
+        }
+        .arrow {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 2rem;
+            color: white;
+            background-color: rgba(255, 105, 180, 0.6);
+            padding: 15px;
+            cursor: pointer;
+            z-index: 2;
+            transition: all 0.3s ease;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+        .arrow:hover {
+            background-color: rgba(255, 105, 180, 0.8);
+            transform: translateY(-50%) scale(1.1);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+        .arrow-left {
+            left: 20px;
+        }
+        .arrow-right {
+            right: 20px;
+        }
     </style>
 </head>
 <body>
@@ -170,6 +220,12 @@
                         </ul>
                     </div>
                 </header>
+
+                <!-- Scrolling background with arrows -->
+                <div class="scrolling-background">
+                    <div class="arrow arrow-left" onclick="changeBackground(-1)">&#10094;</div>
+                    <div class="arrow arrow-right" onclick="changeBackground(1)">&#10095;</div>
+                </div>
 
                 <!-- Specializations -->
                 <h2 class="mb-4">Your Specializations</h2>
@@ -251,5 +307,30 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let currentIndex = 0;
+        const backgrounds = [
+            "{% static 'images/hair-styling.jpg' %}",
+            "{% static 'images/manicure.jpg' %}",
+            "{% static 'images/hair-spa.jpg' %}",
+            "{% static 'images/all-type.jpg' %}"
+        ];
+
+        function changeBackground(direction = 1) {
+            currentIndex = (currentIndex + direction + backgrounds.length) % backgrounds.length;
+            updateBackground();
+        }
+
+        function updateBackground() {
+            const scrollingBackground = document.querySelector('.scrolling-background');
+            scrollingBackground.style.backgroundImage = `url(${backgrounds[currentIndex]})`;
+        }
+
+        // Set initial background and start cycling
+        window.onload = function() {
+            updateBackground();
+            setInterval(() => changeBackground(1), 5000);  // Change background every 5 seconds
+        };
+    </script>
 </body>
 </html>
