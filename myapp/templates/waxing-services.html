@@ -114,6 +114,27 @@
             border: 3px solid white;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
+        .search-form {
+            margin-bottom: 20px;
+        }
+        .search-form .input-group {
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        .search-form .form-control {
+            border-radius: 20px 0 0 20px;
+            border-right: none;
+        }
+        .search-form .btn {
+            border-radius: 0 20px 20px 0;
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+            color: white;
+        }
+        .search-form .btn:hover {
+            background-color: var(--accent-color);
+            border-color: var(--accent-color);
+        }
     </style>
 </head>
 <body>
@@ -189,31 +210,72 @@
                     </div>
                 </header>
 
-                <!-- Waxing Subcategories content -->
-                <div class="row">
-                    {% for subcategory in waxing_service_subcategories %}
-                    <div class="col-md-4 mb-4">
-                        <div class="card">
-                            <div class="card-img-wrapper">
-                                {% if subcategory.image %}
-                                <img src="{{ subcategory.image.url }}" class="card-img-top" alt="{{ subcategory.name }}">
-                                {% else %}
-                                <img src="{% static 'images/default-subcategory.jpg' %}" class="card-img-top" alt="{{ subcategory.name }}">
-                                {% endif %}
+                <!-- Search Bar -->
+                <div class="search-form">
+                    <form action="{% url 'waxing-services' %}" method="GET" class="mb-4">
+                        <div class="input-group">
+                            <input type="text" name="query" class="form-control" placeholder="Search for a waxing service..." aria-label="Search for a waxing service" aria-describedby="button-addon2" value="{{ query }}">
+                            <button class="btn btn-outline-secondary" type="submit" id="button-addon2">
+                                <i class="fas fa-search"></i> Search
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Search Results (if any) -->
+                {% if query %}
+                    <h2>Search Results for "{{ query }}"</h2>
+                    {% if services %}
+                        <div class="row">
+                            {% for service in services %}
+                            <div class="col-md-4 mb-4">
+                                <div class="card">
+                                    <div class="card-img-wrapper">
+                                        {% if service.image %}
+                                        <img src="{{ service.image.url }}" class="card-img-top" alt="{{ service.service_name }}">
+                                        {% else %}
+                                        <img src="{% static 'images/default-service.jpg' %}" class="card-img-top" alt="{{ service.service_name }}">
+                                        {% endif %}
+                                    </div>
+                                    <div class="card-body">
+                                        <h5 class="card-title">{{ service.service_name }}</h5>
+                                        <p class="card-text">{{ service.description|truncatewords:20 }}</p>
+                                        <a href="{% url 'booking_service' service.id %}" class="btn btn-primary">Book Now</a>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="card-body">
-                                <h5 class="card-title">{{ subcategory.name }}</h5>
-                                <p class="card-text">{{ subcategory.description|truncatewords:20 }}</p>
-                                <a href="{% url 'services_in_subcategory' subcategory.id %}" class="btn btn-primary">Explore Services</a>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p>No waxing services found matching your search.</p>
+                    {% endif %}
+                {% else %}
+                    <!-- Waxing Subcategories content -->
+                    <div class="row">
+                        {% for subcategory in waxing_service_subcategories %}
+                        <div class="col-md-4 mb-4">
+                            <div class="card">
+                                <div class="card-img-wrapper">
+                                    {% if subcategory.image %}
+                                    <img src="{{ subcategory.image.url }}" class="card-img-top" alt="{{ subcategory.name }}">
+                                    {% else %}
+                                    <img src="{% static 'images/default-subcategory.jpg' %}" class="card-img-top" alt="{{ subcategory.name }}">
+                                    {% endif %}
+                                </div>
+                                <div class="card-body">
+                                    <h5 class="card-title">{{ subcategory.name }}</h5>
+                                    <p class="card-text">{{ subcategory.description|truncatewords:20 }}</p>
+                                    <a href="{% url 'services_in_subcategory' subcategory.id %}" class="btn btn-primary">Explore Services</a>
+                                </div>
                             </div>
                         </div>
+                        {% empty %}
+                        <div class="col-12">
+                            <p>No waxing subcategories available at the moment.</p>
+                        </div>
+                        {% endfor %}
                     </div>
-                    {% empty %}
-                    <div class="col-12">
-                        <p>No waxing subcategories available at the moment.</p>
-                    </div>
-                    {% endfor %}
-                </div>
+                {% endif %}
             </main>
         </div>
     </div>
