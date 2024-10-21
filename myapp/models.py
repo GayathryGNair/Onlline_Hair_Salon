@@ -84,3 +84,35 @@ class Service(models.Model):
     def __str__(self):
         return f"{self.service_name} ({self.subcategory.name} - {self.subcategory.category.name})"
  
+from django.db import models
+from django.core.exceptions import ValidationError
+from django.utils import timezone
+
+class Booking(models.Model):
+    client = models.ForeignKey('Client', on_delete=models.CASCADE)
+    service = models.ForeignKey('Service', on_delete=models.CASCADE)
+    staff = models.ForeignKey('Employee', on_delete=models.SET_NULL, null=True, blank=True)
+    booking_date = models.DateField()
+    booking_time = models.TimeField()
+    additional_notes = models.TextField(blank=True)
+    status = models.CharField(max_length=20, choices=[
+        ('Pending', 'Pending'),
+        ('Confirmed', 'Confirmed'),
+        ('Cancelled', 'Cancelled')
+    ], default='Pending')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def clean(self):
+        if self.booking_date < timezone.now().date():
+            raise ValidationError("Booking date cannot be in the past.")
+        if self.booking_date.weekday() == 6:  # Sunday
+            raise ValidationError("Bookings are not available on Sundays.")
+        if self.booking_time.hour < 8 or self.booking_time.hour >= 19:
+            raise ValidationError("Booking time must be between 8 AM and 7 PM.")
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.client} - {self.service} on {self.booking_date} at {self.booking_time}"

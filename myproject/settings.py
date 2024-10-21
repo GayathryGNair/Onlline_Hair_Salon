@@ -174,4 +174,5 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')  # Store uploaded media files in th
 
 
 
+LOGIN_URL = 'login'  # or whatever your login URL name is
 

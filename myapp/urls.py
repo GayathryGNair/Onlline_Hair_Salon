@@ -6,7 +6,7 @@ from django.contrib.auth import views as auth_views
 from .views import manage_client
 from .views import  edit_services, delete_service, manage_service,service_detail,category
 from .views import hair_care_services, services_in_subcategory
-from .views import booking_service, booking_confirmation
+
 
 
 
@@ -62,9 +62,10 @@ urlpatterns = [
     path('service/<int:service_id>/', service_detail, name='service_detail'),
     path('category/', views.category, name='category'),
     path('search/', views.search_services, name='search_services'),
-    path('booking/service/<int:service_id>/', views.booking_service, name='booking_service'),
+
+    path('booking/<int:service_id>/', views.booking_service, name='booking_service'),
+    path('booking-confirmation/<int:booking_id>/', views.booking_confirmation, name='booking_confirmation'),
    
-    path('booking_confirmation/', booking_confirmation, name='booking_confirmation'),
 
     path('category/edit/<int:category_id>/', views.edit_category, name='edit_category'),
     path('category/delete/<int:category_id>/', views.delete_category, name='delete_category'),
@@ -72,6 +73,10 @@ urlpatterns = [
     path('subcategory/delete/<int:subcategory_id>/', views.delete_subcategory, name='delete_subcategory'),
     path('edit-subcategory/<int:subcategory_id>/', views.edit_subcategory, name='edit_subcategory'),
     path('hair-care/<int:subcategory_id>/', services_in_subcategory, name='services_in_subcategory'),
+
+
+
+    path('login/', auth_views.LoginView.as_view(template_name='login.html'), name='login'),
     
 ]
 

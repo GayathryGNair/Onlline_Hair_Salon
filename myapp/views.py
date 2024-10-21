@@ -501,60 +501,67 @@ def service_detail(request, service_id):
     service = get_object_or_404(Service, id=service_id)
     return render(request, 'service_detail.html', {'service': service})
 
-# views.py
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
+from django.contrib import messages
 from .models import Service, Booking, Employee
-
-from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.decorators import login_required
-from .models import Service, Booking, Employee, Specialization
+from .forms import BookingForm
+from django.db.models import Q
 
 
 def booking_service(request, service_id):
     service = get_object_or_404(Service, id=service_id)
-    
-    # Get the specialization related to this service's category
-    specialization = service.subcategory.category.specialization
-    
-    # Get all employees specialized in the service's category
     specialized_employees = Employee.objects.filter(
-        specializations=specialization,
+        specializations=service.subcategory.category.specialization,
         approved=True,
         status=True
     ).distinct()
 
     if request.method == 'POST':
-        preferred_date = request.POST.get('preferred_date')
-        preferred_time = request.POST.get('preferred_time')
-        staff_id = request.POST.get('staff')
-        staff = Employee.objects.get(id=staff_id) if staff_id else None
-        additional_notes = request.POST.get('additional_notes')
-
-        Booking.objects.create(
-            client=request.user.client,
-            service=service,
-            preferred_date=preferred_date,
-            preferred_time=preferred_time,
-            staff=staff,
-            additional_notes=additional_notes,
-            status='Pending'
-        )
-
-        return redirect('booking_confirmation')
+        print("Entered POST method");
+        print(request.session.get('user_id'));
+        # print("request",request.user);
+        form = BookingForm(request.POST, specialized_employees=specialized_employees)
+        if form.is_valid():
+            user_id=request.session.get('user_id')
+            print("user_id",user_id);
+            client=get_object_or_404(Client,id=user_id)
+            booking = form.save(commit=False)
+            booking.client = client
+            booking.service = service
+            
+            # Check if the selected time slot is available
+            existing_bookings = Booking.objects.filter(
+                Q(staff=booking.staff) | Q(staff__isnull=True),
+                booking_date=booking.booking_date,
+                booking_time=booking.booking_time,
+                status='Confirmed'
+            )
+            
+            if existing_bookings.exists():
+                messages.error(request, "This time slot is already booked. Please choose another time or staff member.")
+            else:
+                booking.save()
+                messages.success(request, "Your booking has been confirmed!")
+                return redirect('booking_confirmation', booking_id=booking.id)
+    else:
+        form = BookingForm(specialized_employees=specialized_employees)
 
     context = {
         'service': service,
-        'specialized_employees': specialized_employees
+        'form': form,
     }
     return render(request, 'booking_service.html', context)
 
-# views.py
-def booking_confirmation(request):
-    return render(request, 'booking_confirmation.html')
+
+from django.contrib.auth.decorators import login_required
 
 
-
+def booking_confirmation(request, booking_id):
+    user_id=request.session.get('user_id')
+    client=get_object_or_404(Client,id=user_id)
+    booking = get_object_or_404(Booking, id=booking_id, client=client)
+    return render(request, 'booking_confirmation.html', {'booking': booking})
 
 # admin 
 
