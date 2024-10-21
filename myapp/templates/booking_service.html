@@ -1,171 +1,256 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Book {{ service.service_name }}</title>
+    <title>Book Service - GlamourQuest</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
-        /* General Styles */
+        :root {
+            --primary-color: #FF69B4;    /* Hot Pink */
+            --secondary-color: #FFB6C1;  /* Light Pink */
+            --accent-color: #FF1493;     /* Deep Pink */
+            --text-color: #333;
+            --bg-color: #FFF0F5;         /* Lavender Blush */
+            --card-bg: #ffffff;
+        }
         body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f8f9fa;
-            color: #333;
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
         }
-
-        header {
-            background-color: #4CAF50;
+        .sidebar {
+            height: 100vh;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
             color: white;
-            text-align: center;
-            padding: 1.5em;
+            padding-top: 20px;
         }
-
-        h1 {
-            margin: 0;
+        .sidebar-sticky {
+            position: sticky;
+            top: 0;
+            height: calc(100vh - 48px);
+            padding-top: .5rem;
+            overflow-x: hidden;
+            overflow-y: auto;
         }
-
-        .booking-form-container {
-            max-width: 600px;
-            margin: 3em auto;
-            background-color: white;
-            padding: 2em;
+        .sidebar .nav-link {
+            color: white;
+            margin-bottom: 10px;
+            transition: all 0.3s;
+        }
+        .sidebar .nav-link:hover {
+            background-color: rgba(255,255,255,0.1);
+            transform: translateX(5px);
+        }
+        .sidebar .nav-link.active {
+            background-color: rgba(255,255,255,0.2);
+        }
+        .main-content {
+            padding: 20px;
+        }
+        .header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            padding: 15px 20px;
+            margin-bottom: 1rem;
             border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
-
-        /* Form Styles */
-        form {
-            display: flex;
-            flex-direction: column;
+        .header h1 {
+            margin: 0;
+            font-size: 1.5rem;
         }
-
-        .form-group {
-            margin-bottom: 1.5em;
-        }
-
-        label {
-            font-weight: bold;
-            margin-bottom: 0.5em;
-            display: block;
-        }
-
-        input[type="text"],
-        input[type="date"],
-        input[type="time"],
-        select,
-        textarea {
-            width: 100%;
-            padding: 0.8em;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            font-size: 1em;
-        }
-
-        textarea {
-            resize: vertical;
-        }
-
-        input[disabled] {
-            background-color: #f0f0f0;
-            color: #999;
-        }
-
-        select {
-            appearance: none;
-        }
-
-        option {
-            padding: 0.5em;
-        }
-
-        button.btn {
-            background-color: #4CAF50;
+        .header .profile-dropdown .dropdown-toggle {
             color: white;
-            padding: 0.8em 1.5em;
+        }
+        .header .profile-dropdown .dropdown-menu {
+            background-color: var(--card-bg);
+        }
+        .header .profile-dropdown .dropdown-item:hover {
+            background-color: var(--secondary-color);
+            color: white;
+        }
+        .profile-dropdown .dropdown-toggle::after {
+            display: none;
+        }
+        .card {
             border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 1.1em;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: all 0.3s;
         }
-
-        button.btn:hover {
-            background-color: #45a049;
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 8px rgba(0,0,0,0.15);
         }
-
-        .footer {
+        .logo-container {
             text-align: center;
-            padding: 1.5em;
-            background-color: #f1f1f1;
-            color: #555;
-            margin-top: 2em;
+            padding: 20px 0;
+        }
+        .logo {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .form-control {
+            border-radius: 20px;
+            border: 1px solid var(--secondary-color);
+        }
+        .btn-primary {
+            background-color: var(--primary-color);
+            border: none;
+            border-radius: 20px;
+            padding: 10px 20px;
+            transition: all 0.3s;
+        }
+        .btn-primary:hover {
+            background-color: var(--accent-color);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
     </style>
 </head>
-
 <body>
-    <header>
-        <h1>Book Now: {{ service.service_name }}</h1>
-    </header>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <nav id="sidebar" class="col-md-3 col-lg-2 d-md-block sidebar collapse">
+                <div class="position-sticky sidebar-sticky">
+                    <h2 class="text-center mb-4">GlamourQuest</h2>
+                    <div class="logo-container">
+                        <img src="{% static 'images/logo.png' %}" alt="GlamourQuest Logo" class="logo">
+                    </div>
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'client_dashboard' %}">
+                                <i class="fas fa-home me-2"></i> Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'client_update' %}">
+                                <i class="fas fa-user me-2"></i> Update Profile
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#">
+                                <i class="fas fa-calendar-alt me-2"></i> Appointments
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link active" href="{% url 'client_services' %}">
+                                <i class="fas fa-concierge-bell me-2"></i> Services
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
 
-    <section class="booking-form-container">
-        <form method="POST" action="{% url 'booking_service' service.id %}">
-            {% csrf_token %}
+            <!-- Main content -->
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+                <!-- Header -->
+                <header class="header d-flex justify-content-between align-items-center mb-4 p-3 bg-white rounded shadow-sm">
+                    <h1 class="h3 mb-0">Book Service: {{ service.service_name }}</h1>
+                    <div class="profile-dropdown dropdown">
+                        <a href="#" class="d-flex align-items-center text-decoration-none dropdown-toggle" id="dropdownUser1" data-bs-toggle="dropdown" aria-expanded="false">
+                            <img src="{% static 'images/profile.png' %}" alt="Profile" width="32" height="32" class="rounded-circle me-2">
+                            <strong>{{ request.user.first_name }}</strong>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end text-small shadow" aria-labelledby="dropdownUser1">
+                            <li><a class="dropdown-item" href="{% url 'client_profile' %}">Profile</a></li>
+                            <li><a class="dropdown-item" href="{% url 'client_update' %}">Settings</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{% url 'logout' %}">Sign out</a></li>
+                        </ul>
+                    </div>
+                </header>
 
-            <!-- Service Details (Disabled fields) -->
-            <div class="form-group">
-                <label for="service_name">Service</label>
-                <input type="text" id="service_name" value="{{ service.service_name }}" disabled>
-            </div>
+                <!-- Booking Form -->
+                <div class="card">
+                    <div class="card-body">
+                        {% if messages %}
+                            {% for message in messages %}
+                                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                                    {{ message }}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
 
-            <div class="form-group">
-                <label for="rate">Rate (₹)</label>
-                <input type="text" id="rate" value="{{ service.rate }}" disabled>
-            </div>
+                        <form method="POST" action="{% url 'booking_service' service.id %}">
+                            {% csrf_token %}
+                            <table class="table table-borderless">
+                                <tbody>
+                                    <tr>
+                                        <td style="width: 30%;">
+                                            <label for="service_name" class="form-label">Service</label>
+                                        </td>
+                                        <td style="width: 70%;">
+                                            <input type="text" id="service_name" class="form-control" value="{{ service.service_name }}" disabled>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <label for="rate" class="form-label">Rate (₹)</label>
+                                        </td>
+                                        <td>
+                                            <input type="text" id="rate" class="form-control" value="{{ service.rate }}" disabled>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <label for="preferred_date" class="form-label">Preferred Date</label>
+                                        </td>
+                                        <td>
+                                            <input type="date" id="preferred_date" name="preferred_date" class="form-control" required>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <label for="preferred_time" class="form-label">Preferred Time</label>
+                                        </td>
+                                        <td>
+                                            <input type="time" id="preferred_time" name="preferred_time" class="form-control" required>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <label for="staff" class="form-label">Preferred Staff</label>
+                                        </td>
+                                        <td>
+                                            <select id="staff" name="staff" class="form-control">
+                                                <option value="">No Preference</option>
+                                                {% for employee in specialized_employees %}
+                                                    <option value="{{ employee.id }}">{{ employee.first_name }} {{ employee.last_name }} ({{ employee.specializations.first.name }})</option>
+                                                {% empty %}
+                                                    <option value="" disabled>No specialized staff available</option>
+                                                {% endfor %}
+                                            </select>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <label for="additional_notes" class="form-label">Additional Notes</label>
+                                        </td>
+                                        <td>
+                                            <textarea id="additional_notes" name="additional_notes" class="form-control" rows="4" placeholder="Any special requests..."></textarea>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <div class="text-center">
+                                <button type="submit" class="btn btn-primary">Confirm Booking</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
 
-            <!-- Preferred Date Field -->
-            <div class="form-group">
-                <label for="preferred_date">Preferred Date</label>
-                <input type="date" id="preferred_date" name="preferred_date" required>
-            </div>
-
-            <!-- Preferred Time Field -->
-            <div class="form-group">
-                <label for="preferred_time">Preferred Time</label>
-                <input type="time" id="preferred_time" name="preferred_time" required>
-            </div>
-
-            <!-- Staff Selection Dropdown -->
-            <div class="form-group">
-                <label for="staff">Preferred Staff:</label>
-                <select id="staff" name="staff" class="form-control">
-                    <option value="">No Preference</option>
-                    {% for employee in specialized_employees %}
-                        <option value="{{ employee.id }}">{{ employee.first_name }} {{ employee.last_name }} ({{ employee.specializations.first.name }})</option>
-                    {% empty %}
-                        <option value="" disabled>No specialized staff available</option>
-                    {% endfor %}
-                </select>
-            </div>
-
-            <!-- Additional Notes Field -->
-            <div class="form-group">
-                <label for="additional_notes">Additional Notes</label>
-                <textarea id="additional_notes" name="additional_notes" rows="4" placeholder="Any special requests..."></textarea>
-            </div>
-
-            <!-- Submit Button -->
-            <div class="form-group">
-                <button type="submit" class="btn">Confirm Booking</button>
-            </div>
-        </form>
-    </section>
-
-    <footer class="footer">
-        &copy; 2024 GlamourQuest Hair Salon | All rights reserved.
-    </footer>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
-
 </html>

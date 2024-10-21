@@ -372,25 +372,51 @@ def client_services(request):
 
     return render(request, 'client_services.html', context)
 
+from django.shortcuts import render, redirect
+from django.contrib import messages
+from django.db.models import Q
+from .models import Client, ServiceSubcategory, Service
 
-@cache_control(no_cache=True, must_revalidate=True, no_store=True)
+
 def hair_care_services(request):
     user_id = request.session.get('user_id')
     if not user_id:
         messages.error(request, "You need to log in to access the dashboard.")
         return redirect('login')
     
-    client = Client.objects.get(id=user_id)
+    try:
+        client = Client.objects.get(id=user_id)
+    except Client.DoesNotExist:
+        messages.error(request, "Client profile not found.")
+        return redirect('login')
     
-    # Fetch all service subcategories where category ID is 1
-    hair_care_subcategories = ServiceSubcategory.objects.filter(category_id=1)
+    # Fetch all service subcategories where category name is 'Hair Care'
+    hair_care_subcategories = ServiceSubcategory.objects.filter(category__name='Hair Care')
+    
+    # Handle search
+    query = request.GET.get('query', '')
+    if query:
+        services = Service.objects.filter(
+            Q(service_name__icontains=query) |
+            Q(description__icontains=query) |
+            Q(subcategory__name__icontains=query) |
+            Q(subcategory__category__name__icontains=query),
+            subcategory__category__name='Hair Care'  # Ensure we're only searching within hair care services
+        ).distinct()
+    else:
+        services = None
     
     context = {
         'hair_care_subcategories': hair_care_subcategories,
         'client': client,
+        'services': services,
+        'query': query,
     }
     
     return render(request, 'hair_care_services.html', context)
+
+
+
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def services_in_subcategory(request, subcategory_id):
     user_id = request.session.get('user_id')  # Adjust this if needed based on how you store the session
@@ -874,3 +900,19 @@ def toggle_employee_approval(request, employee_id):
     employee.save()
     return redirect('manage_employee')
 
+
+from django.db.models import Q
+def search_services(request):
+    query = request.GET.get('query', '')
+    services = Service.objects.filter(
+        Q(service_name__icontains=query) |
+        Q(description__icontains=query) |
+        Q(subcategory__name__icontains=query) |
+        Q(subcategory__category__name__icontains=query)
+    ).distinct()
+
+    context = {
+        'services': services,
+        'query': query,
+    }
+    return render(request, 'search_results.html', context)

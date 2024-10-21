@@ -83,34 +83,4 @@ class Service(models.Model):
 
     def __str__(self):
         return f"{self.service_name} ({self.subcategory.name} - {self.subcategory.category.name})"
-    
-from django.db import models
-from django.utils import timezone
-
-class Booking(models.Model):
-    client = models.ForeignKey(Client, on_delete=models.CASCADE)
-    service = models.ForeignKey(Service, on_delete=models.CASCADE)
-    booking_date = models.DateTimeField(auto_now_add=True)
-    preffered_date = models.DateField()
-    preffered_time = models.TimeField()
-    staff = models.ForeignKey(Employee, on_delete=models.SET_NULL, null=True, blank=True)
-    status = models.CharField(max_length=20, choices=[
-        ('Pending', 'Pending'),
-        ('Confirmed', 'Confirmed'),
-        ('Cancelled', 'Cancelled'),
-    ], default='Pending')
-    additional_notes = models.TextField(blank=True, null=True)
-
-    def __str__(self):
-        return f"Booking for {self.service.service_name} by {self.client.first_name} on {self.booking_date.strftime('%Y-%m-%d %H:%M:%S')}"
-
-    @property
-    def subcategory(self):
-        return self.service.subcategory  # Accessing the subcategory through the service
-
-    @property
-    def category(self):
-        return self.service.subcategory.category  # Accessing the category through the subcategory
-
-
-
+ 

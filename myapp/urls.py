@@ -61,7 +61,7 @@ urlpatterns = [
     path('toggle_employee_approval/<int:employee_id>/', views.toggle_employee_approval, name='toggle_employee_approval'),
     path('service/<int:service_id>/', service_detail, name='service_detail'),
     path('category/', views.category, name='category'),
-    
+    path('search/', views.search_services, name='search_services'),
     path('booking/service/<int:service_id>/', views.booking_service, name='booking_service'),
    
     path('booking_confirmation/', booking_confirmation, name='booking_confirmation'),
