@@ -610,23 +610,36 @@ def booking_service(request, service_id):
     if request.method == 'POST':
         form = BookingForm(request.POST, specialized_employees=specialized_employees)
         if form.is_valid():
-            if existing_client_booking:
-                messages.error(request, "You have already booked this service. You cannot book it again.")
+            booking = form.save(commit=False)
+            booking.client = client
+            booking.service = service
+            
+            # Check if the selected time slot is available for the chosen employee
+            existing_bookings = Booking.objects.filter(
+                staff=booking.staff,
+                booking_date=booking.booking_date,
+                booking_time=booking.booking_time,
+                status__in=['Pending', 'Confirmed']
+            )
+            
+            if existing_bookings.exists():
+                messages.error(request, "This time slot is already booked for the selected employee. Please choose another time or employee.")
             else:
-                booking = form.save(commit=False)
-                booking.client = client
-                booking.service = service
-                
-                # Check if the selected time slot is available for the chosen employee
-                existing_bookings = Booking.objects.filter(
-                    staff=booking.staff,
-                    booking_date=booking.booking_date,
-                    booking_time=booking.booking_time,
-                    status__in=['Pending', 'Confirmed']
-                )
-                
-                if existing_bookings.exists():
-                    messages.error(request, "This time slot is already booked for the selected employee. Please choose another time or employee.")
+                if existing_client_booking:
+                    # If rebooking is confirmed
+                    if request.POST.get('confirm_rebooking') == 'yes':
+                        booking.save()
+                        messages.success(request, "Your booking has been confirmed!")
+                        return redirect('booking_confirmation', booking_id=booking.id)
+                    else:
+                        # Show rebooking confirmation
+                        context = {
+                            'service': service,
+                            'form': form,
+                            'existing_booking': existing_client_booking,
+                            'show_rebooking_confirmation': True
+                        }
+                        return render(request, 'booking_service.html', context)
                 else:
                     booking.save()
                     messages.success(request, "Your booking has been confirmed!")

@@ -30,14 +30,13 @@ class ServiceForm(forms.ModelForm):
     class Meta:
         model = Service
         fields = ['service_name', 'description', 'rate', 'image', 'subcategory']
-
-
 from django import forms
-from .models import Booking
+from .models import Booking, Employee
 from django.utils import timezone
 
 class BookingForm(forms.ModelForm):
     booking_time = forms.ChoiceField(choices=[(f"{hour:02d}:00", f"{hour:02d}:00") for hour in range(8, 20)])
+    staff = forms.ModelChoiceField(queryset=Employee.objects.none(), empty_label="No Preference", required=False)
 
     class Meta:
         model = Booking
@@ -52,8 +51,12 @@ class BookingForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         if specialized_employees:
             self.fields['staff'].queryset = specialized_employees
-            self.fields['staff'].empty_label = "No Preference"
-        self.fields['staff'].required = False
+        self.fields['staff'].label_from_instance = self.label_from_instance
+
+    @staticmethod
+    def label_from_instance(obj):
+        return f"{obj.first_name} {obj.last_name}"
+
 
     def clean(self):
         cleaned_data = super().clean()

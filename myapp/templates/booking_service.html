@@ -206,12 +206,6 @@
                         <h2 class="card-title mb-4">Book Service: {{ service.service_name }}</h2>
                         <p class="mb-4">Rate: ₹{{ service.rate }}</p>
 
-                        {% if existing_booking %}
-                            <div class="alert alert-warning" role="alert">
-                                You have already booked this service. You cannot book it again.
-                            </div>
-                        {% endif %}
-
                         {% if messages %}
                             {% for message in messages %}
                                 <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
@@ -221,31 +215,44 @@
                             {% endfor %}
                         {% endif %}
 
-                        <form method="POST">
-                            {% csrf_token %}
-                            <table class="table">
-                                <tbody>
-                                    {% for field in form %}
-                                        <tr>
-                                            <th><label for="{{ field.id_for_label }}">{{ field.label }}:</label></th>
-                                            <td>
-                                                {{ field }}
-                                                {% if field.errors %}
-                                                    <div class="text-danger">
-                                                        {{ field.errors }}
-                                                    </div>
-                                                {% endif %}
-                                            </td>
-                                        </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
-                            <div class="text-center mt-4">
-                                <button type="submit" class="btn btn-primary" {% if existing_booking %}disabled{% endif %}>
-                                    Confirm Booking
-                                </button>
+                        {% if existing_booking and show_rebooking_confirmation %}
+                            <div class="alert alert-warning" role="alert">
+                                You have already booked this service. Do you want to rebook?
+                                <form method="POST" class="mt-2">
+                                    {% csrf_token %}
+                                    {{ form.as_p }}
+                                    <input type="hidden" name="confirm_rebooking" value="yes">
+                                    <button type="submit" class="btn btn-primary">Confirm Rebooking</button>
+                                    <a href="{% url 'client_services' %}" class="btn btn-secondary">Cancel</a>
+                                </form>
                             </div>
-                        </form>
+                        {% else %}
+                            <form method="POST">
+                                {% csrf_token %}
+                                <table class="table">
+                                    <tbody>
+                                        {% for field in form %}
+                                            <tr>
+                                                <th><label for="{{ field.id_for_label }}">{{ field.label }}:</label></th>
+                                                <td>
+                                                    {{ field }}
+                                                    {% if field.errors %}
+                                                        <div class="text-danger">
+                                                            {{ field.errors }}
+                                                        </div>
+                                                    {% endif %}
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                                <div class="text-center mt-4">
+                                    <button type="submit" class="btn btn-primary">
+                                        Confirm Booking
+                                    </button>
+                                </div>
+                            </form>
+                        {% endif %}
                     </div>
                 </div>
             </main>
