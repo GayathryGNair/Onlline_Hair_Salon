@@ -34,7 +34,7 @@ class ServiceForm(forms.ModelForm):
 
 from django import forms
 from .models import Booking
-import datetime
+from django.utils import timezone
 
 class BookingForm(forms.ModelForm):
     booking_time = forms.ChoiceField(choices=[(f"{hour:02d}:00", f"{hour:02d}:00") for hour in range(8, 20)])
@@ -43,7 +43,7 @@ class BookingForm(forms.ModelForm):
         model = Booking
         fields = ['booking_date', 'booking_time', 'staff', 'additional_notes']
         widgets = {
-            'booking_date': forms.DateInput(attrs={'type': 'date', 'min': datetime.date.today().strftime('%Y-%m-%d')}),
+            'booking_date': forms.DateInput(attrs={'type': 'date', 'min': timezone.now().date().strftime('%Y-%m-%d')}),
             'additional_notes': forms.Textarea(attrs={'rows': 4}), 
         }
 
@@ -55,10 +55,29 @@ class BookingForm(forms.ModelForm):
             self.fields['staff'].empty_label = "No Preference"
         self.fields['staff'].required = False
 
+    def clean(self):
+        cleaned_data = super().clean()
+        booking_date = cleaned_data.get('booking_date')
+        booking_time = cleaned_data.get('booking_time')
+        staff = cleaned_data.get('staff')
+
+        if booking_date and booking_time and staff:
+            # Check if the employee is already booked for this time slot
+            existing_bookings = Booking.objects.filter(
+                staff=staff,
+                booking_date=booking_date,
+                booking_time=booking_time,
+                status__in=['Pending', 'Confirmed']
+            )
+            if existing_bookings.exists():
+                raise forms.ValidationError("This time slot is already booked for the selected employee. Please choose another time or employee.")
+
+        return cleaned_data
+
     def clean_booking_date(self):
         date = self.cleaned_data['booking_date']
-        if date < datetime.date.today():
+        if date < timezone.now().date():
             raise forms.ValidationError("Booking date cannot be in the past.")
         if date.weekday() == 6:  # Sunday
             raise forms.ValidationError("Bookings are not available on Sundays.")
-        return date 
+        return date

@@ -39,16 +39,16 @@ class Employee(User):
                 return False
         return True
 
-class EmployeeAvailability(models.Model):
-    employee = models.ForeignKey(Employee, on_delete=models.CASCADE, related_name='availabilities')
-    day_of_week = models.IntegerField(choices=[(i, day) for i, day in enumerate(['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'])])
-    start_time = models.TimeField()
-    end_time = models.TimeField()
+# class EmployeeAvailability(models.Model):
+#     employee = models.ForeignKey(Employee, on_delete=models.CASCADE, related_name='availabilities')
+#     day_of_week = models.IntegerField(choices=[(i, day) for i, day in enumerate(['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'])])
+#     start_time = models.TimeField()
+#     end_time = models.TimeField()
 
-    class Meta:
-        unique_together = ('employee', 'day_of_week')
-    def is_specialist_for(self, service):
-        return self.specializations.filter(servicecategory__servicesubcategory__service=service).exists()
+#     class Meta:
+#         unique_together = ('employee', 'day_of_week')
+#     def is_specialist_for(self, service):
+#         return self.specializations.filter(servicecategory__servicesubcategory__service=service).exists()
 
 class Specialization(models.Model):
     name = models.CharField(max_length=200, unique=True)

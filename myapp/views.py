@@ -583,54 +583,61 @@ def service_detail(request, service_id):
     return render(request, 'service_detail.html', {'service': service})
 
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from .models import Service, Booking, Employee
+from .models import Service, Booking, Employee, Client
 from .forms import BookingForm
 from django.db.models import Q
-
+from django.utils import timezone
 
 def booking_service(request, service_id):
     service = get_object_or_404(Service, id=service_id)
+    user_id = request.session.get('user_id')
+    client = get_object_or_404(Client, id=user_id)
+    
     specialized_employees = Employee.objects.filter(
         specializations=service.subcategory.category.specialization,
         approved=True,
         status=True
     ).distinct()
 
+    # Check if the client has already booked this service
+    existing_client_booking = Booking.objects.filter(
+        client=client,
+        service=service,
+        status__in=['Pending', 'Confirmed']
+    ).exists()
+
     if request.method == 'POST':
-        print("Entered POST method");
-        print(request.session.get('user_id'));
-        # print("request",request.user);
         form = BookingForm(request.POST, specialized_employees=specialized_employees)
         if form.is_valid():
-            user_id=request.session.get('user_id')
-            print("user_id",user_id);
-            client=get_object_or_404(Client,id=user_id)
-            booking = form.save(commit=False)
-            booking.client = client
-            booking.service = service
-            
-            # Check if the selected time slot is available
-            existing_bookings = Booking.objects.filter(
-                Q(staff=booking.staff) | Q(staff__isnull=True),
-                booking_date=booking.booking_date,
-                booking_time=booking.booking_time,
-                status='Confirmed'
-            )
-            
-            if existing_bookings.exists():
-                messages.error(request, "This time slot is already booked. Please choose another time or staff member.")
+            if existing_client_booking:
+                messages.error(request, "You have already booked this service. You cannot book it again.")
             else:
-                booking.save()
-                messages.success(request, "Your booking has been confirmed!")
-                return redirect('booking_confirmation', booking_id=booking.id)
+                booking = form.save(commit=False)
+                booking.client = client
+                booking.service = service
+                
+                # Check if the selected time slot is available for the chosen employee
+                existing_bookings = Booking.objects.filter(
+                    staff=booking.staff,
+                    booking_date=booking.booking_date,
+                    booking_time=booking.booking_time,
+                    status__in=['Pending', 'Confirmed']
+                )
+                
+                if existing_bookings.exists():
+                    messages.error(request, "This time slot is already booked for the selected employee. Please choose another time or employee.")
+                else:
+                    booking.save()
+                    messages.success(request, "Your booking has been confirmed!")
+                    return redirect('booking_confirmation', booking_id=booking.id)
     else:
         form = BookingForm(specialized_employees=specialized_employees)
 
     context = {
         'service': service,
         'form': form,
+        'existing_booking': existing_client_booking,
     }
     return render(request, 'booking_service.html', context)
 

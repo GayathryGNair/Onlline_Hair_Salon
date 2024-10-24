@@ -1,6 +1,6 @@
 # myapp/urls.py
 
-from django.urls import path
+from django.urls import path, include
 from . import views
 from django.contrib.auth import views as auth_views
 from .views import manage_client
@@ -17,6 +17,8 @@ urlpatterns = [
     path('gallery', views.gallery, name='gallery'),
     path('blog', views.blog, name='blog'),
     path('contact', views.contact, name='contact'),
+
+    path('oauth/', include('social_django.urls', namespace='social')),
   
     path('register', views.register, name='register'),
     path('for_men', views.for_men, name='for_men'),
