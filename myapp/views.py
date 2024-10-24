@@ -233,18 +233,13 @@ def register(request):
             return render(request, 'register.html')  # Re-render the form with error
 
     return render(request, 'register.html')  
-from django.shortcuts import render, redirect
-from django.contrib import messages
-from django.contrib.auth.hashers import make_password
-from .models import Employee, Specialization
+
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.contrib.auth.hashers import make_password
 from .models import Employee, Specialization
 
 def employee_registeration(request):
-    specializations = Specialization.objects.all()
-    
     if request.method == 'POST':
         first_name = request.POST['first_name']
         last_name = request.POST['last_name']
@@ -252,13 +247,12 @@ def employee_registeration(request):
         password = request.POST['password']
         dob = request.POST['dob']
         contact = request.POST['contact']
-        qualification = request.POST.get('qualification', '')
         qualification_certificate = request.FILES.get('qualification_certificate')
         specialization_ids = request.POST.getlist('specializations')
 
         if Employee.objects.filter(email=email).exists():
             messages.error(request, 'Email already exists')
-            return render(request, 'employee_registeration.html', {'specializations': specializations})
+            return render(request, 'employee_registeration.html', {'specializations': Specialization.objects.all()})
 
         employee = Employee(
             first_name=first_name,
@@ -267,7 +261,6 @@ def employee_registeration(request):
             password=make_password(password),
             dob=dob,
             contact=contact,
-            qualification=qualification,
             qualification_certificate=qualification_certificate
         )
         employee.save()
@@ -278,7 +271,9 @@ def employee_registeration(request):
         messages.success(request, 'Registration successful. Please wait for admin approval.')
         return redirect('login')
 
+    specializations = Specialization.objects.all()
     return render(request, 'employee_registeration.html', {'specializations': specializations})
+
 def for_men(request):
     return render(request, 'for_men.html')
 
@@ -583,6 +578,7 @@ def service_detail(request, service_id):
     return render(request, 'service_detail.html', {'service': service})
 
 from django.shortcuts import render, redirect, get_object_or_404
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from .models import Service, Booking, Employee, Client
 from .forms import BookingForm
@@ -624,6 +620,13 @@ def booking_service(request, service_id):
             
             if existing_bookings.exists():
                 messages.error(request, "This time slot is already booked for the selected employee. Please choose another time or employee.")
+                context = {
+                    'service': service,
+                    'form': form,
+                    'existing_booking': existing_client_booking,
+                    'show_rebooking_confirmation': existing_client_booking
+                }
+                return render(request, 'booking_service.html', context)
             else:
                 if existing_client_booking:
                     # If rebooking is confirmed
@@ -644,6 +647,8 @@ def booking_service(request, service_id):
                     booking.save()
                     messages.success(request, "Your booking has been confirmed!")
                     return redirect('booking_confirmation', booking_id=booking.id)
+        else:
+            messages.error(request, "This slot is already booked. Please choose another slot.")
     else:
         form = BookingForm(specialized_employees=specialized_employees)
 
@@ -656,7 +661,6 @@ def booking_service(request, service_id):
 
 
 from django.contrib.auth.decorators import login_required
-
 
 def booking_confirmation(request, booking_id):
     user_id=request.session.get('user_id')

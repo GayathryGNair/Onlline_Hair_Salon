@@ -15,7 +15,7 @@ class ClientProfileUpdateForm(forms.ModelForm):
 class EmployeeProfileUpdateForm(forms.ModelForm):
     class Meta:
         model = Client
-        fields = ['first_name', 'last_name', 'email', 'dob', 'contact']
+        fields = ['first_name', 'last_name', 'email', 'dob', 'contact', ]
 
     def __init__(self, *args, **kwargs):
         super(EmployeeProfileUpdateForm, self).__init__(*args, **kwargs)

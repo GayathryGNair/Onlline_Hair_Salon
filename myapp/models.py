@@ -20,36 +20,19 @@ class Client(User):
     reset_token = models.CharField(max_length=64, null=True, blank=True)  # Add reset_token field
 
 
+from django.contrib.auth.models import AbstractUser
+from django.db import models
+from datetime import datetime
+
 from django.db import models
 from django.contrib.auth.hashers import make_password
-from datetime import datetime
 
 class Employee(User):
     reset_token = models.CharField(max_length=64, null=True, blank=True)
     approved = models.BooleanField(default=False)
     specializations = models.ManyToManyField('Specialization', blank=True)
     qualification_certificate = models.FileField(upload_to='employee_certificates/', null=True, blank=True)
-    is_on_leave = models.BooleanField(default=False)
-    leave_start = models.DateTimeField(null=True, blank=True)
-    leave_end = models.DateTimeField(null=True, blank=True)
-
-    def is_available(self, date, time):
-        if self.is_on_leave:
-            if self.leave_start <= datetime.combine(date, time) <= self.leave_end:
-                return False
-        return True
-
-# class EmployeeAvailability(models.Model):
-#     employee = models.ForeignKey(Employee, on_delete=models.CASCADE, related_name='availabilities')
-#     day_of_week = models.IntegerField(choices=[(i, day) for i, day in enumerate(['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'])])
-#     start_time = models.TimeField()
-#     end_time = models.TimeField()
-
-#     class Meta:
-#         unique_together = ('employee', 'day_of_week')
-#     def is_specialist_for(self, service):
-#         return self.specializations.filter(servicecategory__servicesubcategory__service=service).exists()
-
+        
 class Specialization(models.Model):
     name = models.CharField(max_length=200, unique=True)
     description = models.TextField(blank=True)
