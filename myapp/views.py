@@ -1028,3 +1028,99 @@ def search_services(request):
         'query': query,
     }
     return render(request, 'search_results.html', context)
+
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from .models import Service, ServiceCategory, ServiceSubcategory, Employee
+
+
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
+def employee_manage_service(request):
+    user_type = request.session.get('user_type')
+
+    if user_type != 'employee':
+        messages.error(request, "You need to log in as employee to access this page.")
+        return redirect('login') 
+
+    if request.method == 'POST':
+        category_id = request.POST.get('category')
+        subcategory_id = request.POST.get('subcategory')
+        service_name = request.POST.get('service_name')
+        description = request.POST.get('description')
+        rate = request.POST.get('rate')
+        image = request.FILES.get('image')
+
+        Service.objects.create(
+            subcategory_id=subcategory_id,
+            service_name=service_name,
+            description=description,
+            rate=rate,
+            image=image
+        )
+        messages.success(request, 'Service added successfully.')
+        return redirect('employee_manage_service')
+
+    categories = ServiceCategory.objects.all()
+    subcategories = ServiceSubcategory.objects.all()
+    services = Service.objects.all()
+
+    return render(request, 'employee_manage_service.html', {
+        'categories': categories,
+        'subcategories': subcategories,
+        'services': services,
+        'messages': messages.get_messages(request),
+    })
+
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
+def employee_edit_service(request, service_id):
+    user_type = request.session.get('user_type')
+
+    if user_type != 'employee':
+        messages.error(request, "You need to log in as employee to access this page.")
+        return redirect('login') 
+
+    service = get_object_or_404(Service, id=service_id)
+
+    if request.method == 'POST':
+        service.subcategory_id = request.POST.get('subcategory')
+        service.service_name = request.POST.get('service_name')
+        service.description = request.POST.get('description')
+        service.rate = request.POST.get('rate')
+        if 'image' in request.FILES:
+            service.image = request.FILES['image']
+        service.save()
+        messages.success(request, 'Service updated successfully.')
+        return redirect('employee_manage_service')
+
+    categories = ServiceCategory.objects.all()
+    subcategories = ServiceSubcategory.objects.all()
+
+    return render(request, 'employee_edit_service.html', {
+        'service': service,
+        'categories': categories,
+        'subcategories': subcategories,
+    })
+
+def delete_service(request, service_id):
+    service = get_object_or_404(Service, id=service_id)
+    service.delete()
+    messages.success(request, 'Service deleted successfully.')
+    return redirect('employee_manage_service')
+
+
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
+def employee_category(request):
+    user_type = request.session.get('user_type')
+
+    if user_type != 'employee':
+        messages.error(request, "You need to log in as employee to access this page.")
+        return redirect('login') 
+
+    categories = ServiceCategory.objects.all()
+    subcategories = ServiceSubcategory.objects.all()
+
+    return render(request, 'employee_category.html', {
+        'categories': categories,
+        'subcategories': subcategories,
+    })

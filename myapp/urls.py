@@ -79,6 +79,9 @@ urlpatterns = [
 
 
     path('login/', auth_views.LoginView.as_view(template_name='login.html'), name='login'),
+     path('employee/manage-service/', views.employee_manage_service, name='employee_manage_service'),
+    path('employee/edit-service/<int:service_id>/', views.employee_edit_service, name='employee_edit_service'),
+    path('employee/category/', views.employee_category, name='employee_category'),
     
 ]
 
