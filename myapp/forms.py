@@ -30,13 +30,14 @@ class ServiceForm(forms.ModelForm):
     class Meta:
         model = Service
         fields = ['service_name', 'description', 'rate', 'image', 'subcategory']
+
 from django import forms
 from .models import Booking, Employee
 from django.utils import timezone
 
 class BookingForm(forms.ModelForm):
     booking_time = forms.ChoiceField(choices=[(f"{hour:02d}:00", f"{hour:02d}:00") for hour in range(8, 20)])
-    staff = forms.ModelChoiceField(queryset=Employee.objects.none(), empty_label="No Preference", required=False)
+    staff = forms.ModelChoiceField(queryset=Employee.objects.none(), empty_label="Preference", required=False)
 
     class Meta:
         model = Booking
@@ -53,10 +54,22 @@ class BookingForm(forms.ModelForm):
             self.fields['staff'].queryset = specialized_employees
         self.fields['staff'].label_from_instance = self.label_from_instance
 
+    def label_from_instance(self, obj):
+        return f"{obj.first_name} {obj.last_name}"
+
     @staticmethod
     def label_from_instance(obj):
         return f"{obj.first_name} {obj.last_name}"
 
+    def clean_booking_date(self):
+        date = self.cleaned_data.get('booking_date')
+        if not date:
+            raise forms.ValidationError("Booking date is required.")
+        if date < timezone.now().date():
+            raise forms.ValidationError("Booking date cannot be in the past.")
+        if date.weekday() == 6:  # Sunday
+            raise forms.ValidationError("Bookings are not available on Sundays.")
+        return date
 
     def clean(self):
         cleaned_data = super().clean()
@@ -77,10 +90,14 @@ class BookingForm(forms.ModelForm):
 
         return cleaned_data
 
-    def clean_booking_date(self):
-        date = self.cleaned_data['booking_date']
-        if date < timezone.now().date():
-            raise forms.ValidationError("Booking date cannot be in the past.")
-        if date.weekday() == 6:  # Sunday
-            raise forms.ValidationError("Bookings are not available on Sundays.")
-        return date
+from django import forms
+from .models import Feedback
+
+class FeedbackForm(forms.ModelForm):
+    class Meta:
+        model = Feedback
+        fields = ['rating', 'comment']
+        widgets = {
+            'rating': forms.NumberInput(attrs={'min': 1, 'max': 5}),
+            'comment': forms.Textarea(attrs={'rows': 4}),
+        }

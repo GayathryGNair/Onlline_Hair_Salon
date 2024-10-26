@@ -144,9 +144,9 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 LOGIN_REDIRECT_URL = '/'
 
-# Redirect URLs after login/logout
-LOGIN_REDIRECT_URL = '/'
-LOGOUT_REDIRECT_URL = '/'
+# # Redirect URLs after login/logout
+# LOGIN_REDIRECT_URL = '/'
+# LOGOUT_REDIRECT_URL = '/'
 
 # settings.py
 
@@ -155,8 +155,8 @@ AUTHENTICATION_BACKENDS = [
     'myapp.backends.EmailBackend', 
 ]
 
-SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = 'your-client-id.apps.googleusercontent.com'
-SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = 'your-client-secret'
+SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = '312247431684-r2e4oo9o4h4buaf1fboanfqni8t6cslr.apps.googleusercontent.com'
+SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = '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'
 
 LOGIN_URL = 'login'
 LOGOUT_URL = 'logout'
@@ -197,6 +197,6 @@ SOCIAL_AUTH_PIPELINE = (
     'social_core.pipeline.user.user_details',          
 )
 
-LOGIN_REDIRECT_URL = '/'
-LOGOUT_REDIRECT_URL = '/'
+LOGIN_REDIRECT_URL = 'client_dashboard'
+LOGOUT_REDIRECT_URL = 'client_dashboard'
 

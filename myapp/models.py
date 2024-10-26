@@ -74,24 +74,38 @@ from django.utils import timezone
 class Booking(models.Model):
     client = models.ForeignKey('Client', on_delete=models.CASCADE)
     service = models.ForeignKey('Service', on_delete=models.CASCADE)
-    staff = models.ForeignKey('Employee', on_delete=models.SET_NULL, null=True, blank=True)
+    staff = models.ForeignKey('Employee', on_delete=models.CASCADE)  # Changed this line
     booking_date = models.DateField()
     booking_time = models.TimeField()
     additional_notes = models.TextField(blank=True)
-    status = models.CharField(max_length=20, choices=[
+    STATUS_CHOICES = [
         ('Pending', 'Pending'),
         ('Confirmed', 'Confirmed'),
-        ('Cancelled', 'Cancelled')
-    ], default='Pending')
-    created_at = models.DateTimeField(auto_now_add=True)
+        ('Cancelled', 'Cancelled'),
+        ('Completed', 'Completed'),
+    ]
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Pending')
 
     def clean(self):
+        # Add any additional validation if needed
+        if self.booking_date < timezone.now().date():
+            raise ValidationError("Booking date cannot be in the past.")
+        
+        # You can add more custom validation here if needed
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)
+    def clean(self):
+        if not self.booking_date:
+            raise ValidationError("Booking date is required.")
         if self.booking_date < timezone.now().date():
             raise ValidationError("Booking date cannot be in the past.")
         if self.booking_date.weekday() == 6:  # Sunday
             raise ValidationError("Bookings are not available on Sundays.")
-        if self.booking_time.hour < 8 or self.booking_time.hour >= 19:
-            raise ValidationError("Booking time must be between 8 AM and 7 PM.")
+        if self.booking_time:
+            if self.booking_time.hour < 8 or self.booking_time.hour >= 19:
+                raise ValidationError("Booking time must be between 8 AM and 7 PM.")
 
     def save(self, *args, **kwargs):
         self.full_clean()
@@ -99,3 +113,17 @@ class Booking(models.Model):
 
     def __str__(self):
         return f"{self.client} - {self.service} on {self.booking_date} at {self.booking_time}"
+    
+from django.db import models
+from django.core.validators import MinValueValidator, MaxValueValidator
+
+
+
+class Feedback(models.Model):
+    booking = models.OneToOneField(Booking, on_delete=models.CASCADE, related_name='feedback')
+    rating = models.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(5)])
+    comment = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Feedback for {self.booking}"

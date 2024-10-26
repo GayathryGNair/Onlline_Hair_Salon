@@ -578,12 +578,11 @@ def service_detail(request, service_id):
     return render(request, 'service_detail.html', {'service': service})
 
 from django.shortcuts import render, redirect, get_object_or_404
-from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from .models import Service, Booking, Employee, Client
 from .forms import BookingForm
-from django.db.models import Q
 from django.utils import timezone
+from django.core.exceptions import ValidationError
 
 def booking_service(request, service_id):
     service = get_object_or_404(Service, id=service_id)
@@ -610,45 +609,50 @@ def booking_service(request, service_id):
             booking.client = client
             booking.service = service
             
-            # Check if the selected time slot is available for the chosen employee
-            existing_bookings = Booking.objects.filter(
-                staff=booking.staff,
-                booking_date=booking.booking_date,
-                booking_time=booking.booking_time,
-                status__in=['Pending', 'Confirmed']
-            )
-            
-            if existing_bookings.exists():
-                messages.error(request, "This time slot is already booked for the selected employee. Please choose another time or employee.")
-                context = {
-                    'service': service,
-                    'form': form,
-                    'existing_booking': existing_client_booking,
-                    'show_rebooking_confirmation': existing_client_booking
-                }
-                return render(request, 'booking_service.html', context)
+            # Check if the selected time is valid (not in the past)
+            now = timezone.now()
+            selected_datetime = timezone.make_aware(timezone.datetime.combine(booking.booking_date, booking.booking_time))
+            if selected_datetime <= now:
+                form.add_error('booking_time', 'Please select a future time.')
+                messages.error(request, "Please select a future time.")
             else:
-                if existing_client_booking:
-                    # If rebooking is confirmed
-                    if request.POST.get('confirm_rebooking') == 'yes':
-                        booking.save()
-                        messages.success(request, "Your booking has been confirmed!")
-                        return redirect('booking_confirmation', booking_id=booking.id)
-                    else:
-                        # Show rebooking confirmation
-                        context = {
-                            'service': service,
-                            'form': form,
-                            'existing_booking': existing_client_booking,
-                            'show_rebooking_confirmation': True
-                        }
-                        return render(request, 'booking_service.html', context)
+                try:
+                    booking.full_clean()
+                except ValidationError as e:
+                    form.add_error(None, e)
                 else:
-                    booking.save()
-                    messages.success(request, "Your booking has been confirmed!")
-                    return redirect('booking_confirmation', booking_id=booking.id)
+                    # Check if the selected time slot is available for the chosen employee
+                    existing_bookings = Booking.objects.filter(
+                        staff=booking.staff,
+                        booking_date=booking.booking_date,
+                        booking_time=booking.booking_time,
+                        status__in=['Pending', 'Confirmed']
+                    )
+                    
+                    if existing_bookings.exists():
+                        messages.error(request, "This time slot is already booked for the selected employee. Please choose another time or employee.")
+                    else:
+                        if existing_client_booking:
+                            # If rebooking is confirmed
+                            if request.POST.get('confirm_rebooking') == 'yes':
+                                booking.save()
+                                messages.success(request, "Your booking has been confirmed!")
+                                return redirect('booking_confirmation', booking_id=booking.id)
+                            else:
+                                # Show rebooking confirmation
+                                context = {
+                                    'service': service,
+                                    'form': form,
+                                    'existing_booking': existing_client_booking,
+                                    'show_rebooking_confirmation': True
+                                }
+                                return render(request, 'booking_service.html', context)
+                        else:
+                            booking.save()
+                            messages.success(request, "Your booking has been confirmed!")
+                            return redirect('booking_confirmation', booking_id=booking.id)
         else:
-            messages.error(request, "This slot is already booked. Please choose another slot.")
+            messages.error(request, "Please correct the errors below.")
     else:
         form = BookingForm(specialized_employees=specialized_employees)
 
@@ -656,15 +660,14 @@ def booking_service(request, service_id):
         'service': service,
         'form': form,
         'existing_booking': existing_client_booking,
+        'current_time': timezone.now(),  # Pass current time to the template
     }
     return render(request, 'booking_service.html', context)
 
-
-from django.contrib.auth.decorators import login_required
-
+# The booking_confirmation view remains unchanged
 def booking_confirmation(request, booking_id):
-    user_id=request.session.get('user_id')
-    client=get_object_or_404(Client,id=user_id)
+    user_id = request.session.get('user_id')
+    client = get_object_or_404(Client, id=user_id)
     booking = get_object_or_404(Booking, id=booking_id, client=client)
     return render(request, 'booking_confirmation.html', {'booking': booking})
 
@@ -1124,3 +1127,192 @@ def employee_category(request):
         'categories': categories,
         'subcategories': subcategories,
     })
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from .models import Booking, Employee
+from django.utils import timezone
+from datetime import date
+
+def view_appointments(request):
+    user_type = request.session.get('user_type')
+    user_id = request.session.get('user_id')
+
+    if user_type != 'employee':
+        messages.error(request, "You need to log in as an employee to access this page.")
+        return redirect('login') 
+
+    try:
+        employee = Employee.objects.get(id=user_id)
+        if not employee.approved:
+            messages.error(request, "Your account is not approved yet. Please wait for admin approval.")
+            return redirect('employee_dashboard')
+    except Employee.DoesNotExist:
+        messages.error(request, "Employee not found. Please contact support.")
+        return redirect('login')
+
+    # Get appointments for this employee, including today's appointments
+    today = date.today()
+    appointments = Booking.objects.filter(
+        staff=employee,
+        booking_date__gte=today
+    ).order_by('booking_date', 'booking_time')
+
+    if request.method == 'POST':
+        booking_id = request.POST.get('booking_id')
+        new_status = request.POST.get('new_status')
+        if booking_id and new_status in ['Confirmed', 'Cancelled', 'Completed']:
+            booking = get_object_or_404(Booking, id=booking_id, staff=employee)
+            
+            # Check if the status change is valid
+            if (new_status == 'Confirmed' and booking.status == 'Pending') or \
+               (new_status == 'Cancelled' and booking.status in ['Pending', 'Confirmed']) or \
+               (new_status == 'Completed' and booking.status == 'Confirmed'):
+                booking.status = new_status
+                booking.save()
+                messages.success(request, f"Appointment status updated to {new_status}")
+            else:
+                messages.error(request, "Invalid status change.")
+            
+            return redirect('view_appointments')
+
+    context = {
+        'appointments': appointments,
+        'employee': employee,
+        'today': today
+    }
+    return render(request, 'view_appointments.html', context)
+
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib import messages
+from .models import Booking, Feedback
+from .forms import FeedbackForm
+
+# ... (existing views)
+
+def add_feedback(request, booking_id):
+    booking = get_object_or_404(Booking, id=booking_id)
+    
+    if request.method == 'POST':
+        form = FeedbackForm(request.POST)
+        if form.is_valid():
+            feedback = form.save(commit=False)
+            feedback.booking = booking
+            feedback.save()
+            messages.success(request, 'Feedback submitted successfully!')
+            return redirect('client_bookings')
+    else:
+        form = FeedbackForm()
+    
+    return render(request, 'add_feedback.html', {'form': form, 'booking': booking})
+
+def view_feedback(request, booking_id):
+    booking = get_object_or_404(Booking, id=booking_id)
+    feedback = get_object_or_404(Feedback, booking=booking)
+    return render(request, 'view_feedback.html', {'feedback': feedback})
+
+from django.shortcuts import render, get_object_or_404
+from django.utils import timezone
+from .models import Client, Booking
+
+def client_bookings(request):
+    user_id = request.session.get('user_id')
+    client = get_object_or_404(Client, id=user_id)
+    
+    # Get only completed bookings for the client
+    completed_bookings = Booking.objects.filter(
+        client=client, 
+        status='Completed'
+    ).order_by('-booking_date', '-booking_time')
+    
+    # Get today's date for comparison in the template
+    today = timezone.now().date()
+    
+    context = {
+        'client': client,
+        'bookings': completed_bookings,
+        'today': today,
+    }
+    
+    return render(request, 'client_bookings.html', context)
+
+def employee_bookings(request):
+    user_id = request.session.get('user_id')
+    employee = get_object_or_404(Employee, id=user_id)
+    bookings = Booking.objects.filter(staff=employee).order_by('-booking_date', '-booking_time')
+    return render(request, 'employee_bookings.html', {'bookings': bookings})
+
+from django.shortcuts import render, get_object_or_404
+from django.utils import timezone
+from .models import Client, Booking
+
+
+def client_current_bookings(request):
+    user_id = request.session.get('user_id')
+    client = get_object_or_404(Client, id=user_id)
+    
+    # Get only pending and confirmed bookings for the client
+    current_bookings = Booking.objects.filter(
+        client=client,
+        status__in=['Pending', 'Confirmed'],
+        booking_date__gte=timezone.now().date()  # Only future and today's bookings
+    ).order_by('booking_date', 'booking_time')
+    
+    context = {
+        'client': client,
+        'bookings': current_bookings,
+        'today': timezone.now().date(),
+    }
+    
+    return render(request, 'client_bookings.html', context)
+
+
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib import messages
+from django.utils import timezone
+from .models import Booking, Client
+
+def cancel_booking(request, booking_id):
+    # Get the user_id from the session
+    user_id = request.session.get('user_id')
+    
+    # Get the client object or return 404 if not found
+    client = get_object_or_404(Client, id=user_id)
+    
+    # Get the booking object or return 404 if not found
+    booking = get_object_or_404(Booking, id=booking_id, client=client)
+    
+    # Check if the booking can be cancelled
+    if booking.status in ['Pending', 'Confirmed'] and booking.booking_date >= timezone.now().date():
+        # Update the booking status to 'Cancelled'
+        booking.status = 'Cancelled'
+        booking.save()
+        
+        messages.success(request, f"Your booking for {booking.service.service_name} on {booking.booking_date} has been cancelled successfully.")
+    else:
+        messages.error(request, "This booking cannot be cancelled. It may be in the past or already completed/cancelled.")
+    
+    # Redirect to the current bookings page
+    return redirect('client_dashboard')  # Make sure this URL name exists in your urls.py
+
+from django.shortcuts import render, get_object_or_404
+from django.contrib.auth.decorators import login_required
+from .models import Employee, Booking, Feedback  # Assuming you have a Feedback model
+
+
+def employee_view_feedback(request):
+    user_id = request.session.get('user_id')
+    employee = get_object_or_404(Employee, id=user_id)
+    
+    # Get all completed bookings for this employee that have feedback
+    bookings_with_feedback = Booking.objects.filter(
+        staff=employee,
+        status='Completed',
+        feedback__isnull=False
+    ).select_related('feedback', 'client', 'service')
+
+    context = {
+        'employee': employee,
+        'bookings_with_feedback': bookings_with_feedback,
+    }
+    return render(request, 'employee_view_feedback.html', context)

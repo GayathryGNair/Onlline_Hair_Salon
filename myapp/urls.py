@@ -79,9 +79,22 @@ urlpatterns = [
 
 
     path('login/', auth_views.LoginView.as_view(template_name='login.html'), name='login'),
-     path('employee/manage-service/', views.employee_manage_service, name='employee_manage_service'),
+    path('employee/manage-service/', views.employee_manage_service, name='employee_manage_service'),
     path('employee/edit-service/<int:service_id>/', views.employee_edit_service, name='employee_edit_service'),
     path('employee/category/', views.employee_category, name='employee_category'),
+    path('employee/view-appointments/', views.view_appointments, name='view_appointments'),
+    path('add_feedback/<int:booking_id>/', views.add_feedback, name='add_feedback'),
+    path('view_feedback/<int:booking_id>/', views.view_feedback, name='view_feedback'),
+    path('client_bookings/', views.client_bookings, name='client_bookings'),
+    path('current-bookings/', views.client_current_bookings, name='client_current_bookings'),
+    path('cancel-booking/<int:booking_id>/', views.cancel_booking, name='cancel_booking'),
+
+    path('current-bookings/', views.client_current_bookings, name='client_current_bookings'),
+    path('cancel-booking/<int:booking_id>/', views.cancel_booking, name='cancel_booking'),
+    path('view-feedback/', views.employee_view_feedback, name='employee_view_feedback'),
+
+    path('employee_bookings/', views.employee_bookings, name='employee_bookings'),
+     
     
 ]
 

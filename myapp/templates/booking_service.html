@@ -260,5 +260,51 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const dateInput = document.getElementById('id_booking_date');
+            const timeSelect = document.getElementById('id_booking_time');
+    
+            function updateAvailableTimes() {
+                const selectedDate = new Date(dateInput.value);
+                const now = new Date();
+    
+                // Reset all options to visible
+                for (let option of timeSelect.options) {
+                    option.style.display = '';
+                }
+    
+                // If selected date is today, hide past times
+                if (selectedDate.toDateString() === now.toDateString()) {
+                    const currentHour = now.getHours();
+                    for (let option of timeSelect.options) {
+                        const optionHour = parseInt(option.value.split(':')[0]);
+                        if (optionHour <= currentHour) {
+                            option.style.display = 'none';
+                        }
+                    }
+                }
+    
+                // Select the first visible option
+                let firstVisibleSelected = false;
+                for (let option of timeSelect.options) {
+                    if (option.style.display !== 'none' && !firstVisibleSelected) {
+                        option.selected = true;
+                        firstVisibleSelected = true;
+                    } else {
+                        option.selected = false;
+                    }
+                }
+            }
+    
+            // Update times when the date changes
+            dateInput.addEventListener('change', updateAvailableTimes);
+    
+            // Initial update
+            updateAvailableTimes();
+        });
+    </script>
 </body>
 </html>
