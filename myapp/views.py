@@ -283,20 +283,22 @@ def for_women(request):
 #client
 from django.shortcuts import render, redirect
 from django.contrib import messages
-from .forms import ClientProfileUpdateForm  # Adjust according to your project structure
 from .models import Client
+
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def client_dashboard(request):
-    # Check if user is logged in by verifying the session
     user_id = request.session.get('user_id')
+    user_type = request.session.get('user_type')
 
-    
-    # Fetch the Client object using the user's ID
+    if not user_id or user_type != 'client':
+        messages.error(request, "You need to log in to access the dashboard.")
+        return redirect('login')
+
     try:
         client = Client.objects.get(id=user_id)
     except Client.DoesNotExist:
-        messages.error(request, "You want to loggin to access dashboard.")
-        return redirect('login')  # Redirect if client not found
+        messages.error(request, "Client not found.")
+        return redirect('login')
 
     context = {
         'client': client,
@@ -311,6 +313,10 @@ def toggle_client_status(request, client_id):
         messages.success(request, f"Client {client.first_name}'s status updated to {'Active' if client.status else 'Inactive'}.")
     return redirect('manage_client')
 
+from django.shortcuts import render, redirect
+from django.contrib import messages
+from .models import Client
+from .forms import ClientProfileUpdateForm
 
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def client_update(request):

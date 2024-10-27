@@ -144,11 +144,7 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 LOGIN_REDIRECT_URL = '/'
 
-# # Redirect URLs after login/logout
-# LOGIN_REDIRECT_URL = '/'
-# LOGOUT_REDIRECT_URL = '/'
 
-# settings.py
 
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
@@ -186,17 +182,19 @@ AUTHENTICATION_BACKENDS = (
 )
 
 SOCIAL_AUTH_PIPELINE = (
-    'social_core.pipeline.social_auth.social_details',  
-    'social_core.pipeline.social_auth.social_uid',      
-    'social_core.pipeline.social_auth.auth_allowed',    
-    'social_core.pipeline.social_auth.social_user',     
-    'social_core.pipeline.user.get_username',          
-    'social_core.pipeline.user.create_user',                               
-    'social_core.pipeline.social_auth.associate_user',  
-    'social_core.pipeline.social_auth.load_extra_data', 
-    'social_core.pipeline.user.user_details',          
+    'social_core.pipeline.social_auth.social_details',
+    'social_core.pipeline.social_auth.social_uid',
+    'social_core.pipeline.social_auth.auth_allowed',
+    'social_core.pipeline.social_auth.social_user',
+    'social_core.pipeline.user.get_username',
+    'social_core.pipeline.user.create_user',
+    'social_core.pipeline.social_auth.associate_user',
+    'social_core.pipeline.social_auth.load_extra_data',
+    'social_core.pipeline.user.user_details',
+    'myapp.pipeline.custom_pipeline',  # Add this line
 )
 
 LOGIN_REDIRECT_URL = 'client_dashboard'
 LOGOUT_REDIRECT_URL = 'client_dashboard'
 
+LOGIN_REDIRECT_URL = 'client_dashboard'

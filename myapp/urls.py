@@ -19,6 +19,7 @@ urlpatterns = [
     path('contact', views.contact, name='contact'),
 
     path('oauth/', include('social_django.urls', namespace='social')),
+    path('social/', include('social_django.urls', namespace='social')),
   
     path('register', views.register, name='register'),
     path('for_men', views.for_men, name='for_men'),

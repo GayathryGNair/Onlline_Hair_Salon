@@ -139,6 +139,34 @@
             color: var(--text-color);
             border: none;
         }
+        .google-signin-button {
+            display: inline-flex;
+            align-items: center;
+            background-color: #fff;
+            color: #757575;
+            border: 1px solid #dcdcdc;
+            border-radius: 4px;
+            font-family: 'Roboto', sans-serif;
+            font-size: 14px;
+            font-weight: 500;
+            padding: 10px 20px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            text-decoration: none;
+        }
+        .google-signin-button:hover {
+        background-color: #f7f7f7;
+        }
+
+        .google-icon {
+            width: 18px;
+            height: 18px;
+            margin-right: 10px;
+        }
+
+        .google-signin-text {
+            color: #757575;
+        }
     </style> 
 </head>
 <body>
@@ -169,9 +197,9 @@
                 <button type="submit" id="login" class="btn btn-primary">Login</button>
             </form>
             <div>
-                <a href="{% url 'social:begin' 'google-oauth2' %}">
-                    <img src="{% static '' %}" alt="Google Icon" class="google-icon">
-                    Sign in with Google
+                <a href="{% url 'social:begin' 'google-oauth2' %}" class="google-signin-button">
+                    <img src="{% static 'images/google.png' %}" alt="Google Icon" class="google-icon">
+                    <span class="btn btn-primary">Sign in with Google</span>
                 </a>
             </div>
             <h4>

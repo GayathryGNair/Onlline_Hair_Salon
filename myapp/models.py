@@ -6,7 +6,7 @@ class User(models.Model):
     last_name = models.CharField(max_length=100)
     email = models.EmailField(unique=True)
     password = models.CharField(max_length=128)
-    dob = models.DateField()
+    dob = models.DateField(null=True, blank=True)
     contact = models.CharField(max_length=15)
     status = models.BooleanField(default=True)
 
@@ -17,7 +17,7 @@ class User(models.Model):
         abstract = True
 
 class Client(User):
-    reset_token = models.CharField(max_length=64, null=True, blank=True)  # Add reset_token field
+    reset_token = models.CharField(max_length=64, null=True, blank=True) # Add reset_token field
 
 
 from django.contrib.auth.models import AbstractUser
