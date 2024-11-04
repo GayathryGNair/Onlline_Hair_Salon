@@ -222,7 +222,7 @@
                                         <td>
                                             <form method="POST" action="{% url 'toggle_employee_approval' employee.id %}">
                                                 {% csrf_token %}
-                                                <button type="submit" class="btn btn-sm {% if employee.approved %}btn-success{% else %}btn-danger{% endif %} btn-space">
+                                                <button type="submit" class="btn btn-sm {% if employee.approved %}btn-success{% else %}btn-danger{% endif %} btn-space" id="approval_button">
                                                     {% if employee.approved %}Approved{% else %}Declined{% endif %}
                                                 </button>
                                             </form>

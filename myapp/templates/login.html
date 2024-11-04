@@ -140,32 +140,32 @@
             border: none;
         }
         .google-signin-button {
-            display: inline-flex;
+            display: flex; /* Use flex for alignment */
             align-items: center;
-            background-color: #fff;
-            color: #757575;
-            border: 1px solid #dcdcdc;
-            border-radius: 4px;
-            font-family: 'Roboto', sans-serif;
-            font-size: 14px;
-            font-weight: 500;
-            padding: 10px 20px;
+            justify-content: center; /* Center the button */
+            background-color: white; /* Set background to white */
+            color: var(--text-color); /* Text color */
+            border: 1px solid var(--secondary-color); /* Add border */
+            border-radius: 5px; /* Match the border radius of the login button */
+            font-family: 'Poppins', sans-serif; /* Match font family */
+            font-size: 16px; /* Match font size */
+            padding: 10px; /* Match padding */
             cursor: pointer;
             transition: background-color 0.3s;
             text-decoration: none;
+            width: 100%; /* Full width */
+            margin: 10px 0; /* Add margin for spacing */
         }
         .google-signin-button:hover {
-        background-color: #f7f7f7;
+            background-color: var(--secondary-color); /* Change background on hover */
         }
-
         .google-icon {
             width: 18px;
             height: 18px;
             margin-right: 10px;
         }
-
         .google-signin-text {
-            color: #757575;
+            color: var(--text-color); /* Change text color to match */
         }
     </style> 
 </head>
@@ -199,7 +199,7 @@
             <div>
                 <a href="{% url 'social:begin' 'google-oauth2' %}" class="google-signin-button">
                     <img src="{% static 'images/google.png' %}" alt="Google Icon" class="google-icon">
-                    <span class="btn btn-primary">Sign in with Google</span>
+                    <span class="google-signin-text">Sign in with Google</span>
                 </a>
             </div>
             <h4>
