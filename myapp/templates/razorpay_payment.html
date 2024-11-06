@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pay Now - GlamourQuest</title>
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+</head>
+<body>
+    <h1>Pay for {{ booking.service.service_name }}</h1>
+    <button id="pay-button" >Pay Now</button>
+
+    <script>
+        document.getElementById('pay-button').onclick = function() {
+            fetch("{% url 'razorpay_payment' booking.id %}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'  // Include CSRF token
+                },
+            })
+            .then(response => response.json())
+            .then(data => {
+                var options = {
+                    "key": "{{ settings.RAZORPAY_KEY_ID }}", // Your Razorpay Key ID
+                    "amount": data.amount, // Amount is in currency subunits. Default is paise. Hence, 100 = INR 1
+                    "currency": data.currency,
+                    "name": "GlamourQuest",
+                    "description": "Payment for {{ booking.service.service_name }}",
+                    "order_id": data.id, // This is the order_id created in your backend
+                    "handler": function (response){
+                        // Handle successful payment here
+                        alert("Payment successful!");
+                        // You can redirect to a success page or update the booking status in your database
+                    },
+                    "theme": {
+                        "color": "#FF69B4"
+                    }
+                };
+                var rzp1 = new Razorpay(options);
+                rzp1.open();
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        };
+    </script>
+</body>
+</html>

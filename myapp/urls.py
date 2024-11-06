@@ -76,13 +76,14 @@ urlpatterns = [
     path('subcategory/delete/<int:subcategory_id>/', views.delete_subcategory, name='delete_subcategory'),
     path('edit-subcategory/<int:subcategory_id>/', views.edit_subcategory, name='edit_subcategory'),
     path('hair-care/<int:subcategory_id>/', services_in_subcategory, name='services_in_subcategory'),
+    path('billing/<int:booking_id>/', views.billing, name='billing'),  
 
-
+    
 
     path('login/', auth_views.LoginView.as_view(template_name='login.html'), name='login'),
-    path('employee/manage-service/', views.employee_manage_service, name='employee_manage_service'),
-    path('employee/edit-service/<int:service_id>/', views.employee_edit_service, name='employee_edit_service'),
-    path('employee/category/', views.employee_category, name='employee_category'),
+    # path('employee/manage-service/', views.employee_manage_service, name='employee_manage_service'),
+    # path('employee/edit-service/<int:service_id>/', views.employee_edit_service, name='employee_edit_service'),
+    # path('employee/category/', views.employee_category, name='employee_category'),
     path('employee/view-appointments/', views.view_appointments, name='view_appointments'),
     path('add_feedback/<int:booking_id>/', views.add_feedback, name='add_feedback'),
     path('view_feedback/<int:booking_id>/', views.view_feedback, name='view_feedback'),
@@ -90,12 +91,21 @@ urlpatterns = [
     path('current-bookings/', views.client_current_bookings, name='client_current_bookings'),
     path('cancel-booking/<int:booking_id>/', views.cancel_booking, name='cancel_booking'),
 
+    path('client/service-history/', views.service_history, name='service_history'),
+
     path('current-bookings/', views.client_current_bookings, name='client_current_bookings'),
     path('cancel-booking/<int:booking_id>/', views.cancel_booking, name='cancel_booking'),
     path('view-feedback/', views.employee_view_feedback, name='employee_view_feedback'),
 
     path('employee_bookings/', views.employee_bookings, name='employee_bookings'),
-     
+
+    # path('client/payments/', views.payments, name='payments'),
+    path('client/payments/pay/<int:booking_id>/', views.pay_now, name='pay_now'),
+    path('client/payments/razorpay/<int:booking_id>/', views.razorpay_payment, name='razorpay_payment'), 
+
+    path('send-bill/<int:booking_id>/', views.send_bill, name='send_bill'),
+    path('payments/', views.view_payments, name='view_payments'),
+    path('update-payment-status/<int:payment_id>/', views.update_payment_status, name='update_payment_status'),
     
 ]
 

@@ -583,6 +583,7 @@ def service_detail(request, service_id):
     service = get_object_or_404(Service, id=service_id)
     return render(request, 'service_detail.html', {'service': service})
 
+# views.py
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from .models import Service, Booking, Employee, Client
@@ -638,12 +639,15 @@ def booking_service(request, service_id):
                     if existing_bookings.exists():
                         messages.error(request, "This time slot is already booked for the selected employee. Please choose another time or employee.")
                     else:
+                        # Set the total cost based on the service rate
+                        booking.total_cost = service.rate  # Assuming the service has a rate field
+                        
                         if existing_client_booking:
                             # If rebooking is confirmed
                             if request.POST.get('confirm_rebooking') == 'yes':
                                 booking.save()
                                 messages.success(request, "Your booking has been confirmed!")
-                                return redirect('booking_confirmation', booking_id=booking.id)
+                                return redirect('billing', booking_id=booking.id)  # Redirect to billing
                             else:
                                 # Show rebooking confirmation
                                 context = {
@@ -656,7 +660,7 @@ def booking_service(request, service_id):
                         else:
                             booking.save()
                             messages.success(request, "Your booking has been confirmed!")
-                            return redirect('booking_confirmation', booking_id=booking.id)
+                            return redirect('billing', booking_id=booking.id)  # Redirect to billing
         else:
             messages.error(request, "Please correct the errors below.")
     else:
@@ -676,6 +680,26 @@ def booking_confirmation(request, booking_id):
     client = get_object_or_404(Client, id=user_id)
     booking = get_object_or_404(Booking, id=booking_id, client=client)
     return render(request, 'booking_confirmation.html', {'booking': booking})
+
+# views.py
+from django.shortcuts import render, get_object_or_404
+from .models import Booking
+
+def billing(request, booking_id):
+    user_id = request.session.get('user_id')
+    client = get_object_or_404(Client, id=user_id)
+    booking = get_object_or_404(Booking, id=booking_id, client=client)
+
+    # Calculate total cost (if not already calculated)
+    total_cost = booking.service.rate  # Assuming the service has a rate field
+    booking.total_cost = total_cost
+    booking.save()
+
+    context = {
+        'booking': booking,
+        'total_cost': total_cost,
+    }
+    return render(request, 'billing.html', context)
 
 # admin 
 
@@ -1038,101 +1062,101 @@ def search_services(request):
     }
     return render(request, 'search_results.html', context)
 
-from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib import messages
-from django.contrib.auth.decorators import login_required
-from .models import Service, ServiceCategory, ServiceSubcategory, Employee
+# from django.shortcuts import render, redirect, get_object_or_404
+# from django.contrib import messages
+# from django.contrib.auth.decorators import login_required
+# from .models import Service, ServiceCategory, ServiceSubcategory, Employee
 
 
-@cache_control(no_cache=True, must_revalidate=True, no_store=True)
-def employee_manage_service(request):
-    user_type = request.session.get('user_type')
+# @cache_control(no_cache=True, must_revalidate=True, no_store=True)
+# def employee_manage_service(request):
+#     user_type = request.session.get('user_type')
 
-    if user_type != 'employee':
-        messages.error(request, "You need to log in as employee to access this page.")
-        return redirect('login') 
+#     if user_type != 'employee':
+#         messages.error(request, "You need to log in as employee to access this page.")
+#         return redirect('login') 
 
-    if request.method == 'POST':
-        category_id = request.POST.get('category')
-        subcategory_id = request.POST.get('subcategory')
-        service_name = request.POST.get('service_name')
-        description = request.POST.get('description')
-        rate = request.POST.get('rate')
-        image = request.FILES.get('image')
+#     if request.method == 'POST':
+#         category_id = request.POST.get('category')
+#         subcategory_id = request.POST.get('subcategory')
+#         service_name = request.POST.get('service_name')
+#         description = request.POST.get('description')
+#         rate = request.POST.get('rate')
+#         image = request.FILES.get('image')
 
-        Service.objects.create(
-            subcategory_id=subcategory_id,
-            service_name=service_name,
-            description=description,
-            rate=rate,
-            image=image
-        )
-        messages.success(request, 'Service added successfully.')
-        return redirect('employee_manage_service')
+#         Service.objects.create(
+#             subcategory_id=subcategory_id,
+#             service_name=service_name,
+#             description=description,
+#             rate=rate,
+#             image=image
+#         )
+#         messages.success(request, 'Service added successfully.')
+#         return redirect('employee_manage_service')
 
-    categories = ServiceCategory.objects.all()
-    subcategories = ServiceSubcategory.objects.all()
-    services = Service.objects.all()
+#     categories = ServiceCategory.objects.all()
+#     subcategories = ServiceSubcategory.objects.all()
+#     services = Service.objects.all()
 
-    return render(request, 'employee_manage_service.html', {
-        'categories': categories,
-        'subcategories': subcategories,
-        'services': services,
-        'messages': messages.get_messages(request),
-    })
+#     return render(request, 'employee_manage_service.html', {
+#         'categories': categories,
+#         'subcategories': subcategories,
+#         'services': services,
+#         'messages': messages.get_messages(request),
+#     })
 
-@cache_control(no_cache=True, must_revalidate=True, no_store=True)
-def employee_edit_service(request, service_id):
-    user_type = request.session.get('user_type')
+# @cache_control(no_cache=True, must_revalidate=True, no_store=True)
+# def employee_edit_service(request, service_id):
+#     user_type = request.session.get('user_type')
 
-    if user_type != 'employee':
-        messages.error(request, "You need to log in as employee to access this page.")
-        return redirect('login') 
+#     if user_type != 'employee':
+#         messages.error(request, "You need to log in as employee to access this page.")
+#         return redirect('login') 
 
-    service = get_object_or_404(Service, id=service_id)
+#     service = get_object_or_404(Service, id=service_id)
 
-    if request.method == 'POST':
-        service.subcategory_id = request.POST.get('subcategory')
-        service.service_name = request.POST.get('service_name')
-        service.description = request.POST.get('description')
-        service.rate = request.POST.get('rate')
-        if 'image' in request.FILES:
-            service.image = request.FILES['image']
-        service.save()
-        messages.success(request, 'Service updated successfully.')
-        return redirect('employee_manage_service')
+#     if request.method == 'POST':
+#         service.subcategory_id = request.POST.get('subcategory')
+#         service.service_name = request.POST.get('service_name')
+#         service.description = request.POST.get('description')
+#         service.rate = request.POST.get('rate')
+#         if 'image' in request.FILES:
+#             service.image = request.FILES['image']
+#         service.save()
+#         messages.success(request, 'Service updated successfully.')
+#         return redirect('employee_manage_service')
 
-    categories = ServiceCategory.objects.all()
-    subcategories = ServiceSubcategory.objects.all()
+#     categories = ServiceCategory.objects.all()
+#     subcategories = ServiceSubcategory.objects.all()
 
-    return render(request, 'employee_edit_service.html', {
-        'service': service,
-        'categories': categories,
-        'subcategories': subcategories,
-    })
+#     return render(request, 'employee_edit_service.html', {
+#         'service': service,
+#         'categories': categories,
+#         'subcategories': subcategories,
+#     })
 
-def delete_service(request, service_id):
-    service = get_object_or_404(Service, id=service_id)
-    service.delete()
-    messages.success(request, 'Service deleted successfully.')
-    return redirect('employee_manage_service')
+# def delete_service(request, service_id):
+#     service = get_object_or_404(Service, id=service_id)
+#     service.delete()
+#     messages.success(request, 'Service deleted successfully.')
+#     return redirect('employee_manage_service')
 
 
-@cache_control(no_cache=True, must_revalidate=True, no_store=True)
-def employee_category(request):
-    user_type = request.session.get('user_type')
+# @cache_control(no_cache=True, must_revalidate=True, no_store=True)
+# def employee_category(request):
+#     user_type = request.session.get('user_type')
 
-    if user_type != 'employee':
-        messages.error(request, "You need to log in as employee to access this page.")
-        return redirect('login') 
+#     if user_type != 'employee':
+#         messages.error(request, "You need to log in as employee to access this page.")
+#         return redirect('login') 
 
-    categories = ServiceCategory.objects.all()
-    subcategories = ServiceSubcategory.objects.all()
+#     categories = ServiceCategory.objects.all()
+#     subcategories = ServiceSubcategory.objects.all()
 
-    return render(request, 'employee_category.html', {
-        'categories': categories,
-        'subcategories': subcategories,
-    })
+#     return render(request, 'employee_category.html', {
+#         'categories': categories,
+#         'subcategories': subcategories,
+#     })
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -1242,6 +1266,26 @@ def client_bookings(request):
     
     return render(request, 'client_bookings.html', context)
 
+# views.py
+from django.shortcuts import render, get_object_or_404
+from django.utils import timezone
+from .models import Client, Booking
+
+def service_history(request):
+    user_id = request.session.get('user_id')
+    client = get_object_or_404(Client, id=user_id)
+    
+    # Get all bookings for the client
+    all_bookings = Booking.objects.filter(client=client).order_by('booking_date', 'booking_time')
+
+    context = {
+        'client': client,
+        'bookings': all_bookings,
+        'today': timezone.now().date(),
+    }
+    
+    return render(request, 'service_history.html', context)
+
 def employee_bookings(request):
     user_id = request.session.get('user_id')
     employee = get_object_or_404(Employee, id=user_id)
@@ -1322,3 +1366,144 @@ def employee_view_feedback(request):
         'bookings_with_feedback': bookings_with_feedback,
     }
     return render(request, 'employee_view_feedback.html', context)
+
+
+# views.py
+# myproject/myapp/views.py
+from django.shortcuts import render
+from .models import Payment
+
+def view_payments(request):
+    # Fetch all payments related to the logged-in user (assuming you have a way to identify the user)
+    user_id = request.session.get('user_id')  # Example of getting the user ID from the session
+    payments = Payment.objects.filter(client__id=user_id)  # Assuming Payment has a ForeignKey to Client
+
+    context = {
+        'payments': payments,
+    }
+    return render(request, 'payments.html', context)
+
+# myproject/myapp/views.py
+from django.shortcuts import render, get_object_or_404, redirect
+from .models import Payment
+
+def update_payment_status(request, payment_id):
+    # Fetch the payment record
+    payment = get_object_or_404(Payment, id=payment_id)
+
+    # Update the status to 'Paid'
+    if payment.status == 'Pending':
+        payment.status = 'Paid'
+        payment.save()
+
+    # Redirect back to the payments page
+    return redirect('razorpay_payment')  # Ensure this matches your URL name for payments
+
+
+# views.py
+import razorpay
+from django.conf import settings 
+from django.http import JsonResponse
+
+def razorpay_payment(request, booking_id):
+    user_id = request.session.get('user_id')
+    client = get_object_or_404(Client, id=user_id)
+    booking = get_object_or_404(Booking, id=booking_id, client=client)
+
+    if request.method == 'POST':
+        # Create a Razorpay order
+        razorpay_client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_SECRET))
+        amount = int(booking.service.rate * 100)  # Amount in paise
+        currency = 'INR'
+        order_data = {
+            'amount': amount,
+            'currency': currency,
+            'payment_capture': '1'  # Auto capture
+        }
+        order = razorpay_client.order.create(data=order_data)
+        return JsonResponse(order)  # Return order details to the frontend
+
+    return render(request, 'razorpay_payment.html', {'booking': booking})
+
+# views.py
+import razorpay
+from django.shortcuts import render, get_object_or_404, redirect
+from django.views.decorators.csrf import csrf_exempt
+from .models import Payment, Client, Booking
+from django.conf import settings
+
+@csrf_exempt  # Allow POST requests from Razorpay
+def pay_now(request, booking_id):
+    user_id = request.session.get('user_id')
+    client = get_object_or_404(Client, id=user_id)
+    booking = get_object_or_404(Booking, id=booking_id, client=client)
+
+    if request.method == 'POST':
+        # Get payment details from Razorpay
+        razorpay_payment_id = request.POST.get('razorpay_payment_id')
+        razorpay_order_id = request.POST.get('razorpay_order_id')
+
+        # Verify the payment with Razorpay
+        razorpay_client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_SECRET))
+        try:
+            # Capture the payment
+            razorpay_client.payment.capture(razorpay_payment_id, booking.service.rate * 100)  # Amount in paise
+            
+            # Create a new Payment record
+            payment = Payment(
+                booking=booking,
+                amount=booking.service.rate,
+                payment_id=razorpay_payment_id,
+                order_id=razorpay_order_id,
+                status='Completed'  # Set status to Completed
+            )
+            payment.save()  # Save the payment record to the database
+
+            # Update the booking status to 'Paid'
+            booking.status = 'Paid'
+            booking.save()
+
+            # Redirect to the payments page
+            return redirect('payments')
+        except Exception as e:
+            # Handle the error (e.g., log it, show an error message)
+            print(f"Payment failed: {e}")
+            return redirect('payments')  # Redirect back to the payments page on failure
+
+    return redirect('payments')  # Redirect back to the payments page if not a POST request
+# myproject/myapp/views.py
+from django.shortcuts import render, get_object_or_404, redirect
+from .models import Booking, Payment, Client, Employee, Service
+
+def send_bill(request, booking_id):
+    # Fetch the booking and related data
+    booking = get_object_or_404(Booking, id=booking_id)
+    client = booking.client  # Assuming the Booking model has a ForeignKey to Client
+    employee = booking.staff  # Assuming the Booking model has a ForeignKey to Employee
+    service = booking.service  # Assuming the Booking model has a ForeignKey to Service
+
+    # Set the amount to be billed
+    amount = booking.service.rate  # Assuming the rate is the amount to be billed
+
+    if request.method == 'POST':
+        # Create a new Payment record
+        Payment.objects.create(
+            booking=booking,
+            client=client,
+            employee=employee,
+            service=service,
+            amount=amount,
+            status='Pending',  # Set status to Pending
+            # Add payment_id and order_id if applicable
+        )
+        # Redirect to a success page or back to appointments
+        return redirect('view_appointments')  # Change this to your desired redirect
+
+    context = {
+        'client': client,
+        'employee': employee,
+        'service': service,
+        'amount': amount,
+        'booking_id': booking_id,
+    }
+    return render(request, 'sendbill.html', context)

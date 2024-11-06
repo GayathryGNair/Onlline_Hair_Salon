@@ -216,6 +216,12 @@
                                                                 <i class="fas fa-check-double"></i> Complete
                                                             </button>
                                                         </form>
+                                                    {% elif appointment.status == 'Completed' %}
+                                                    <form action="{% url 'send_bill' appointment.id %}" method="GET" style="display: inline;">
+                                                        <button type="submit" class="btn btn-sm btn-info">
+                                                            <i class="fas fa-file-invoice"></i> Send Bill
+                                                        </button>
+                                                    </form>
                                                     {% endif %}
                                                 </td>
                                             </tr>

@@ -127,3 +127,21 @@ class Feedback(models.Model):
 
     def __str__(self):
         return f"Feedback for {self.booking}"
+    
+class Payment(models.Model):
+    booking = models.ForeignKey('Booking', on_delete=models.CASCADE, related_name='payments')
+    client = models.ForeignKey(Client, on_delete=models.CASCADE, related_name='payments')  # Client reference
+    employee = models.ForeignKey(Employee, on_delete=models.CASCADE, related_name='payments')  # Employee reference
+    service = models.ForeignKey(Service, on_delete=models.CASCADE, related_name='payments')  # Service reference
+    amount = models.DecimalField(max_digits=10, decimal_places=2)  # Amount paid
+    payment_id = models.CharField(max_length=100)  # Payment ID from Razorpay
+    order_id = models.CharField(max_length=100)  # Order ID from Razorpay
+    status = models.CharField(max_length=20, choices=[
+        ('Pending', 'Pending'),
+        ('Completed', 'Completed'),
+        ('Failed', 'Failed'),
+    ], default='Pending')  # Payment status
+    created_at = models.DateTimeField(auto_now_add=True)  # Timestamp of payment creation
+
+    def __str__(self):
+        return f"Payment for Booking {self.booking.id} - Amount: {self.amount} - Status: {self.status} - Client: {self.client} - Employee: {self.employee} - Service: {self.service}"
