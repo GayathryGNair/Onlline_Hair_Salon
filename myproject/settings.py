@@ -11,7 +11,10 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
 from pathlib import Path
+from dotenv import load_dotenv
 import os
+
+load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -165,8 +168,7 @@ AUTHENTICATION_BACKENDS = [
     'myapp.backends.EmailBackend', 
 ]
 
-SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = '312247431684-r2e4oo9o4h4buaf1fboanfqni8t6cslr.apps.googleusercontent.com'
-SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = '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'
+
 
 LOGIN_URL = 'login'
 LOGOUT_URL = 'logout'
@@ -186,7 +188,6 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')  # Store uploaded media files in th
 
 
 LOGIN_URL = 'login'  # or whatever your login URL name is
-
 
 
 
@@ -218,9 +219,14 @@ import os
 # settings.py
 
 # Razorpay settings
-RAZORPAY_KEY_ID = os.environ.get('rzp_test_o8cawEIEiGsQ6C')  # Set this in your environment
-RAZORPAY_SECRET = os.environ.get('ITd8ronAQbSCUCqvlqkMlxYl')  # Set this in your environment
+RAZORPAY_KEY_ID = os.environ.get('RAZORPAY_KEY_ID')  # Set this in your environment
+RAZORPAY_SECRET = os.environ.get('RAZORPAY_SECRET')  # Set this in your environment
 
    # settings.py
-RAZORPAY_KEY_ID = 'rzp_test_o8cawEIEiGsQ6C'  # Replace with your Razorpay Key ID
-RAZORPAY_SECRET = 'ITd8ronAQbSCUCqvlqkMlxYl' # Replace with your Razorpay Secret Key
+ # Replace with your Razorpay Secret Key
+
+EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER ')
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD') 
+
+SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = os.environ.get('SOCIAL_AUTH_GOOGLE_OAUTH2_KEY')
+SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = os.environ.get('SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET')
