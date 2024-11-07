@@ -106,9 +106,7 @@ DATABASES = {
         'PASSWORD': '13f1ef972c10532847530e80c678aa1ec1588122',  # Replace with your MySQL password (default is empty)
         'HOST': 'r-2ff.h.filess.io',
         'PORT': '3307',
-    }
-
-    
+    }   
 }
 
 # Password validation
