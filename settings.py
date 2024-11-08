@@ -82,17 +82,26 @@ WSGI_APPLICATION = 'myproject.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.mysql',
+#         'NAME': 'hair2_db',  # Replace with your actual database name
+#         'USER': 'root',  # Replace with your MySQL username (default is 'root')  
+#         'PASSWORD': '',  # Replace with your MySQL password (default is empty)
+#         'HOST': 'localhost',
+#         'PORT': '3306',
+#     }
+# }
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'hair2_db',  # Replace with your actual database name
-        'USER': 'root',  # Replace with your MySQL username (default is 'root')  
-        'PASSWORD': '',  # Replace with your MySQL password (default is empty)
-        'HOST': 'localhost',
-        'PORT': '3306',
+        'NAME': 'hair2db_suddenlyis',  # Replace with your actual database name
+        'USER': 'hair2db_suddenlyis',  # Replace with your MySQL username (default is 'root')  
+        'PASSWORD': '13f1ef972c10532847530e80c678aa1ec1588122',  # Replace with your MySQL password (default is empty)
+        'HOST': 'r-2ff.h.filess.io',
+        'PORT': '3307',
     }
-
-    
 }
 
 # Password validation
