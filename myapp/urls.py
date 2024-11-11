@@ -106,6 +106,11 @@ urlpatterns = [
     path('send-bill/<int:booking_id>/', views.send_bill, name='send_bill'),
     path('payments/', views.view_payments, name='view_payments'),
     path('update-payment-status/<int:payment_id>/', views.update_payment_status, name='update_payment_status'),
+    path('confirm_payment/<str:transaction_id>/', views.confirm_payment, name='confirm_payment'),
+
+    
+    path('client/payments/razorpay/<int:booking_id>/', views.razorpay_payment, name='razorpay_payment'),
+   
     
 ]
 

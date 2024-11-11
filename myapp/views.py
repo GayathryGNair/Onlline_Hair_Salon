@@ -1013,21 +1013,33 @@ def employee_profile(request):
 
 from .forms import EmployeeProfileUpdateForm
 
+
+ 
 def employee_update(request):
-    user_id = request.session.get('user_id')  # Assuming you store the user ID in the session
-    employee = Employee.objects.get(id=user_id)
+    user_id = request.session.get('user_id')
+    employee = get_object_or_404(Employee, id=user_id)
 
     if request.method == 'POST':
-        form = EmployeeProfileUpdateForm(request.POST, instance=employee)
-        if form.is_valid():
-            form.save()
-            messages.success(request, 'Profile updated successfully!')
-            return redirect('employee_update')  # Redirect to the employee dashboard
-    else:
-        form = EmployeeProfileUpdateForm(instance=employee)
+        # Update employee details
+        employee.first_name = request.POST.get('first_name')
+        employee.last_name = request.POST.get('last_name')
+        employee.email = request.POST.get('email')
+        employee.dob = request.POST.get('dob')
+        employee.contact = request.POST.get('contact')
 
-    return render(request, 'employee_update.html', {'form': form})
+        # Handle file upload for qualification certificate
+        if request.FILES.get('qualification_certificate'):
+            employee.qualification_certificate = request.FILES['qualification_certificate']
 
+        # Save the updated employee object
+        employee.save()
+        messages.success(request, "Profile updated successfully.")
+        return redirect('employee_profile')  # Redirect to the profile page or dashboard
+
+    context = {
+        'employee': employee,
+    }
+    return render(request, 'employee_update.html', context)
 from django.shortcuts import get_object_or_404, redirect
 from .models import Employee
 
@@ -1266,7 +1278,7 @@ def client_bookings(request):
     
     return render(request, 'client_bookings.html', context)
 
-# views.py
+# myproject/myapp/views.py
 from django.shortcuts import render, get_object_or_404
 from django.utils import timezone
 from .models import Client, Booking
@@ -1275,12 +1287,12 @@ def service_history(request):
     user_id = request.session.get('user_id')
     client = get_object_or_404(Client, id=user_id)
     
-    # Get all bookings for the client
-    all_bookings = Booking.objects.filter(client=client).order_by('booking_date', 'booking_time')
+    # Get only completed bookings for the client
+    completed_bookings = Booking.objects.filter(client=client, status='Completed').order_by('booking_date', 'booking_time')
 
     context = {
         'client': client,
-        'bookings': all_bookings,
+        'bookings': completed_bookings,
         'today': timezone.now().date(),
     }
     
@@ -1367,111 +1379,6 @@ def employee_view_feedback(request):
     }
     return render(request, 'employee_view_feedback.html', context)
 
-
-# views.py
-# myproject/myapp/views.py
-from django.shortcuts import render
-from .models import Payment
-
-def view_payments(request):
-    # Fetch all payments related to the logged-in user (assuming you have a way to identify the user)
-    user_id = request.session.get('user_id')  # Example of getting the user ID from the session
-    payments = Payment.objects.filter(client__id=user_id)  # Assuming Payment has a ForeignKey to Client
-
-    context = {
-        'payments': payments,
-    }
-    return render(request, 'payments.html', context)
-
-# myproject/myapp/views.py
-from django.shortcuts import render, get_object_or_404, redirect
-from .models import Payment
-
-def update_payment_status(request, payment_id):
-    # Fetch the payment record
-    payment = get_object_or_404(Payment, id=payment_id)
-
-    # Update the status to 'Paid'
-    if payment.status == 'Pending':
-        payment.status = 'Paid'
-        payment.save()
-
-    # Redirect back to the payments page
-    return redirect('razorpay_payment')  # Ensure this matches your URL name for payments
-
-
-# views.py
-import razorpay
-from django.conf import settings 
-from django.http import JsonResponse
-
-def razorpay_payment(request, booking_id):
-    user_id = request.session.get('user_id')
-    client = get_object_or_404(Client, id=user_id)
-    booking = get_object_or_404(Booking, id=booking_id, client=client)
-
-    if request.method == 'POST':
-        # Create a Razorpay order
-        razorpay_client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_SECRET))
-        amount = int(booking.service.rate * 100)  # Amount in paise
-        currency = 'INR'
-        order_data = {
-            'amount': amount,
-            'currency': currency,
-            'payment_capture': '1'  # Auto capture
-        }
-        order = razorpay_client.order.create(data=order_data)
-        return JsonResponse(order)  # Return order details to the frontend
-
-    return render(request, 'razorpay_payment.html', {'booking': booking})
-
-# views.py
-import razorpay
-from django.shortcuts import render, get_object_or_404, redirect
-from django.views.decorators.csrf import csrf_exempt
-from .models import Payment, Client, Booking
-from django.conf import settings
-
-@csrf_exempt  # Allow POST requests from Razorpay
-def pay_now(request, booking_id):
-    user_id = request.session.get('user_id')
-    client = get_object_or_404(Client, id=user_id)
-    booking = get_object_or_404(Booking, id=booking_id, client=client)
-
-    if request.method == 'POST':
-        # Get payment details from Razorpay
-        razorpay_payment_id = request.POST.get('razorpay_payment_id')
-        razorpay_order_id = request.POST.get('razorpay_order_id')
-
-        # Verify the payment with Razorpay
-        razorpay_client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_SECRET))
-        try:
-            # Capture the payment
-            razorpay_client.payment.capture(razorpay_payment_id, booking.service.rate * 100)  # Amount in paise
-            
-            # Create a new Payment record
-            payment = Payment(
-                booking=booking,
-                amount=booking.service.rate,
-                payment_id=razorpay_payment_id,
-                order_id=razorpay_order_id,
-                status='Completed'  # Set status to Completed
-            )
-            payment.save()  # Save the payment record to the database
-
-            # Update the booking status to 'Paid'
-            booking.status = 'Paid'
-            booking.save()
-
-            # Redirect to the payments page
-            return redirect('payments')
-        except Exception as e:
-            # Handle the error (e.g., log it, show an error message)
-            print(f"Payment failed: {e}")
-            return redirect('payments')  # Redirect back to the payments page on failure
-
-    return redirect('payments')  # Redirect back to the payments page if not a POST request
-# myproject/myapp/views.py
 from django.shortcuts import render, get_object_or_404, redirect
 from .models import Booking, Payment, Client, Employee, Service
 
@@ -1507,3 +1414,123 @@ def send_bill(request, booking_id):
         'booking_id': booking_id,
     }
     return render(request, 'sendbill.html', context)
+
+
+# views.py
+# myproject/myapp/views.py
+from django.shortcuts import render
+from .models import Payment
+
+def view_payments(request):
+    # Fetch all payments related to the logged-in user (assuming you have a way to identify the user)
+    user_id = request.session.get('user_id')  # Example of getting the user ID from the session
+    payments = Payment.objects.filter(client__id=user_id)  # Assuming Payment has a ForeignKey to Client
+
+    context = {
+        'payments': payments,
+    }
+    return render(request, 'payments.html', context)
+
+# myproject/myapp/views.py
+from django.shortcuts import render, get_object_or_404, redirect
+from .models import Payment
+
+def update_payment_status(request, payment_id):
+    # Fetch the payment record
+    payment = get_object_or_404(Payment, id=payment_id)
+
+    # Update the status to 'Paid'
+    if payment.status == 'Pending':
+        payment.status = 'Paid'
+        payment.save()
+
+    # Redirect back to the payments page
+    return redirect('payment')  # Ensure this matches your URL name for payments
+
+# views.py
+
+from .models import Payment, Client, Booking
+
+def razorpay_payment(request, booking_id):
+    user_id = request.session.get('user_id')
+    client = get_object_or_404(Client, id=user_id)
+    booking = get_object_or_404(Booking, id=booking_id, client=client)
+
+    if request.method == 'POST':
+        # Create a Razorpay order
+        razorpay_client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_SECRET))
+        amount = int(booking.service.rate * 100)  # Amount in paise
+        currency = 'INR'
+        order_data = {
+            'amount': amount,
+            'currency': currency,
+            'payment_capture': '1'  # Auto capture
+        }
+        order = razorpay_client.order.create(data=order_data)
+        return JsonResponse(order)  # Return order details to the frontend
+
+    return render(request, 'razorpay_payment.html', {'booking': booking})
+
+
+
+from django.shortcuts import render, get_object_or_404, redirect
+from .models import Payment, Client, Booking
+import razorpay
+from django.conf import settings
+from django.http import JsonResponse
+
+def pay_now(request, booking_id):
+    user_id = request.session.get('user_id')
+    client = get_object_or_404(Client, id=user_id)
+    booking = get_object_or_404(Booking, id=booking_id, client=client)
+
+    if request.method == 'POST':
+        # Get payment details from Razorpay
+        razorpay_payment_id = request.POST.get('razorpay_payment_id')
+        razorpay_order_id = request.POST.get('razorpay_order_id')
+
+        # Verify the payment with Razorpay
+        razorpay_client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_SECRET))
+        try:
+            # Capture the payment
+            response = razorpay_client.payment.capture(razorpay_payment_id, booking.service.rate * 100)  # Amount in paise
+            
+            # Check if the payment was successful
+            if response['status'] == 'captured':
+                # Create a new Payment record
+                payment = Payment(
+                    booking=booking,
+                    amount=booking.service.rate,
+                    payment_id=razorpay_payment_id,
+                    order_id=razorpay_order_id,
+                    status='Paid'  # Change status to Paid
+                )
+                payment.save()  # Save the payment record to the database
+
+                # Update the booking status to 'Paid'
+                booking.status = 'Paid'  # Change status from Pending to Paid
+                booking.save()  # Save the updated booking
+
+                # Redirect to the payments page
+                return redirect('payments')
+            else:
+                print(f"Payment not captured: {response}")  # Log the response for debugging
+                return redirect('payments')  # Redirect back to the payments page on failure
+        except Exception as e:
+            # Handle the error (e.g., log it, show an error message)
+            print(f"Payment failed: {e}")
+            return redirect('payments')  # Redirect back to the payments page on failure
+
+    return redirect('payments')  # Redirect if not a POST request
+
+from django.shortcuts import redirect, get_object_or_404
+from .models import Payment  # Assuming you have a Payment model
+
+def confirm_payment(request, transaction_id):
+    # Get the payment by ID
+    payment = get_object_or_404(Payment, id=transaction_id)  
+    payment.status = 'Paid'  # Update the status to 'Paid'
+    payment.save()  # Save the changes to the database
+
+    # Redirect to the razorpay_payment view with the booking ID
+    return redirect('razorpay_payment', booking_id=payment.booking.id)  # Assuming payment has a booking attribute

@@ -71,18 +71,6 @@
         .card:hover {
             transform: translateY(-5px);
         }
-        .logo-container {
-            text-align: center;
-            margin-bottom: 20px;
-        }
-        .logo {
-            width: 120px;  /* Set a fixed width */
-            height: 120px;  /* Set a fixed height */
-            border-radius: 50%;  /* Make it circular */
-            object-fit: cover;  /* Ensure the image covers the area without stretching */
-            border: 3px solid white;  /* Add a white border */
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);  /* Add a subtle shadow */
-        }
     </style>
 </head>
 <body>
@@ -93,11 +81,11 @@
                 <div class="position-sticky sidebar-sticky">
                     <h2 class="text-center mb-4">GlamourQuest</h2>
                     <div class="logo-container">
-                        <img src="{% static 'images/logo.png' %}" alt="GlamourQuest Logo" class="logo">
+                        <img src="{% static 'images/logo.png' %}" alt="GlamourQuest Logo" class="logo" style="width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 3px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
                     </div>
                     <ul class="nav flex-column">
                         <li class="nav-item">
-                            <a class="nav-link" href="{% url 'client_dashboard' %}">
+                            <a class="nav-link active" href="{% url 'client_dashboard' %}">
                                 <i class="fas fa-home me-2"></i> Dashboard
                             </a>
                         </li>
@@ -112,7 +100,7 @@
                             </a>
                         </li>   
                         <li class="nav-item">
-                            <a class="nav-link active" href="{% url 'view_payments' %}">
+                            <a class="nav-link" href="{% url 'view_payments' %}">
                                 <i class="fas fa-money-bill"></i> Payments
                             </a>
                         </li>
@@ -190,12 +178,16 @@
                                 {% for payment in payments %}
                                 <tr>
                                     <td>{{ payment.service.service_name }}</td>
-                                    <td>{{ payment.created_at.date }}</td> <!-- Assuming created_at is when the payment was made -->
-                                    <td>{{ payment.created_at.time }}</td> <!-- Assuming created_at is when the payment was made -->
+                                    <td>{{ payment.created_at.date }}</td>
+                                    <td>{{ payment.created_at.time }}</td>
                                     <td>{{ payment.amount }}</td>
                                     <td>{{ payment.status }}</td>
                                     <td>
-                                        <a href="{% url 'razorpay_payment' payment.booking.id %}" class="btn btn-success btn-sm">Pay Now</a>
+                                        {% if payment.status == 'Paid' %}
+                                            <span class="text-success">Already Paid</span>
+                                        {% else %}
+                                            <a href="{% url 'confirm_payment' payment.id %}" class="btn btn-success btn-sm">Pay Now</a>
+                                        {% endif %}
                                     </td>
                                 </tr>
                                 {% empty %}

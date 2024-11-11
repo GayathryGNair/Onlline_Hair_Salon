@@ -86,31 +86,28 @@ WSGI_APPLICATION = 'myproject.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.mysql',
-#         'NAME': 'hair2_db',  # Replace with your actual database name
-#         'USER': 'root',  # Replace with your MySQL username (default is 'root')  
-#         'PASSWORD': '',  # Replace with your MySQL password (default is empty)
-#         'HOST': 'localhost',
-#         'PORT': '3306',
-#     }
-
-    
-# }
-
-
-
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'hair2db_suddenlyis',  # Replace with your actual database name
-        'USER': 'hair2db_suddenlyis',  # Replace with your MySQL username (default is 'root')  
-        'PASSWORD': '13f1ef972c10532847530e80c678aa1ec1588122',  # Replace with your MySQL password (default is empty)
-        'HOST': 'r-2ff.h.filess.io',
-        'PORT': '3307',
-    }   
+        'NAME': 'hair2_db',  # Replace with your actual database name
+        'USER': 'root',  # Replace with your MySQL username (default is 'root')  
+        'PASSWORD': '',  # Replace with your MySQL password (default is empty)
+        'HOST': 'localhost',
+        'PORT': '3306',
+    }  
 }
+
+
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.mysql',
+#         'NAME': 'hair2db_suddenlyis',  # Replace with your actual database name
+#         'USER': 'hair2db_suddenlyis',  # Replace with your MySQL username (default is 'root')  
+#         'PASSWORD': '13f1ef972c10532847530e80c678aa1ec1588122',  # Replace with your MySQL password (default is empty)
+#         'HOST': 'r-2ff.h.filess.io',
+#         'PORT': '3307',
+#     }   
+# }
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
@@ -219,8 +216,8 @@ import os
 # settings.py
 
 # Razorpay settings
-RAZORPAY_KEY_ID = os.environ.get('RAZORPAY_KEY_ID')  # Set this in your environment
-RAZORPAY_SECRET = os.environ.get('RAZORPAY_SECRET')  # Set this in your environment
+RAZORPAY_KEY_ID = 'rzp_test_o8cawEIEiGsQ6C' # Set this in your environment
+RAZORPAY_SECRET ='ITd8ronAQbSCUCqvlqkMlxYl'  # Set this in your environment
 
    # settings.py
  # Replace with your Razorpay Secret Key

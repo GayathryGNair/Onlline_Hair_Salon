@@ -97,24 +97,6 @@
             border: 3px solid white;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
-        .specialization-card {
-            background-color: var(--card-bg);
-            border-radius: 8px;
-            padding: 20px;
-            margin-bottom: 20px;
-            transition: all 0.3s ease;
-        }
-        .specialization-card:hover {
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-            transform: translateY(-5px);
-        }
-        .view-more-btn {
-            color: var(--accent-color);
-            cursor: pointer;
-        }
-        .view-more-btn:hover {
-            text-decoration: underline;
-        }
         .scrolling-background {
             height: 500px;
             background-size: cover;
@@ -184,19 +166,18 @@
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="#" data-bs-toggle="modal" data-bs-target="#profileModal">
+                            <a class="nav-link" href="{% url 'employee_profile' %}">
                                 <i class="fas fa-user me-2"></i> Profile
                             </a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" href="{% url 'view_appointments' %}">
-                                <i class="fas fa-calendar-alt me-2" id="view-appointments"></i> View Appointments
+                                <i class="fas fa-calendar-alt me-2"></i> View Appointments
                             </a>
                         </li>
-                     
                         <li class="nav-item">
                             <a class="nav-link" href="{% url 'employee_view_feedback' %}">
-                                <i class="fas fa-cog me-2"></i>View Feedback
+                                <i class="fas fa-cog me-2"></i> View Feedback
                             </a>
                         </li>
                     </ul>
@@ -214,7 +195,7 @@
                             <strong>{{ employee.first_name }}</strong>
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end text-small shadow" aria-labelledby="dropdownUser1">
-                            <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#profileModal">Profile</a></li>
+                            <li><a class="dropdown-item" href="{% url 'employee_profile' %}">Profile</a></li>
                             <li><a class="dropdown-item" href="#">Settings</a></li>
                             <li><hr class="dropdown-divider"></li>
                             <li><a class="dropdown-item" href="{% url 'logout' %}">Sign out</a></li>
@@ -241,7 +222,7 @@
                                     </p>
                                 </div>
                             </div>
-                            
+
                             <!-- Modal for full description -->
                             <div class="modal fade" id="modal{{ specialization.id }}" tabindex="-1" aria-labelledby="modalLabel{{ specialization.id }}" aria-hidden="true">
                                 <div class="modal-dialog">
@@ -265,45 +246,6 @@
                     {% endif %}
                 </div>
             </main>
-        </div>
-    </div>
-
-    <!-- Profile Modal -->
-    <div class="modal fade" id="profileModal" tabindex="-1" aria-labelledby="profileModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="profileModalLabel">Employee Profile</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <h3>{{ employee.first_name }} {{ employee.last_name }}</h3>
-                    <p><strong>Email:</strong> {{ employee.email }}</p>
-                    <p><strong>Date of Birth:</strong> {{ employee.dob }}</p>
-                    <p><strong>Contact:</strong> {{ employee.contact }}</p>
-                    <p><strong>Status:</strong> {% if employee.status %}Active{% else %}Inactive{% endif %}</p>
-                    <p><strong>Approved:</strong> {% if employee.approved %}Yes{% else %}No{% endif %}</p>
-                    
-                    <h4>Specializations:</h4>
-                    <ul>
-                        {% for spec in employee.specializations.all %}
-                            <li>{{ spec.name }}</li>
-                        {% empty %}
-                            <li>No specializations assigned</li>
-                        {% endfor %}
-                    </ul>
-                    
-                    {% if employee.qualification_certificate %}
-                        <p><strong>Qualification Certificate:</strong> <a href="{{ employee.qualification_certificate.url }}" target="_blank">View Certificate</a></p>
-                    {% else %}
-                        <p><strong>Qualification Certificate:</strong> Not uploaded</p>
-                    {% endif %}
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <a href="#" class="btn btn-primary">Update Profile</a>
-                </div>
-            </div>
         </div>
     </div>
 
