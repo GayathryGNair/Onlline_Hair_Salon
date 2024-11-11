@@ -378,7 +378,7 @@ from django.contrib import messages
 from django.db.models import Q
 from .models import Client, ServiceSubcategory, Service
 
-
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def hair_care_services(request):
     user_id = request.session.get('user_id')
     if not user_id:
@@ -578,7 +578,7 @@ def waxing_services(request):
 
 from django.shortcuts import render, get_object_or_404
 from .models import Service
-
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def service_detail(request, service_id):
     service = get_object_or_404(Service, id=service_id)
     return render(request, 'service_detail.html', {'service': service})
@@ -590,7 +590,7 @@ from .models import Service, Booking, Employee, Client
 from .forms import BookingForm
 from django.utils import timezone
 from django.core.exceptions import ValidationError
-
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def booking_service(request, service_id):
     service = get_object_or_404(Service, id=service_id)
     user_id = request.session.get('user_id')
@@ -675,6 +675,7 @@ def booking_service(request, service_id):
     return render(request, 'booking_service.html', context)
 
 # The booking_confirmation view remains unchanged
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def booking_confirmation(request, booking_id):
     user_id = request.session.get('user_id')
     client = get_object_or_404(Client, id=user_id)
@@ -684,7 +685,7 @@ def booking_confirmation(request, booking_id):
 # views.py
 from django.shortcuts import render, get_object_or_404
 from .models import Booking
-
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def billing(request, booking_id):
     user_id = request.session.get('user_id')
     client = get_object_or_404(Client, id=user_id)
@@ -1000,7 +1001,7 @@ def employee_services(request):
     return render(request, 'employee_services.html', context)
 
 from .models import Client
-
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def employee_profile(request):
     # Assuming you store the user ID in the session
     user_id = request.session.get('user_id')
@@ -1013,8 +1014,7 @@ def employee_profile(request):
 
 from .forms import EmployeeProfileUpdateForm
 
-
- 
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def employee_update(request):
     user_id = request.session.get('user_id')
     employee = get_object_or_404(Employee, id=user_id)
@@ -1059,6 +1059,7 @@ def toggle_employee_approval(request, employee_id):
 
 
 from django.db.models import Q
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def search_services(request):
     query = request.GET.get('query', '')
     services = Service.objects.filter(
@@ -1176,6 +1177,7 @@ from .models import Booking, Employee
 from django.utils import timezone
 from datetime import date
 
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def view_appointments(request):
     user_type = request.session.get('user_type')
     user_id = request.session.get('user_id')
@@ -1231,7 +1233,7 @@ from .models import Booking, Feedback
 from .forms import FeedbackForm
 
 # ... (existing views)
-
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def add_feedback(request, booking_id):
     booking = get_object_or_404(Booking, id=booking_id)
     
@@ -1247,7 +1249,7 @@ def add_feedback(request, booking_id):
         form = FeedbackForm()
     
     return render(request, 'add_feedback.html', {'form': form, 'booking': booking})
-
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def view_feedback(request, booking_id):
     booking = get_object_or_404(Booking, id=booking_id)
     feedback = get_object_or_404(Feedback, booking=booking)
@@ -1257,6 +1259,7 @@ from django.shortcuts import render, get_object_or_404
 from django.utils import timezone
 from .models import Client, Booking
 
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def client_bookings(request):
     user_id = request.session.get('user_id')
     client = get_object_or_404(Client, id=user_id)
@@ -1283,6 +1286,7 @@ from django.shortcuts import render, get_object_or_404
 from django.utils import timezone
 from .models import Client, Booking
 
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def service_history(request):
     user_id = request.session.get('user_id')
     client = get_object_or_404(Client, id=user_id)
@@ -1298,6 +1302,7 @@ def service_history(request):
     
     return render(request, 'service_history.html', context)
 
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def employee_bookings(request):
     user_id = request.session.get('user_id')
     employee = get_object_or_404(Employee, id=user_id)
@@ -1308,7 +1313,7 @@ from django.shortcuts import render, get_object_or_404
 from django.utils import timezone
 from .models import Client, Booking
 
-
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def client_current_bookings(request):
     user_id = request.session.get('user_id')
     client = get_object_or_404(Client, id=user_id)
@@ -1334,6 +1339,7 @@ from django.contrib import messages
 from django.utils import timezone
 from .models import Booking, Client
 
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def cancel_booking(request, booking_id):
     # Get the user_id from the session
     user_id = request.session.get('user_id')
@@ -1361,7 +1367,7 @@ from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from .models import Employee, Booking, Feedback  # Assuming you have a Feedback model
 
-
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def employee_view_feedback(request):
     user_id = request.session.get('user_id')
     employee = get_object_or_404(Employee, id=user_id)
@@ -1382,6 +1388,7 @@ def employee_view_feedback(request):
 from django.shortcuts import render, get_object_or_404, redirect
 from .models import Booking, Payment, Client, Employee, Service
 
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def send_bill(request, booking_id):
     # Fetch the booking and related data
     booking = get_object_or_404(Booking, id=booking_id)
@@ -1421,6 +1428,7 @@ def send_bill(request, booking_id):
 from django.shortcuts import render
 from .models import Payment
 
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def view_payments(request):
     # Fetch all payments related to the logged-in user (assuming you have a way to identify the user)
     user_id = request.session.get('user_id')  # Example of getting the user ID from the session
@@ -1435,6 +1443,7 @@ def view_payments(request):
 from django.shortcuts import render, get_object_or_404, redirect
 from .models import Payment
 
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def update_payment_status(request, payment_id):
     # Fetch the payment record
     payment = get_object_or_404(Payment, id=payment_id)
@@ -1450,7 +1459,7 @@ def update_payment_status(request, payment_id):
 # views.py
 
 from .models import Payment, Client, Booking
-
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def razorpay_payment(request, booking_id):
     user_id = request.session.get('user_id')
     client = get_object_or_404(Client, id=user_id)
@@ -1479,6 +1488,7 @@ import razorpay
 from django.conf import settings
 from django.http import JsonResponse
 
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def pay_now(request, booking_id):
     user_id = request.session.get('user_id')
     client = get_object_or_404(Client, id=user_id)
@@ -1526,6 +1536,7 @@ def pay_now(request, booking_id):
 from django.shortcuts import redirect, get_object_or_404
 from .models import Payment  # Assuming you have a Payment model
 
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def confirm_payment(request, transaction_id):
     # Get the payment by ID
     payment = get_object_or_404(Payment, id=transaction_id)  

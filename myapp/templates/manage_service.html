@@ -214,7 +214,8 @@
                             </div>
                             <div class="mb-3">
                                 <label for="rate" class="form-label">Rate (INR):</label>
-                                <input type="number" step="0.01" id="rate" name="rate" class="form-control" required aria-label="Service Rate in INR">
+                                <input type="number" id="rate" name="rate" class="form-control" required aria-label="Service Rate in INR" min="1" step="1" oninput="validateRate(this)">
+                                <div id="rateError" class="text-danger" style="display: none;">Please enter a valid rate greater than zero.</div>
                             </div>
                             <div class="mb-3">
                                 <label for="image" class="form-label">Upload Image:</label>
@@ -296,6 +297,21 @@
 
         // Initialize the filter when the page loads
         filterSubcategories();
+    </script>
+    <script>
+        function validateRate(input) {
+            const value = input.value;
+            const errorDiv = document.getElementById('rateError');
+    
+            // Check if the value is a positive integer greater than zero
+            if (value <= 0 || !Number.isInteger(Number(value))) {
+                errorDiv.style.display = 'block'; // Show error message
+                input.setCustomValidity(''); // Reset custom validity
+            } else {
+                errorDiv.style.display = 'none'; // Hide error message
+                input.setCustomValidity(''); // Reset custom validity
+            }
+        }
     </script>
 </body>
 </html>
