@@ -1545,3 +1545,55 @@ def confirm_payment(request, transaction_id):
 
     # Redirect to the razorpay_payment view with the booking ID
     return redirect('razorpay_payment', booking_id=payment.booking.id)  # Assuming payment has a booking attribute
+
+def men_services(request):
+    return render(request, 'men_services.html')  # Create this template for Men's services
+
+def women_services(request):
+    return render(request, 'women_services.html')  # Create this template for Women's services
+
+# myproject/myapp/views.py
+# myproject/myapp/views.py
+from django.shortcuts import render, redirect
+from django.contrib import messages
+from django.db.models import Q
+from .models import Client, ServiceSubcategory, Service
+from django.views.decorators.cache import cache_control
+
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
+def makeup_services(request):
+    user_id = request.session.get('user_id')
+    if not user_id:
+        messages.error(request, "You need to log in to access the dashboard.")
+        return redirect('login')
+    
+    try:
+        client = Client.objects.get(id=user_id)
+    except Client.DoesNotExist:
+        messages.error(request, "Client profile not found.")
+        return redirect('login')
+    
+    # Fetch all service subcategories where category name is 'Makeup'
+    make_up_subcategories = ServiceSubcategory.objects.filter(category__name='Makeup')
+    
+    # Handle search
+    query = request.GET.get('query', '')
+    if query:
+        services = Service.objects.filter(
+            Q(service_name__icontains=query) |
+            Q(description__icontains=query) |
+            Q(subcategory__name__icontains=query) |
+            Q(subcategory__category__name__icontains=query),
+            subcategory__category__name='Makeup'  # Ensure we're only searching within makeup services
+        ).distinct()
+    else:
+        services = None
+    
+    context = {
+        'make_up_subcategories': make_up_subcategories,
+        'client': client,
+        'services': services,
+        'query': query,
+    }
+    
+    return render(request, 'makeup_services.html', context)

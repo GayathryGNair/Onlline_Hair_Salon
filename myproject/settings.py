@@ -86,28 +86,28 @@ WSGI_APPLICATION = 'myproject.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.mysql',
-#         'NAME': 'hair2_db',  # Replace with your actual database name
-#         'USER': 'root',  # Replace with your MySQL username (default is 'root')  
-#         'PASSWORD': '',  # Replace with your MySQL password (default is empty)
-#         'HOST': 'localhost',
-#         'PORT': '3306',
-#     }  
-# }
-
-
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'hairdb_maintaxfed',  # Replace with your actual database name
-        'USER': 'hairdb_maintaxfed',  # Replace with your MySQL username (default is 'root')  
-        'PASSWORD': '659bfb9fcf22b55d8f24d7a619d23d188bb4d05a',  # Replace with your MySQL password (default is empty)
-        'HOST': 'oij4m.h.filess.io',
-        'PORT': '3307',
-    }   
+        'NAME': 'hair2_db',  # Replace with your actual database name
+        'USER': 'root',  # Replace with your MySQL username (default is 'root')  
+        'PASSWORD': '',  # Replace with your MySQL password (default is empty)
+        'HOST': 'localhost',
+        'PORT': '3306',
+    }  
 }
+
+
+# DATABASES = {
+#          'default': {
+#              'ENGINE': 'django.db.backends.mysql',
+#              'NAME': 'hairdb_maintaxfed',  # Ensure this database exists
+#              'USER': 'hairdb_maintaxfed',  # Ensure this user exists
+#              'PASSWORD': '659bfb9fcf22b55d8f24d7a619d23d188bb4d05a',  # Ensure this password is correct
+#              'HOST': 'oij4m.h.filess.io',   # Ensure this host is correct
+#              'PORT': '3307',                 # Ensure this port is correct
+#          }   
+# }
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators

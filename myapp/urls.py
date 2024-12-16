@@ -53,6 +53,7 @@ urlpatterns = [
     path('all_type_skin/', views.all_type_skin, name='all_type_skin'),
     path('mani-pedi-services/', views.mani_pedi_services, name='mani-pedi-services'),
     path('waxing-services/', views.waxing_services, name='waxing-services'),
+    path('makeup_services/', views.makeup_services, name='makeup_services'),  # Add this line
     
 
     path('toggle-client-status/<int:client_id>/', views.toggle_client_status, name='toggle_client_status'),
@@ -111,7 +112,8 @@ urlpatterns = [
     
     path('client/payments/razorpay/<int:booking_id>/', views.razorpay_payment, name='razorpay_payment'),
    
-    
+    path('men_services/', views.men_services, name='men_services'),  # URL for Men's services
+    path('women_services/', views.women_services, name='women_services'),  # URL for Women's services
 ]
 
     
