@@ -219,14 +219,14 @@ def register(request):
             client.save()
             messages.success(request, 'Registration successful! You can now log in.')
 
-            # Send confirmation email
-            subject = 'Welcome to Our Service'
-            message = f'Thank you for registering, {first_name}! Please confirm your email address.'
-            from_email = 'glamourquest6@gmail.com'  # Use the same email as configured in settings.py
-            recipient_list = [email]
-            send_mail(subject, message, from_email, recipient_list)
+            # # Send confirmation email
+            # subject = 'Welcome to Our Service'
+            # message = f'Thank you for registering, {first_name}! Please confirm your email address.'
+            # from_email = 'glamourquest6@gmail.com'  # Use the same email as configured in settings.py
+            # recipient_list = [email]
+            # send_mail(subject, message, from_email, recipient_list)
 
-            return redirect('login')  # Redirect to login or another page
+            # return redirect('login')  # Redirect to login or another page
 
         except IntegrityError:
             messages.error(request, 'An error occurred during registration. Please try again.')

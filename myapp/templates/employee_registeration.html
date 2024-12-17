@@ -107,6 +107,10 @@
             font-size: 12px;
             margin-top: 5px;
         }
+        .password-strength {
+            font-size: 12px;
+            margin-top: 5px;
+        }
     </style>
 </head>
 <body>
@@ -137,7 +141,9 @@
                 </div>
                 <div class="textbox">
                     <i class="fa fa-lock" aria-hidden="true"></i>
-                    <input type="password" placeholder="Password" name="password" required>
+                    <input type="password" placeholder="Password" name="password" required oninput="validatePassword()">
+                    <div class="error" id="passwordError"></div>
+                    <div id="passwordStrength" class="password-strength"></div> <!-- Password strength indicator -->
                 </div>
                 <div class="textbox">
                     <i class="fa fa-calendar" aria-hidden="true"></i>
@@ -244,6 +250,36 @@
                 }
             });
         });
+
+        function validatePassword() {
+            const password = document.querySelector('input[name="password"]').value;
+            const passwordError = document.getElementById('passwordError');
+            const passwordStrength = document.getElementById('passwordStrength');
+            const passwordPattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\W).{6,}$/; // At least 6 characters, 1 uppercase, 1 lowercase, 1 special character
+            
+            // Check password strength
+            let strength = "Weak";
+            if (password.length >= 6) {
+                if (/(?=.*[a-z])/.test(password) && /(?=.*[A-Z])/.test(password) && /(?=.*\W)/.test(password)) {
+                    strength = "Strong";
+                } else if (/(?=.*[a-z])/.test(password) && /(?=.*[A-Z])/.test(password)) {
+                    strength = "Medium";
+                }
+            }
+
+            // Update password strength display
+            passwordStrength.textContent = `Password Strength: ${strength}`;
+            passwordStrength.style.color = strength === "Strong" ? "green" : strength === "Medium" ? "orange" : "red";
+
+            if (!passwordPattern.test(password)) {
+                passwordError.textContent = "Password must contain at least 6 characters, including uppercase, lowercase, and special characters.";
+            } else {
+                passwordError.textContent = "";
+            }
+        }
+
+        // Attach the validatePassword function to the password input
+        document.querySelector('input[name="password"]').addEventListener('input', validatePassword);
     </script>
 </body>
 </html>

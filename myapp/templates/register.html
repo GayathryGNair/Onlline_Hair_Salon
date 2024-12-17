@@ -105,6 +105,10 @@
             font-size: 12px;
             margin-top: 5px;
         }
+        .password-strength {
+            font-size: 12px;
+            margin-top: 5px;
+        }
     </style>
 </head>
 
@@ -138,25 +142,26 @@
                 <div class="textbox">
                     <i class="fa fa-envelope" aria-hidden="true"></i>
                     {{ form.email.errors }}
-                    <input type="email" placeholder="Email" name="email" required>
+                    <input type="email" placeholder="Email" name="email" required oninput="validateEmail()">
                     <div class="error" id="emailError"></div>
                 </div>
                 <div class="textbox">
                     <i class="fa fa-lock" aria-hidden="true"></i>
                     {{ form.password.errors }}
-                    <input type="password" placeholder="Password" name="password" required>
+                    <input type="password" placeholder="Password" name="password" required oninput="validatePassword()">
                     <div class="error" id="passwordError"></div>
+                    <div id="passwordStrength" class="password-strength"></div> <!-- Password strength indicator -->
                 </div>
                 <div class="textbox">
                     <i class="fa fa-calendar" aria-hidden="true"></i>
                     {{ form.dob.errors }}
-                    <input type="date" placeholder="Date of Birth" name="dob" id="dob" required>
+                    <input type="date" placeholder="Date of Birth" name="dob" id="dob" required oninput="validateDOB()">
                     <div class="error" id="dobError"></div>
                 </div>
                 <div class="textbox">
                     <i class="fa fa-phone" aria-hidden="true"></i>
                     {{ form.contact.errors }}
-                    <input type="tel" placeholder="Contact" name="contact" required pattern="\d{10}">
+                    <input type="tel" placeholder="Contact" name="contact" required pattern="\d{10}" oninput="validateContact()">
                     <div class="error" id="contactError"></div>
                 </div>
 
@@ -170,52 +175,79 @@
         function validateForm() {
             let isValid = true;
 
-            // Email validation
+            // Call all validation functions to ensure final validation before submission
+            validateEmail();
+            validatePassword();
+            validateDOB();
+            validateContact();
+
+            // Check if any error messages are present
+            if (document.querySelectorAll('.error:empty').length < 4) {
+                isValid = false;
+            }
+
+            return isValid; // Prevent form submission if validation fails
+        }
+
+        function validateEmail() {
             const email = document.querySelector('input[name="email"]').value;
             const emailError = document.getElementById('emailError');
             const emailPattern = /^[a-zA-Z0-9._%+-]+@gmail\.com$/; // Only allow @gmail.com
             if (!emailPattern.test(email)) {
                 emailError.textContent = "Email must be a valid Gmail address.";
-                isValid = false;
             } else {
                 emailError.textContent = "";
             }
+        }
 
-            // Password validation
+        function validatePassword() {
             const password = document.querySelector('input[name="password"]').value;
             const passwordError = document.getElementById('passwordError');
+            const passwordStrength = document.getElementById('passwordStrength');
             const passwordPattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\W).{8,}$/; // At least 8 characters, 1 uppercase, 1 lowercase, 1 special character
+            
+            // Check password strength
+            let strength = "Weak";
+            if (password.length >= 8) {
+                if (/(?=.*[a-z])/.test(password) && /(?=.*[A-Z])/.test(password) && /(?=.*\W)/.test(password)) {
+                    strength = "Strong";
+                } else if (/(?=.*[a-z])/.test(password) && /(?=.*[A-Z])/.test(password)) {
+                    strength = "Medium";
+                }
+            }
+
+            // Update password strength display
+            passwordStrength.textContent = `Password Strength: ${strength}`;
+            passwordStrength.style.color = strength === "Strong" ? "green" : strength === "Medium" ? "orange" : "red";
+
             if (!passwordPattern.test(password)) {
                 passwordError.textContent = "Password must contain at least 8 characters, including uppercase, lowercase, and special characters.";
-                isValid = false;
             } else {
                 passwordError.textContent = "";
             }
+        }
 
-            // Date of Birth validation
+        function validateDOB() {
             const dob = new Date(document.getElementById('dob').value);
             const today = new Date();
             const age = today.getFullYear() - dob.getFullYear();
             const dobError = document.getElementById('dobError');
             if (age < 10 || (age === 10 && today < new Date(dob.setFullYear(dob.getFullYear() + 10)))) {
                 dobError.textContent = "You must be at least 10 years old.";
-                isValid = false;
             } else {
                 dobError.textContent = "";
             }
+        }
 
-            // Phone number validation
+        function validateContact() {
             const contact = document.querySelector('input[name="contact"]').value;
             const contactError = document.getElementById('contactError');
             const allZerosPattern = /^0{10}$/; // Pattern to check for ten zeros
             if (!/^\d{10}$/.test(contact) || allZerosPattern.test(contact)) {
                 contactError.textContent = "Contact number must be exactly 10 digits and cannot be all zeros.";
-                isValid = false;
             } else {
                 contactError.textContent = "";
             }
-
-            return isValid; // Prevent form submission if validation fails
         }
     </script>
 </body>

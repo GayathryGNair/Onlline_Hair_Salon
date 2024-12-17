@@ -131,8 +131,8 @@
             <!-- Sidebar -->
             <nav id="sidebar" class="col-md-3 col-lg-2 d-md-block sidebar collapse">
                 <div class="position-sticky sidebar-sticky">
-                    <div class="logo-container">
-                        <img src="{% static 'images/logo.png' %}" alt="GlamourQuest Logo" class="logo">
+                    <div class="logo-container text-center">
+                        <img src="{% static 'images/logo.png' %}" alt="GlamourQuest Logo" class="logo" style="width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 3px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
                     </div>
                     <ul class="nav flex-column">
                         <li class="nav-item">
@@ -185,17 +185,16 @@
                                 <i class="fas fa-feather me-2"></i> Waxing
                             </a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'makeup_services' %}"> <!-- Link to Makeup Services -->
-                                <i class="fas fa-paint-brush me-2"></i> Makeup
-                            </a>
-                        </li>
+                        <li class="nav-item"></li>
+                        <a class="nav-link" href="{% url 'makeup_services' %}">
+                            <i class="fas fa-paint-brush me-2"></i> Make Up
+                        </a>
+                    </li>
                         <li class="nav-item">
                             <a class="nav-link" href="{% url 'service_history' %}">
-                                <i class="fas fa-feather me-2"></i> Service History
+                                <i class="fas fa-history me-2"></i> Service History
                             </a>
                         </li>
-                    </ul>
                 </div>
             </nav>
 
