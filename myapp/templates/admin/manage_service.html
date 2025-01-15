@@ -122,7 +122,7 @@
                     </div>
                     <ul class="nav flex-column">
                         <li class="nav-item">
-                            <a class="nav-link" href="{% url 'admin_dashboard' %}">
+                            <a class="nav-link active" href="{% url 'admin_dashboard' %}">
                                 <i class="fas fa-home me-2"></i> Dashboard
                             </a>
                         </li>
@@ -132,7 +132,7 @@
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="{% url 'manage_employee' %}">
+                            <a class="nav-link" href="{% url 'manage_employee' %}" id="manage_employee">
                                 <i class="fas fa-user-tie me-2"></i> Manage Employees
                             </a>
                         </li>
@@ -142,13 +142,23 @@
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link active" href="{% url 'manage_service' %}">
-                                <i class="fas fa-concierge-bell me-2"></i> Manage Services
+                            <a class="nav-link" href="{% url 'manage_service' %}" id="manage_service">
+                                <i class="fas fa-concierge-bell me-2"></i> Add Female Services
                             </a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" href="{% url 'category' %}">
-                                <i class="fas fa-tags me-2"></i> Add Categories
+                                <i class="fas fa-tags me-2"></i> Add Female Categories
+                            </a>
+                        </li>
+                        <li class="nav-item"></li>
+                            <a class="nav-link" href="{% url 'manage_men_service' %}" >
+                                <i class="fas fa-concierge-bell me-2"></i> Add Male Services
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'manage_men_category' %}">
+                                <i class="fas fa-tags me-2"></i> Add Male Categories
                             </a>
                         </li>
                     </ul>
@@ -159,7 +169,7 @@
             <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
                 <!-- Header -->
                 <header class="header d-flex justify-content-between align-items-center mb-4 p-3 bg-white rounded shadow-sm">
-                    <h1 class="h3 mb-0">Manage Services</h1>
+                    <h1 class="h3 mb-0">Female Services</h1>
                     <div class="profile-dropdown dropdown">
                         <a href="#" class="d-flex align-items-center text-decoration-none dropdown-toggle" id="dropdownUser1" data-bs-toggle="dropdown" aria-expanded="false">
                             <img src="{% static 'images/profile.png' %}" alt="Profile" width="32" height="32" class="rounded-circle me-2">

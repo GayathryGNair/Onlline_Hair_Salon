@@ -144,6 +144,118 @@
             color: white;
             padding: 1.5rem 0;
         }
+        .service-link {
+            display: inline-block;
+            width: 45%;
+            text-align: center;
+            background-color: rgba(255, 105, 180, 0.7);
+            border-radius: 10px;
+            padding: 1rem;
+            color: white;
+            text-decoration: none;
+            transition: background-color 0.3s;
+        }
+        .service-link:hover {
+            background-color: var(--primary-color);
+        }
+        .service-container {
+            position: absolute;
+            bottom: 20px;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: space-between;
+            padding: 0 20px;
+            height: 100px;
+        }
+        .chat-widget {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 400px;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            display: none;
+            z-index: 1000;
+        }
+
+        .chat-header {
+            background-color: #ff69b4; /* Pink color for hair salon */
+            color: white;
+            padding: 10px;
+            border-radius: 10px 10px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .chat-body {
+            height: 300px;
+            padding: 10px;
+            overflow-y: auto;
+        }
+
+        .chat-messages {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .message {
+            padding: 10px;
+            border-radius: 10px;
+            max-width: 80%;
+        }
+
+        .message.user {
+            background-color: #ff69b4; /* Pink color for user messages */
+            color: white;
+            align-self: flex-end;
+        }
+
+        .message.bot {
+            background-color: #f1f1f1;
+            color: black;
+            align-self: flex-start;
+        }
+
+        .chat-footer {
+            display: flex;
+            padding: 10px;
+        }
+
+        .chat-footer input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        .chat-footer button {
+            background-color: #ff69b4; /* Pink color for send button */
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 10px;
+            margin-left: 5px;
+            cursor: pointer;
+        }
+
+        .chat-toggle {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: #ff69b4; /* Pink color for toggle button */
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            cursor: pointer;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        }
+    
     </style>
 </head>
 <body>
@@ -184,7 +296,7 @@
 
     <section class="hero">
         <div class="hero-slider">
-            <div class="hero-slider-item active"style="background-image: url('{% static "images/hair-styling.jpg" %}');"></div>
+            <div class="hero-slider-item active" style="background-image: url('{% static "images/hair-styling.jpg" %}');"></div>
             <div class="hero-slider-item"style="background-image: url('{% static "images/oily-skin.jpg" %}');"></div>
             <div class="hero-slider-item"style="background-image: url('{% static "images/pedicure.jpg" %}');"></div>
             <div class="hero-slider-item"style="background-image: url('{% static "images/manicure.jpg" %}');"></div>
@@ -196,6 +308,10 @@
                 <p>Experience the ultimate in beauty and relaxation</p>
                 <a href="{% url 'services' %}" class="btn btn-primary">Explore Our Services</a>
             </div>
+        </div>
+        <div class="service-container">
+            <a href="{% url 'forwomen_services' %}" class="service-link">For Women</a>
+            <a href="{% url 'men_services' %}" class="service-link">For Men</a>
         </div>
     </section>
 
@@ -245,5 +361,124 @@
             setInterval(nextSlide, 2000); // Change slide every 2 seconds
         });
     </script>
+
+</head>
+<body>
+
+<!-- Chat Widget -->
+<div class="chat-widget" id="chatWidget">
+    <div class="chat-header">
+        <h3>Hair Salon Assistant</h3>
+        <button class="minimize-chat" id="minimizeChat">
+            <i class="fas fa-minus"></i>
+        </button>
+    </div>
+    <div class="chat-body" id="chatBody">
+        <div class="chat-messages" id="chatMessages">
+            <div class="message bot">
+                <div>Hello! I'm your hair salon assistant. How can I help you today?</div>
+            </div>
+        </div>
+    </div>
+    <div class="chat-footer">
+        <input type="text" id="userInput" placeholder="Ask about hair services...">
+        <button id="sendMessage">
+            <i class="fas fa-paper-plane"></i>
+        </button>
+    </div>
+</div>
+
+<!-- Chat Toggle Button -->
+<button class="chat-toggle" id="chatToggle">
+    <i class="fas fa-comments"></i>
+</button>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const chatWidget = document.getElementById('chatWidget');
+        const chatToggle = document.getElementById('chatToggle');
+        const minimizeChat = document.getElementById('minimizeChat');
+        const chatMessages = document.getElementById('chatMessages');
+        const userInput = document.getElementById('userInput');
+        const sendMessage = document.getElementById('sendMessage');
+
+        // Toggle chat widget
+        chatToggle.addEventListener('click', () => {
+            chatWidget.style.display = 'block';
+            chatToggle.style.display = 'none';
+        });
+
+        // Minimize chat widget
+        minimizeChat.addEventListener('click', () => {
+            chatWidget.style.display = 'none';
+            chatToggle.style.display = 'block';
+        });d
+
+        // Send message function
+        function sendUserMessage() {
+            const message = userInput.value.trim();
+            if (message) {
+                addMessage(message, 'user');
+                userInput.value = '';
+                getBotResponse(message);
+            }
+        }
+
+        // Event listeners
+        sendMessage.addEventListener('click', sendUserMessage);
+        userInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                sendUserMessage();
+            }
+        });
+
+        // Add message to chat
+        function addMessage(message, sender) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}`;
+            messageDiv.innerHTML = message;
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight; // Scroll to bottom
+        }
+
+        // Get bot response
+        async function getBotResponse(message) {
+            try {
+                const response = await fetch('/api/chatbot/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken')
+                    },
+                    body: JSON.stringify({ message: message })
+                });
+
+                const data = await response.json();
+                addMessage(data.response, 'bot');
+            } catch (error) {
+                console.error('Error:', error);
+                addMessage("Sorry, I encountered an error. Please try again later.", 'bot');
+            }
+        }
+
+        // Get CSRF token
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+    });
+</script>
+
+
 </body>
 </html>

@@ -185,6 +185,12 @@ def login(request):
             return redirect('login')
 
     return render(request, 'login.html')
+from django.contrib import messages
+from django.shortcuts import render, redirect
+from django.db import IntegrityError
+from django.contrib.auth.hashers import make_password
+from .models import Client, Employee  # Ensure you import your models
+
 def register(request):
     if request.method == 'POST':
         first_name = request.POST['first_name']
@@ -193,6 +199,7 @@ def register(request):
         password = request.POST['password']
         dob = request.POST['dob']
         contact = request.POST['contact']
+        gender = request.POST['gender']  # Get the gender from the form
 
         # Check if email or contact already exists in both Client and Employee
         if Client.objects.filter(email=email).exists() or Employee.objects.filter(email=email).exists():
@@ -214,25 +221,26 @@ def register(request):
                 email=email,
                 password=hashed_password,  # Store hashed password
                 dob=dob,
-                contact=contact
+                contact=contact,
+                gender=gender  # Store the gender
             )
             client.save()
             messages.success(request, 'Registration successful! You can now log in.')
 
-            # # Send confirmation email
+            # Uncomment to send confirmation email
             # subject = 'Welcome to Our Service'
             # message = f'Thank you for registering, {first_name}! Please confirm your email address.'
-            # from_email = 'glamourquest6@gmail.com'  # Use the same email as configured in settings.py
+            # from_email = 'your_email@example.com'  # Use the same email as configured in settings.py
             # recipient_list = [email]
             # send_mail(subject, message, from_email, recipient_list)
 
-            # return redirect('login')  # Redirect to login or another page
+            return redirect('login')  # Redirect to login or another page
 
         except IntegrityError:
             messages.error(request, 'An error occurred during registration. Please try again.')
-            return render(request, 'register.html')  # Re-render the form with error
+            return render(request, 'client/register.html')  # Re-render the form with error
 
-    return render(request, 'register.html')  
+    return render(request, 'client/register.html')
 
 from django.shortcuts import render, redirect
 from django.contrib import messages
@@ -252,7 +260,7 @@ def employee_registeration(request):
 
         if Employee.objects.filter(email=email).exists():
             messages.error(request, 'Email already exists')
-            return render(request, 'employee_registeration.html', {'specializations': Specialization.objects.all()})
+            return render(request, 'emp/employee_registeration.html', {'specializations': Specialization.objects.all()})
 
         employee = Employee(
             first_name=first_name,
@@ -272,7 +280,7 @@ def employee_registeration(request):
         return redirect('login')
 
     specializations = Specialization.objects.all()
-    return render(request, 'employee_registeration.html', {'specializations': specializations})
+    return render(request, 'emp/employee_registeration.html', {'specializations': specializations})
 
 def for_men(request):
     return render(request, 'for_men.html')
@@ -303,7 +311,7 @@ def client_dashboard(request):
     context = {
         'client': client,
     }
-    return render(request, 'client_dashboard.html', context)
+    return render(request, 'client/client_dashboard.html', context)
 
 def toggle_client_status(request, client_id):
     if request.method == 'POST':
@@ -336,7 +344,7 @@ def client_update(request):
     else:
         form = ClientProfileUpdateForm(instance=client)
 
-    return render(request, 'client_update.html', {'form': form, 'client': client})
+    return render(request, 'client/client_update.html', {'form': form, 'client': client})
 
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def client_profile(request):
@@ -351,7 +359,7 @@ def client_profile(request):
     client = Client.objects.get(id=user_id)
     
     # Pass the client object to the template for display
-    return render(request, 'client_profile.html', {'client': client})
+    return render(request, 'client/client_profile.html', {'client': client})
 
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def client_services(request):
@@ -371,7 +379,7 @@ def client_services(request):
         'services': services,  # Services data to list available services
     }
 
-    return render(request, 'client_services.html', context)
+    return render(request, 'client/client_services.html', context)
 
 from django.shortcuts import render, redirect
 from django.contrib import messages
@@ -414,7 +422,7 @@ def hair_care_services(request):
         'query': query,
     }
     
-    return render(request, 'hair_care_services.html', context)
+    return render(request, 'client/hair_care_services.html', context)
 
 
 
@@ -436,7 +444,7 @@ def services_in_subcategory(request, subcategory_id):
         'client': client,
     }
     
-    return render(request, 'services_in_subcategory.html', context)
+    return render(request, 'client/services_in_subcategory.html', context)
 
 
 from django.shortcuts import render, redirect
@@ -481,7 +489,7 @@ def facial_services(request):
         'query': query,
     }
     
-    return render(request, 'facial_services.html', context)
+    return render(request, 'client/facial_services.html', context)
 
 def hair_cut_services(request):
     return render(request, 'hair_cut_services.html')
@@ -530,7 +538,7 @@ def mani_pedi_services(request):
         'query': query,
     }
     
-    return render(request, 'mani-pedi-services.html', context)
+    return render(request, 'client/mani-pedi-services.html', context)
 
 from django.shortcuts import render, redirect
 from django.contrib import messages
@@ -573,7 +581,7 @@ def waxing_services(request):
         'query': query,
     }
     
-    return render(request, 'waxing-services.html', context)
+    return render(request, 'client/waxing-services.html', context)
 
 
 from django.shortcuts import render, get_object_or_404
@@ -656,7 +664,7 @@ def booking_service(request, service_id):
                                     'existing_booking': existing_client_booking,
                                     'show_rebooking_confirmation': True
                                 }
-                                return render(request, 'booking_service.html', context)
+                                return render(request, 'client/booking_service.html', context)
                         else:
                             booking.save()
                             messages.success(request, "Your booking has been confirmed!")
@@ -672,7 +680,7 @@ def booking_service(request, service_id):
         'existing_booking': existing_client_booking,
         'current_time': timezone.now(),  # Pass current time to the template
     }
-    return render(request, 'booking_service.html', context)
+    return render(request, 'client/booking_service.html', context)
 
 # The booking_confirmation view remains unchanged
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
@@ -680,7 +688,7 @@ def booking_confirmation(request, booking_id):
     user_id = request.session.get('user_id')
     client = get_object_or_404(Client, id=user_id)
     booking = get_object_or_404(Booking, id=booking_id, client=client)
-    return render(request, 'booking_confirmation.html', {'booking': booking})
+    return render(request, 'client/booking_confirmation.html', {'booking': booking})
 
 # views.py
 from django.shortcuts import render, get_object_or_404
@@ -700,7 +708,7 @@ def billing(request, booking_id):
         'booking': booking,
         'total_cost': total_cost,
     }
-    return render(request, 'billing.html', context)
+    return render(request, 'client/billing.html', context)
 
 # admin 
 
@@ -716,7 +724,7 @@ def admin_dashboard(request):
         return redirect('login')  # Redirect non-admins to login
 
   
-    return render(request, 'admin_dashboard.html')
+    return render(request, 'admin/admin_dashboard.html')
 
 
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
@@ -728,7 +736,7 @@ def manage_client(request):
         return redirect('login')  
     clients = Client.objects.all()  # Fetch all clients
     context = {'clients': clients}  # Passing clients data to the template
-    return render(request, 'manage_client.html', context)
+    return render(request, 'admin/manage_client.html', context)
 
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def manage_employee(request):
@@ -739,7 +747,7 @@ def manage_employee(request):
         return redirect('login') 
     employees = Employee.objects.all()  # Fetch all clients
     context = {'employees': employees}  # Passing clients data to the template
-    return render(request, 'manage_employee.html', context)
+    return render(request, 'admin/manage_employee.html', context)
 
 from django.shortcuts import render, redirect, get_object_or_404
 from .models import Service, ServiceCategory, ServiceSubcategory
@@ -775,7 +783,7 @@ def manage_service(request):
     subcategories = ServiceSubcategory.objects.all()
     services = Service.objects.all()
 
-    return render(request, 'manage_service.html', {
+    return render(request, 'admin/manage_service.html', {
         'categories': categories,
         'subcategories': subcategories,
         'services': services,
@@ -805,7 +813,7 @@ def edit_services(request, service_id):
     categories = ServiceCategory.objects.all()
     subcategories = ServiceSubcategory.objects.all()
 
-    return render(request, 'edit_services.html', {
+    return render(request, 'admin/edit_services.html', {
         'service': service,
         'categories': categories,
         'subcategories': subcategories,
@@ -866,7 +874,7 @@ def category(request):
         
         return redirect('category')
 
-    return render(request, 'category.html', {
+    return render(request, 'admin/category.html', {
         'categories': categories,
         'subcategories': subcategories,
         'services': services,
@@ -887,7 +895,7 @@ def edit_category(request, category_id):
         messages.success(request, 'Category updated successfully!')
         return redirect('category')
     
-    return render(request, 'edit_category.html', {'category': category})
+    return render(request, 'admin/edit_category.html', {'category': category})
 
 def delete_category(request, category_id):
     category = get_object_or_404(ServiceCategory, id=category_id)
@@ -943,7 +951,7 @@ def edit_subcategory(request, subcategory_id):
             messages.error(request, f'Error updating subcategory: {e}')
     
     categories = ServiceCategory.objects.all()
-    return render(request, 'edit_subcategory.html', {
+    return render(request, 'admin/edit_subcategory.html', {
         'subcategory': subcategory,
         'categories': categories
     })
@@ -974,7 +982,7 @@ def employee_dashboard(request):
     context = {
         'employee': employee,
     }
-    return render(request, 'employee_dashboard.html', context)
+    return render(request, 'emp/employee_dashboard.html', context)
 
 def user_profile(request):
     return render(request, 'user_profile.html')
@@ -998,7 +1006,7 @@ def employee_services(request):
         'services': services,
     }
 
-    return render(request, 'employee_services.html', context)
+    return render(request, 'emp/employee_services.html', context)
 
 from .models import Client
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
@@ -1010,7 +1018,7 @@ def employee_profile(request):
     employee = Employee.objects.get(id=user_id)
     
     # Pass the client object to the template for display
-    return render(request, 'employee_profile.html', {'employee': employee})
+    return render(request, 'emp/employee_profile.html', {'employee': employee})
 
 from .forms import EmployeeProfileUpdateForm
 
@@ -1039,7 +1047,7 @@ def employee_update(request):
     context = {
         'employee': employee,
     }
-    return render(request, 'employee_update.html', context)
+    return render(request, 'emp/employee_update.html', context)
 from django.shortcuts import get_object_or_404, redirect
 from .models import Employee
 
@@ -1073,7 +1081,7 @@ def search_services(request):
         'services': services,
         'query': query,
     }
-    return render(request, 'search_results.html', context)
+    return render(request, 'client/search_results.html', context)
 
 # from django.shortcuts import render, redirect, get_object_or_404
 # from django.contrib import messages
@@ -1225,7 +1233,7 @@ def view_appointments(request):
         'employee': employee,
         'today': today
     }
-    return render(request, 'view_appointments.html', context)
+    return render(request, 'emp/view_appointments.html', context)
 
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
@@ -1248,12 +1256,12 @@ def add_feedback(request, booking_id):
     else:
         form = FeedbackForm()
     
-    return render(request, 'add_feedback.html', {'form': form, 'booking': booking})
+    return render(request, 'client/add_feedback.html', {'form': form, 'booking': booking})
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def view_feedback(request, booking_id):
     booking = get_object_or_404(Booking, id=booking_id)
     feedback = get_object_or_404(Feedback, booking=booking)
-    return render(request, 'view_feedback.html', {'feedback': feedback})
+    return render(request, 'emp/view_feedback.html', {'feedback': feedback})
 
 from django.shortcuts import render, get_object_or_404
 from django.utils import timezone
@@ -1279,7 +1287,7 @@ def client_bookings(request):
         'today': today,
     }
     
-    return render(request, 'client_bookings.html', context)
+    return render(request, 'client/client_bookings.html', context)
 
 # myproject/myapp/views.py
 from django.shortcuts import render, get_object_or_404
@@ -1300,14 +1308,14 @@ def service_history(request):
         'today': timezone.now().date(),
     }
     
-    return render(request, 'service_history.html', context)
+    return render(request, 'client/service_history.html', context)
 
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def employee_bookings(request):
     user_id = request.session.get('user_id')
     employee = get_object_or_404(Employee, id=user_id)
     bookings = Booking.objects.filter(staff=employee).order_by('-booking_date', '-booking_time')
-    return render(request, 'employee_bookings.html', {'bookings': bookings})
+    return render(request, 'emp/employee_bookings.html', {'bookings': bookings})
 
 from django.shortcuts import render, get_object_or_404
 from django.utils import timezone
@@ -1331,7 +1339,7 @@ def client_current_bookings(request):
         'today': timezone.now().date(),
     }
     
-    return render(request, 'client_bookings.html', context)
+    return render(request, 'client/client_bookings.html', context)
 
 
 from django.shortcuts import render, redirect, get_object_or_404
@@ -1383,7 +1391,7 @@ def employee_view_feedback(request):
         'employee': employee,
         'bookings_with_feedback': bookings_with_feedback,
     }
-    return render(request, 'employee_view_feedback.html', context)
+    return render(request, 'emp/employee_view_feedback.html', context)
 
 from django.shortcuts import render, get_object_or_404, redirect
 from .models import Booking, Payment, Client, Employee, Service
@@ -1420,7 +1428,7 @@ def send_bill(request, booking_id):
         'amount': amount,
         'booking_id': booking_id,
     }
-    return render(request, 'sendbill.html', context)
+    return render(request, 'emp/sendbill.html', context)
 
 
 # views.py
@@ -1437,7 +1445,7 @@ def view_payments(request):
     context = {
         'payments': payments,
     }
-    return render(request, 'payments.html', context)
+    return render(request, 'client/payments.html', context)
 
 # myproject/myapp/views.py
 from django.shortcuts import render, get_object_or_404, redirect
@@ -1478,7 +1486,7 @@ def razorpay_payment(request, booking_id):
         order = razorpay_client.order.create(data=order_data)
         return JsonResponse(order)  # Return order details to the frontend
 
-    return render(request, 'razorpay_payment.html', {'booking': booking})
+    return render(request, 'client/razorpay_payment.html', {'booking': booking})
 
 
 
@@ -1596,4 +1604,356 @@ def makeup_services(request):
         'query': query,
     }
     
-    return render(request, 'makeup_services.html', context)
+    return render(request, 'client/makeup_services.html', context)
+
+# myproject/myapp/views.py
+
+from django.shortcuts import render
+from .models import ServiceCategory, ServiceSubcategory, Service  # Import your models
+
+def for_women_services(request):
+    # Get the selected category and subcategory from the query parameters
+    category_name = request.GET.get('category')
+    subcategory_name = request.GET.get('subcategory')
+
+    # Fetch all categories
+    categories = ServiceCategory.objects.all()
+
+    # Fetch subcategories based on the selected category
+    if category_name:
+        subcategories = ServiceSubcategory.objects.filter(category__name=category_name)
+    else:
+        subcategories = ServiceSubcategory.objects.all()  # Fetch all subcategories if no category is selected
+
+    # Fetch services based on the selected subcategory
+    if subcategory_name:
+        services = Service.objects.filter(subcategory__name=subcategory_name)
+    else:
+        services = Service.objects.all()  # Fetch all services if no subcategory is selected
+
+    return render(request, 'forwomen_services.html', {
+        'categories': categories,
+        'subcategories': subcategories,
+        'services': services,
+        'selected_category': category_name,
+        'selected_subcategory': subcategory_name,
+    })
+
+##################################################################################
+# myproject/myapp/views.py
+from django.shortcuts import render, redirect, get_object_or_404
+from .models import ServiceCategoryMen, ServiceSubcategoryMen, ServiceMen  # Import your models here
+from django.contrib import messages
+
+def manage_men_category(request):
+    if request.method == 'POST':
+        if 'category_name' in request.POST and 'category_id' not in request.POST:  # Adding a new category
+            category_name = request.POST.get('category_name')
+            new_category = ServiceCategoryMen(name=category_name)
+            new_category.save()
+            messages.success(request, 'Category added successfully!')
+        elif 'category_id' in request.POST:  # Editing an existing category
+            category_id = request.POST.get('category_id')
+            category_name = request.POST.get('category_name')
+            category = get_object_or_404(ServiceCategoryMen, id=category_id)
+            category.name = category_name
+            category.save()
+            messages.success(request, 'Category updated successfully!')
+        elif 'subcategory_name' in request.POST:  # Adding a new subcategory
+            subcategory_name = request.POST.get('subcategory_name')
+            category_id = request.POST.get('category')
+            description = request.POST.get('description', '')
+            # Check if category exists
+            category = get_object_or_404(ServiceCategoryMen, id=category_id)
+            subcategory = ServiceSubcategoryMen(
+                name=subcategory_name,
+                category=category,
+                description=description
+            )
+            # Check if an image file was uploaded
+            if 'subcategory_image' in request.FILES:
+                subcategory.image = request.FILES['subcategory_image']
+            subcategory.save()
+            messages.success(request, 'Subcategory added successfully!')
+        
+        return redirect('manage_men_category')  # Redirect to the same page after saving
+
+    categories = ServiceCategoryMen.objects.all()  # Fetch all male categories
+    return render(request, 'admin/mens_category.html', {'categories': categories})
+
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib import messages
+from .models import ServiceCategoryMen, ServiceSubcategoryMen  # Import your male models
+from django.views.decorators.cache import cache_control
+
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
+def edit_men_category(request, category_id):
+    user_type = request.session.get('user_type')
+
+    if user_type != 'admin':
+        messages.error(request, "You need to log in as admin to access this page.")
+        return redirect('login')
+    
+    category = get_object_or_404(ServiceCategoryMen, id=category_id)
+    
+    if request.method == 'POST':
+        category.name = request.POST['category_name']
+        category.save()
+        messages.success(request, 'Category updated successfully!')
+        return redirect('manage_men_category')  # Redirect to the men category management page
+    
+    return render(request, 'admin/edit_men_category.html', {'category': category})
+
+def delete_men_category(request, category_id):
+    category = get_object_or_404(ServiceCategoryMen, id=category_id)
+    category.delete()
+    messages.success(request, 'Category deleted successfully!')
+    return redirect('manage_men_category')  # Redirect to the men category management page
+
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
+def edit_men_subcategory(request, subcategory_id):
+    user_type = request.session.get('user_type')
+
+    if user_type != 'admin':
+        messages.error(request, "You need to log in as admin to access this page.")
+        return redirect('login')
+    
+    subcategory = get_object_or_404(ServiceSubcategoryMen, id=subcategory_id)
+    
+    if request.method == 'POST':
+        subcategory_name = request.POST.get('subcategory_name', '').strip()
+        category_id = request.POST.get('category', None)
+        
+        # Validation: Check if subcategory name and category are provided
+        if not subcategory_name:
+            messages.error(request, 'Subcategory name cannot be empty.')
+            return render(request, 'admin/edit_men_subcategory.html', {
+                'subcategory': subcategory,
+                'categories': ServiceCategoryMen.objects.all()
+            })
+        
+        if not category_id:
+            messages.error(request, 'Please select a valid category.')
+            return render(request, 'admin/edit_men_subcategory.html', {
+                'subcategory': subcategory,
+                'categories': ServiceCategoryMen.objects.all()
+            })
+
+        try:
+            # Update the subcategory fields
+            subcategory.name = subcategory_name
+            subcategory.category_id = category_id
+            
+            # Handle optional description and image if they are part of the model
+            description = request.POST.get('description', '').strip()
+            if description:
+                subcategory.description = description
+            
+            if 'subcategory_image' in request.FILES:
+                subcategory.image = request.FILES['subcategory_image']
+            
+            subcategory.save()
+            messages.success(request, 'Subcategory updated successfully!')
+            return redirect('manage_men_category')  # Redirect to the men category management page
+        except Exception as e:
+            messages.error(request, f'Error updating subcategory: {e}')
+    
+    categories = ServiceCategoryMen.objects.all()
+    return render(request, 'admin/edit_men_subcategory.html', {
+        'subcategory': subcategory,
+        'categories': categories
+    })
+
+def delete_men_subcategory(request, subcategory_id):
+    subcategory = get_object_or_404(ServiceSubcategoryMen, id=subcategory_id)
+    subcategory.delete()
+    messages.success(request, 'Subcategory deleted successfully!')
+    return redirect('manage_men_category')  # Redirect to the men category management page
+
+# myproject/myapp/views.py
+from django.shortcuts import render, redirect, get_object_or_404
+from .models import ServiceMen, ServiceCategoryMen, ServiceSubcategoryMen
+from django.contrib import messages
+from django.views.decorators.cache import cache_control
+
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
+def manage_men_service(request):
+    user_type = request.session.get('user_type')
+
+    if user_type != 'admin':
+        messages.error(request, "You need to log in as admin to access this page.")
+        return redirect('login') 
+
+    if request.method == 'POST':
+        category_id = request.POST.get('category')
+        subcategory_id = request.POST.get('subcategory')
+        service_name = request.POST.get('service_name')
+        description = request.POST.get('description')
+        rate = request.POST.get('rate')
+        image = request.FILES.get('image')
+
+        # Create a new service
+        ServiceMen.objects.create(
+            subcategory_id=subcategory_id,
+            service_name=service_name,
+            description=description,
+            rate=rate,
+            image=image
+        )
+        messages.success(request, 'Service added successfully.')
+        return redirect('manage_men_service')  # Redirect to the same page
+
+    categories = ServiceCategoryMen.objects.all()
+    subcategories = ServiceSubcategoryMen.objects.all()
+    services = ServiceMen.objects.all()
+
+    return render(request, 'admin/manage_men_service.html', {
+        'categories': categories,
+        'subcategories': subcategories,
+        'services': services,
+        'messages': messages.get_messages(request),
+    })
+
+# myproject/myapp/views.py
+from django.shortcuts import render, redirect, get_object_or_404
+from .models import ServiceMen, ServiceCategoryMen, ServiceSubcategoryMen
+from django.contrib import messages
+from django.views.decorators.cache import cache_control
+
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
+def edit_men_service(request, service_id):
+    user_type = request.session.get('user_type')
+
+    if user_type != 'admin':
+        messages.error(request, "You need to log in as admin to access this page.")
+        return redirect('login')
+    
+    service = get_object_or_404(ServiceMen, id=service_id)
+
+    if request.method == 'POST':
+        service.subcategory_id = request.POST.get('subcategory')
+        service.service_name = request.POST.get('service_name')
+        service.description = request.POST.get('description')
+        service.rate = request.POST.get('rate')
+        if 'image' in request.FILES:
+            service.image = request.FILES['image']
+        service.save()
+        messages.success(request, 'Service updated successfully.')
+        return redirect('manage_men_service')  # Redirect to the male service management page
+
+    categories = ServiceCategoryMen.objects.all()
+    subcategories = ServiceSubcategoryMen.objects.all()
+
+    return render(request, 'admin/edit_men_service.html', {
+        'service': service,
+        'categories': categories,
+        'subcategories': subcategories,
+        'messages': messages.get_messages(request),
+    })
+
+def delete_men_service(request, service_id):
+    service = get_object_or_404(ServiceMen, id=service_id)
+    service.delete()
+    messages.success(request, 'Service deleted successfully.')
+    return redirect('manage_men_service')  # Redirect to the male service management page
+ 
+############################################
+# myapp/views.py
+from django.http import JsonResponse
+import re
+import json
+import random
+
+def chatbot_response(request):
+    if request.method == 'POST':
+        try:
+            # Load the user message from the request body
+            data = json.loads(request.body)
+            user_message = data.get('message', '').lower()
+
+            # Hair salon knowledge base
+            responses = {
+                # Hair Services
+                r'haircut|trim': {
+                    'responses': [
+                        "We offer a variety of haircuts including classic, modern, and specialty styles. What type of haircut are you interested in?",
+                        "Our stylists can help you with a trim or a complete makeover. What do you have in mind?"
+                    ]
+                },
+                r'color|dye': {
+                    'responses': [
+                        "We provide hair coloring services including highlights, lowlights, and full color. What color are you considering?",
+                        "Are you looking for a bold color change or a subtle enhancement?"
+                    ]
+                },
+                r'styling|blowout': {
+                    'responses': [
+                        "We offer styling services for special occasions, including blowouts and updos. Do you have a specific event in mind?",
+                        "Our stylists can create beautiful styles for any occasion. What look are you going for?"
+                    ]
+                },
+                r'treatment|deep conditioning': {
+                    'responses': [
+                        "We have several hair treatments available, including deep conditioning and keratin treatments. Would you like to know more about them?",
+                        "Our treatments can help with dryness, frizz, and damage. What are your hair concerns?"
+                    ]
+                },
+                r'appointment|book': {
+                    'responses': [
+                        "You can book an appointment through our website or by calling us directly. Would you like the phone number?",
+                        "To schedule an appointment, please visit our website or let me know if you need assistance with the booking process."
+                    ]
+                },
+                r'products|recommendation': {
+                    'responses': [
+                        "We recommend using sulfate-free shampoos and conditioners for healthy hair. What type of products are you looking for?",
+                        "For styling, we have a range of products including sprays, gels, and creams. What do you need help with?"
+                    ]
+                },
+                r'pricing|cost': {
+                    'responses': [
+                        "Our pricing varies based on the service. Haircuts start at $30, and coloring services start at $60. Would you like to know the price for a specific service?",
+                        "You can find our full price list on our website. Do you have a specific service in mind?"
+                    ]
+                },
+            }
+
+            # Check for matches and return random response from matching category
+            for pattern, response_data in responses.items():
+                if re.search(pattern, user_message):
+                    return JsonResponse({
+                        'response': random.choice(response_data['responses'])
+                    })
+
+            # Default response for unmatched queries
+            default_responses = [
+                "I'm not sure about that. Could you ask about specific hair services? I can help with:\n"
+                "• Haircuts\n"
+                "• Hair coloring\n"
+                "• Styling\n"
+                "• Treatments\n"
+                "• Booking appointments",
+
+                "I specialize in hair salon-related questions. Please ask about:\n"
+                "• Our services\n"
+                "• Pricing\n"
+                "• Product recommendations\n"
+                "• Appointment scheduling"
+            ]
+
+            return JsonResponse({
+                'response': random.choice(default_responses)
+            })
+
+        except json.JSONDecodeError:
+            return JsonResponse({
+                'response': "Sorry, I couldn't process that request. Please try again."
+            })
+        except Exception as e:
+            return JsonResponse({
+                'response': "An error occurred. Please try again later."
+            })
+
+    return JsonResponse({
+        'error': 'Invalid request method'
+    })

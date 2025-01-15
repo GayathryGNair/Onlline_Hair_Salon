@@ -68,7 +68,7 @@
             top: 12px;
             color: var(--primary-color);
         }
-        .textbox input {
+        .textbox input, .textbox select {
             width: 100%;
             padding: 10px 30px;
             border: 1px solid var(--secondary-color);
@@ -76,7 +76,7 @@
             font-size: 14px;
             transition: border 0.3s;
         }
-        .textbox input:focus {
+        .textbox input:focus, .textbox select:focus {
             border-color: var(--accent-color);
             outline: none;
         }
@@ -163,6 +163,16 @@
                     {{ form.contact.errors }}
                     <input type="tel" placeholder="Contact" name="contact" required pattern="\d{10}" oninput="validateContact()">
                     <div class="error" id="contactError"></div>
+                </div>
+                <div class="textbox">
+                    <i class="fa fa-venus-mars" aria-hidden="true"></i>
+                    {{ form.gender.errors }}
+                    <select name="gender" required>
+                        <option value="">Select Gender</option>
+                        <option value="M">Male</option>
+                        <option value="F">Female</option>
+                        <option value="O">Other</option>
+                    </select>
                 </div>
 
                 <button type="submit" class="btn btn-primary">Submit</button>

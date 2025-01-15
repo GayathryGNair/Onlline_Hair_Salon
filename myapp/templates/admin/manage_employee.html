@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GlamourQuest Admin Dashboard</title>
+    <title>GlamourQuest Manage Employees</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
@@ -84,26 +84,6 @@
             transform: translateY(-5px);
             box-shadow: 0 6px 8px rgba(0,0,0,0.15);
         }
-        .scrolling-background {
-            height: 500px;
-            background-size: cover;
-            background-position: center;
-            transition: background-image 1s ease-in-out;
-            border-radius: 15px;
-            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
-            margin-bottom: 2rem;
-            position: relative;
-        }
-        .scrolling-background::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: linear-gradient(rgba(127,140,141,0.3), rgba(149,165,166,0.3));
-            z-index: 1;
-        }
         .logo-container {
             text-align: center;
             padding: 20px 0;
@@ -116,38 +96,17 @@
             border: 3px solid white;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
-        .arrow {
-            position: absolute;
-            top: 50%;
-            transform: translateY(-50%);
-            font-size: 2rem;
+        table {
+            background-color: var(--card-bg);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        th {
+            background-color: var(--secondary-color);
             color: white;
-            background-color: rgba(127, 140, 141, 0.6);
-            padding: 15px;
-            cursor: pointer;
-            z-index: 2;
-            transition: all 0.3s ease;
-            border-radius: 50%;
-            width: 60px;
-            height: 60px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
         }
-        
-        .arrow:hover {
-            background-color: rgba(127, 140, 141, 0.8);
-            transform: translateY(-50%) scale(1.1);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-        }
-        
-        .arrow-left {
-            left: 20px;
-        }
-        
-        .arrow-right {
-            right: 20px;
+        .btn-space {
+            margin-right: 5px;
         }
     </style>
 </head>
@@ -184,12 +143,22 @@
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" href="{% url 'manage_service' %}" id="manage_service">
-                                <i class="fas fa-concierge-bell me-2"></i> Manage Services
+                                <i class="fas fa-concierge-bell me-2"></i> Add Female Services
                             </a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" href="{% url 'category' %}">
-                                <i class="fas fa-tags me-2"></i> Add Categories
+                                <i class="fas fa-tags me-2"></i> Add Female Categories
+                            </a>
+                        </li>
+                        <li class="nav-item"></li>
+                            <a class="nav-link" href="{% url 'manage_men_service' %}" >
+                                <i class="fas fa-concierge-bell me-2"></i> Add Male Services
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'manage_men_category' %}">
+                                <i class="fas fa-tags me-2"></i> Add Male Categories
                             </a>
                         </li>
                     </ul>
@@ -200,7 +169,7 @@
             <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
                 <!-- Header -->
                 <header class="header d-flex justify-content-between align-items-center mb-4 p-3 bg-white rounded shadow-sm">
-                    <h1 class="h3 mb-0">Welcome, Admin!</h1>
+                    <h1 class="h3 mb-0">Manage Employees</h1>
                     <div class="profile-dropdown dropdown">
                         <a href="#" class="d-flex align-items-center text-decoration-none dropdown-toggle" id="dropdownUser1" data-bs-toggle="dropdown" aria-expanded="false">
                             <img src="{% static 'images/profile.png' %}" alt="Profile" width="32" height="32" class="rounded-circle me-2">
@@ -214,89 +183,75 @@
                     </div>
                 </header>
 
-                <!-- Scrolling background with arrows -->
-                <div class="scrolling-background">
-                    <div class="arrow arrow-left" onclick="changeBackground(-1)">&#10094;</div>
-                    <div class="arrow arrow-right" onclick="changeBackground(1)">&#10095;</div>
-                </div>
-
-                <!-- Dashboard Options
-                <div class="row">
-                    <div class="col-md-4 mb-4">
-                        <div class="card">
-                            <div class="card-body">
-                                <h5 class="card-title">Manage Clients</h5>
-                                <p class="card-text">View and manage client information.</p>
-                                <a href="{% url 'manage_client' %}" class="btn btn-primary">Go to Clients</a>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-4 mb-4">
-                        <div class="card">
-                            <div class="card-body">
-                                <h5 class="card-title">Manage Employees</h5>
-                                <p class="card-text">View and manage employee information.</p>
-                                <a href="{% url 'manage_employee' %}" class="btn btn-primary">Go to Employees</a>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-4 mb-4">
-                        <div class="card">
-                            <div class="card-body">
-                                <h5 class="card-title">View Appointments</h5>
-                                <p class="card-text">Check and manage all appointments.</p>
-                                <a href="#" class="btn btn-primary">Go to Appointments</a>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-4 mb-4">
-                        <div class="card">
-                            <div class="card-body">
-                                <h5 class="card-title">Manage Services</h5>
-                                <p class="card-text">Add, edit, or remove salon services.</p>
-                                <a href="{% url 'manage_service' %}" class="btn btn-primary">Go to Services</a>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-4 mb-4">
-                        <div class="card">
-                            <div class="card-body">
-                                <h5 class="card-title">Add Categories</h5>
-                                <p class="card-text">Manage service categories.</p>
-                                <a href="{% url 'category' %}" class="btn btn-primary">Go to Categories</a>
-                            </div>
+                <!-- Employee Table -->
+                <div class="card">
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>First Name</th>
+                                        <th>Last Name</th>
+                                        <th>Email</th>
+                                        <th>Date of Birth</th>
+                                        <th>Contact</th>
+                                        <th>Qualification</th>
+                                        <th>Qualification Certificate</th>
+                                        <th>Status</th>
+                                        <th>Approval</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for employee in employees %}
+                                    <tr>
+                                        <td>{{ employee.id }}</td>
+                                        <td>{{ employee.first_name }}</td>
+                                        <td>{{ employee.last_name }}</td>
+                                        <td>{{ employee.email }}</td>
+                                        <td>{{ employee.dob }}</td>
+                                        <td>{{ employee.contact }}</td>
+                                        <td>{{ employee.qualification }}</td>
+                                        <td>
+                                            {% if employee.qualification_certificate %}
+                                                <a href="{{ employee.qualification_certificate.url }}" target="_blank">
+                                                    <img src="{{ employee.qualification_certificate.url }}" alt="Certificate" style="width: 50px; height: 50px; object-fit: cover;">
+                                                </a>
+                                            {% else %}
+                                                No certificate
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <form method="POST" action="{% url 'toggle_employee_status' employee.id %}">
+                                                {% csrf_token %}
+                                                <button type="submit" class="btn btn-sm {% if employee.status %}btn-success{% else %}btn-danger{% endif %}">
+                                                    {% if employee.status %}Active{% else %}Inactive{% endif %}
+                                                </button>
+                                            </form>
+                                        </td>
+                                        <td>
+                                            <form method="POST" action="{% url 'toggle_employee_approval' employee.id %}">
+                                                {% csrf_token %}
+                                                <button type="submit" class="btn btn-sm {% if employee.approved %}btn-success{% else %}btn-danger{% endif %} btn-space" id="approval_button">
+                                                    {% if employee.approved %}Approved{% else %}Declined{% endif %}
+                                                </button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                    {% empty %}
+                                    <tr>
+                                        <td colspan="10" class="text-center">No employees found</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
             </main>
         </div>
-    </div> -->
+    </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        let currentIndex = 0;
-        const backgrounds = [
-            "{% static 'images/hair-styling.jpg' %}",
-            "{% static 'images/manicure.jpg' %}",
-            "{% static 'images/hair-spa.jpg' %}",
-            "{% static 'images/all-type.jpg' %}"
-        ];
-
-        function changeBackground(direction = 1) {
-            currentIndex = (currentIndex + direction + backgrounds.length) % backgrounds.length;
-            updateBackground();
-        }
-
-        function updateBackground() {
-            const scrollingBackground = document.querySelector('.scrolling-background');
-            scrollingBackground.style.backgroundImage = `url(${backgrounds[currentIndex]})`;
-        }
-
-        // Set initial background and start cycling
-        window.onload = function() {
-            updateBackground();
-            setInterval(() => changeBackground(1), 5000);  // Change background every 5 seconds
-        };
-    </script>
 </body>
 </html>

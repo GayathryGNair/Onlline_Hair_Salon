@@ -1,11 +1,10 @@
-
 from django import forms
 from .models import Client
 
 class ClientProfileUpdateForm(forms.ModelForm):
     class Meta:
         model = Client
-        fields = ['first_name', 'last_name', 'email', 'dob', 'contact']
+        fields = ['first_name', 'last_name', 'email', 'dob','gender', 'contact']
 
     def __init__(self, *args, **kwargs):
         super(ClientProfileUpdateForm, self).__init__(*args, **kwargs)

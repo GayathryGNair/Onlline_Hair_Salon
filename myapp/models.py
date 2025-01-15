@@ -17,7 +17,13 @@ class User(models.Model):
         abstract = True
 
 class Client(User):
+    GENDER_CHOICES = [
+        ('M', 'Male'),
+        ('F', 'Female'),
+        ('O', 'Other'),
+    ]
     reset_token = models.CharField(max_length=64, null=True, blank=True) # Add reset_token field
+    gender = models.CharField(max_length=1, choices=GENDER_CHOICES, null=True, blank=True)
 
 
 from django.contrib.auth.models import AbstractUser
@@ -63,6 +69,36 @@ class Service(models.Model):
     description = models.TextField()
     rate = models.DecimalField(max_digits=10, decimal_places=2, help_text="Rate in Indian Rupees")
     image = models.ImageField(upload_to='service_images/', blank=True, null=True)
+
+    def __str__(self):
+        return f"{self.service_name} ({self.subcategory.name} - {self.subcategory.category.name})"
+    
+
+
+class ServiceCategoryMen(models.Model):
+    name = models.CharField(max_length=100)
+    specialization = models.ForeignKey(Specialization, on_delete=models.SET_NULL, null=True, blank=True, related_name='service_categories_men')
+
+    def __str__(self):
+        return self.name
+
+
+class ServiceSubcategoryMen(models.Model):
+    category = models.ForeignKey(ServiceCategoryMen, on_delete=models.CASCADE, related_name='subcategories_men')
+    name = models.CharField(max_length=100)
+    description = models.TextField(null=True, blank=True) 
+    image = models.ImageField(upload_to='servicesubcategory_images_men/', blank=True, null=True)
+
+    def __str__(self):
+        return f"{self.name} ({self.category.name})"
+
+
+class ServiceMen(models.Model):
+    subcategory = models.ForeignKey(ServiceSubcategoryMen, on_delete=models.CASCADE, related_name='services_men')
+    service_name = models.CharField(max_length=100)
+    description = models.TextField()
+    rate = models.DecimalField(max_digits=10, decimal_places=2, help_text="Rate in Indian Rupees")
+    image = models.ImageField(upload_to='service_images_men/', blank=True, null=True)
 
     def __str__(self):
         return f"{self.service_name} ({self.subcategory.name} - {self.subcategory.category.name})"
@@ -145,3 +181,14 @@ class Payment(models.Model):
 
     def __str__(self):
         return f"Payment for Booking {self.booking.id} - Amount: {self.amount} - Status: {self.status} - Client: {self.client} - Employee: {self.employee} - Service: {self.service}"
+    
+#######Blog#######
+class BlogPost(models.Model):
+    title = models.CharField(max_length=200)
+    content = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    video_url = models.URLField(blank=True, null=True)  # Optional field for video tutorials
+
+    def __str__(self):
+        return self.title

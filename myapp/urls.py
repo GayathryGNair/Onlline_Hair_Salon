@@ -6,6 +6,26 @@ from django.contrib.auth import views as auth_views
 from .views import manage_client
 from .views import  edit_services, delete_service, manage_service,service_detail,category
 from .views import hair_care_services, services_in_subcategory
+from .views import for_women_services
+from .views import (
+    manage_men_category,
+    edit_men_category,
+    delete_men_category,
+    edit_men_subcategory,
+    delete_men_subcategory,
+)
+from .views import (
+    manage_men_service,
+    # other views...
+)
+from .views import (
+    manage_men_service,
+    edit_men_service,
+    delete_men_service,
+    # other views...
+)
+
+
 
 
 
@@ -113,8 +133,37 @@ urlpatterns = [
     path('client/payments/razorpay/<int:booking_id>/', views.razorpay_payment, name='razorpay_payment'),
    
     path('men_services/', views.men_services, name='men_services'),  # URL for Men's services
-    path('women_services/', views.women_services, name='women_services'),  # URL for Women's services
-]
+    path('women_services/', views.women_services, name='women_services'),
+
+    path('forwomen-services/', for_women_services, name='forwomen_services'),
+    
+
+
+
+
+################################################################################
+
+
+    path('manage-men-category/', views.manage_men_category, name='manage_men_category'),
+    path('manage-men-category/', manage_men_category, name='manage_men_category'),
+    path('edit-men-category/<int:category_id>/', edit_men_category, name='edit_men_category'),
+    path('delete-men-category/<int:category_id>/', delete_men_category, name='delete_men_category'),
+
+    # Male Subcategory Management
+    path('edit-men-subcategory/<int:subcategory_id>/', edit_men_subcategory, name='edit_men_subcategory'),
+    path('delete-men-subcategory/<int:subcategory_id>/', delete_men_subcategory, name='delete_men_subcategory'),
+
+    path('manage-men-service/', manage_men_service, name='manage_men_service'),
+    path('edit-men-service/<int:service_id>/', edit_men_service, name='edit_men_service'),
+    path('delete-men-service/<int:service_id>/', delete_men_service, name='delete_men_service'),
+
+
+    path('api/chatbot/', views.chatbot_response, name='chatbot_response'),
+    
+   
+   ]
+   
+
 
     
 
