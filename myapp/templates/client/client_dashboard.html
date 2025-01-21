@@ -26,14 +26,17 @@
             background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
             color: white;
             padding-top: 20px;
+            position: fixed;  /* Make sidebar fixed */
+            width: inherit;   /* Maintain width based on col-md-3/col-lg-2 */
+            z-index: 100;     /* Ensure sidebar stays on top */
+            overflow-y: auto; /* Allow scrolling if content is too long */
         }
         .sidebar-sticky {
-            position: sticky;
-            top: 0;
-            height: calc(100vh - 48px);
+            position: relative;  /* Change from sticky to relative */
+            height: auto;       /* Allow content to determine height */
             padding-top: .5rem;
             overflow-x: hidden;
-            overflow-y: auto;
+            overflow-y: visible;
         }
         .sidebar .nav-link {
             color: white;
@@ -149,14 +152,94 @@
         .arrow-right {
             right: 20px;
         }
+
+        .service-card {
+            border: none;
+            border-radius: 15px;
+            overflow: hidden;
+            transition: transform 0.3s ease;
+        }
+
+        .service-card:hover {
+            transform: translateY(-10px);
+        }
+
+        .card-img-container {
+            position: relative;
+            height: 400px;
+            overflow: hidden;
+        }
+
+        .card-img-top {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .card-img-overlay {
+            background: linear-gradient(to top, rgba(0,0,0,0.7), transparent);
+            transition: background 0.3s ease;
+        }
+
+        .service-card:hover .card-img-overlay {
+            background: linear-gradient(to top, rgba(0,0,0,0.8), rgba(0,0,0,0.2));
+        }
+
+        .overlay-content {
+            color: white;
+        }
+
+        .overlay-content .btn-primary {
+            background-color: var(--primary-color);
+            border: none;
+            padding: 10px 30px;
+            transition: all 0.3s ease;
+        }
+
+        .overlay-content .btn-primary:hover {
+            background-color: var(--accent-color);
+            transform: scale(1.05);
+        }
+
+        .services-section h2 {
+            color: var(--primary-color);
+            font-weight: 600;
+            margin-bottom: 2rem;
+        }
+
+        /* Adjust main content to account for fixed sidebar */
+        .col-md-9.ms-sm-auto.col-lg-10 {
+            margin-left: auto;  /* Push content to the right */
+        }
+
+        /* Remove collapse class and adjust responsive behavior */
+        @media (max-width: 768px) {
+            .sidebar {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 250px;  /* Fixed width for mobile */
+                transform: translateX(-100%);  /* Hide by default on mobile */
+                transition: transform 0.3s ease-in-out;
+            }
+
+            .sidebar.show {
+                transform: translateX(0);  /* Show when .show class is added */
+            }
+
+            .col-md-9.ms-sm-auto.col-lg-10 {
+                width: 100%;
+                margin-left: 0;
+            }
+        }
     </style>
 </head>
 <body>
     <div class="container-fluid">
         <div class="row">
             <!-- Sidebar -->
-            <nav id="sidebar" class="col-md-3 col-lg-2 d-md-block sidebar collapse">
-                <div class="position-sticky sidebar-sticky">
+            <nav id="sidebar" class="col-md-3 col-lg-2 d-md-block sidebar">
+                <div class="sidebar-sticky">
                     <h2 class="text-center mb-4">GlamourQuest</h2>
                     <div class="logo-container">
                         <img src="{% static 'images/logo.png' %}" alt="GlamourQuest Logo" class="logo">
@@ -192,7 +275,7 @@
                                 <i class="fas fa-concierge-bell me-2"></i> Services
                             </a>
                         </li>
-                        <li class="nav-item">
+                        <!-- <li class="nav-item">
                             <a class="nav-link" href="{% url 'hair_care_services' %}">
                                 <i class="fas fa-cut me-2"></i> Hair Care
                             </a>
@@ -216,7 +299,7 @@
                         <a class="nav-link" href="{% url 'makeup_services' %}">
                             <i class="fas fa-paint-brush me-2"></i> Make Up
                         </a>
-                    </li>
+                    </li> -->
                         <li class="nav-item">
                             <a class="nav-link" href="{% url 'service_history' %}">
                                 <i class="fas fa-history me-2"></i> Service History
@@ -251,6 +334,41 @@
                     <div class="arrow arrow-right" onclick="changeBackground(1)">&#10095;</div>
                 </div>
 
+                <!-- Services Section -->
+                <div class="services-section mt-5">
+                    <h2 class="text-center mb-4">Our Services</h2>
+                    <div class="row">
+                        <!-- For Women Services -->
+                        <div class="col-md-6 mb-4">
+                            <div class="service-card card h-100">
+                                <div class="card-img-container">
+                                    <img src="{% static 'images/forwomen.jpg' %}" class="card-img-top" alt="Women Services">
+                                    <div class="card-img-overlay d-flex align-items-end">
+                                        <div class="overlay-content w-100 text-center p-3">
+                                            <h3 class="card-title mb-3">For Women</h3>
+                                            <a href="{% url 'client_women_services' %}" class="btn btn-primary">Explore Services</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- For Men Services -->
+                        <div class="col-md-6 mb-4">
+                            <div class="service-card card h-100">
+                                <div class="card-img-container">
+                                    <img src="{% static 'images/formen.jpg' %}" class="card-img-top" alt="Men Services">
+                                    <div class="card-img-overlay d-flex align-items-end">
+                                        <div class="overlay-content w-100 text-center p-3">
+                                            <h3 class="card-title mb-3">For Men</h3>
+                                            <a href="#" class="btn btn-primary">Explore Services</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </main>
         </div>
     </div>

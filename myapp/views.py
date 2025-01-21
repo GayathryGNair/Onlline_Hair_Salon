@@ -381,205 +381,6 @@ def client_services(request):
 
     return render(request, 'client/client_services.html', context)
 
-from django.shortcuts import render, redirect
-from django.contrib import messages
-from django.db.models import Q
-from .models import Client, ServiceSubcategory, Service
-
-@cache_control(no_cache=True, must_revalidate=True, no_store=True)
-def hair_care_services(request):
-    user_id = request.session.get('user_id')
-    if not user_id:
-        messages.error(request, "You need to log in to access the dashboard.")
-        return redirect('login')
-    
-    try:
-        client = Client.objects.get(id=user_id)
-    except Client.DoesNotExist:
-        messages.error(request, "Client profile not found.")
-        return redirect('login')
-    
-    # Fetch all service subcategories where category name is 'Hair Care'
-    hair_care_subcategories = ServiceSubcategory.objects.filter(category__name='Hair Care')
-    
-    # Handle search
-    query = request.GET.get('query', '')
-    if query:
-        services = Service.objects.filter(
-            Q(service_name__icontains=query) |
-            Q(description__icontains=query) |
-            Q(subcategory__name__icontains=query) |
-            Q(subcategory__category__name__icontains=query),
-            subcategory__category__name='Hair Care'  # Ensure we're only searching within hair care services
-        ).distinct()
-    else:
-        services = None
-    
-    context = {
-        'hair_care_subcategories': hair_care_subcategories,
-        'client': client,
-        'services': services,
-        'query': query,
-    }
-    
-    return render(request, 'client/hair_care_services.html', context)
-
-
-
-@cache_control(no_cache=True, must_revalidate=True, no_store=True)
-def services_in_subcategory(request, subcategory_id):
-    user_id = request.session.get('user_id')  # Adjust this if needed based on how you store the session
-    if not user_id:
-        messages.error(request, "You want to loggin to access dashboard.")
-        return redirect('login')
-    client = Client.objects.get(id=user_id)
-    
-    # Fetch the subcategory and its related services
-    subcategory = get_object_or_404(ServiceSubcategory, id=subcategory_id)
-    services = Service.objects.filter(subcategory=subcategory)
-    
-    context = {
-        'subcategory': subcategory,
-        'services': services,
-        'client': client,
-    }
-    
-    return render(request, 'client/services_in_subcategory.html', context)
-
-
-from django.shortcuts import render, redirect
-from django.contrib import messages
-from django.db.models import Q
-from django.views.decorators.cache import cache_control
-from .models import Client, ServiceSubcategory, Service
-
-@cache_control(no_cache=True, must_revalidate=True, no_store=True)
-def facial_services(request):
-    user_id = request.session.get('user_id')
-    if not user_id:
-        messages.error(request, "You need to log in to access the dashboard.")
-        return redirect('login')
-    
-    try:
-        client = Client.objects.get(id=user_id)
-    except Client.DoesNotExist:
-        messages.error(request, "Client profile not found.")
-        return redirect('login')
-    
-    # Fetch all service subcategories where category id is 2 (assuming 2 is for Facial)
-    facial_service_subcategories = ServiceSubcategory.objects.filter(category_id=2)
-    
-    # Handle search
-    query = request.GET.get('query', '')
-    if query:
-        services = Service.objects.filter(
-            Q(service_name__icontains=query) |
-            Q(description__icontains=query) |
-            Q(subcategory__name__icontains=query) |
-            Q(subcategory__category__name__icontains=query),
-            subcategory__category_id=2  # Ensure we're only searching within facial services
-        ).distinct()
-    else:
-        services = None
-    
-    context = {
-        'facial_service_subcategories': facial_service_subcategories,
-        'client': client,
-        'services': services,
-        'query': query,
-    }
-    
-    return render(request, 'client/facial_services.html', context)
-
-
-
-
-from django.shortcuts import render, redirect
-from django.contrib import messages
-from django.db.models import Q
-from django.views.decorators.cache import cache_control
-from .models import Client, ServiceSubcategory, Service
-
-@cache_control(no_cache=True, must_revalidate=True, no_store=True)
-def mani_pedi_services(request):
-    user_id = request.session.get('user_id')
-    if not user_id:
-        messages.error(request, "You need to log in to access the dashboard.")
-        return redirect('login')
-    
-    try:
-        client = Client.objects.get(id=user_id)
-    except Client.DoesNotExist:
-        messages.error(request, "Client profile not found.")
-        return redirect('login')
-    
-    mani_pedi_service_subcategories = ServiceSubcategory.objects.filter(category_id=3)
-    
-    # Handle search
-    query = request.GET.get('query', '')
-    if query:
-        services = Service.objects.filter(
-            Q(service_name__icontains=query) |
-            Q(description__icontains=query) |
-            Q(subcategory__name__icontains=query) |
-            Q(subcategory__category__name__icontains=query),
-            subcategory__category_id=3  # Ensure we're only searching within mani & pedi services
-        ).distinct()
-    else:
-        services = None
-    
-    context = {
-        'mani_pedi_service_subcategories': mani_pedi_service_subcategories,
-        'client': client,
-        'services': services,
-        'query': query,
-    }
-    
-    return render(request, 'client/mani-pedi-services.html', context)
-
-from django.shortcuts import render, redirect
-from django.contrib import messages
-from django.db.models import Q
-from django.views.decorators.cache import cache_control
-from .models import Client, ServiceSubcategory, Service
-
-@cache_control(no_cache=True, must_revalidate=True, no_store=True)
-def waxing_services(request):
-    user_id = request.session.get('user_id')
-    if not user_id:
-        messages.error(request, "You need to log in to access the dashboard.")
-        return redirect('login')
-    
-    try:
-        client = Client.objects.get(id=user_id)
-    except Client.DoesNotExist:
-        messages.error(request, "Client profile not found.")
-        return redirect('login')
-    
-    waxing_service_subcategories = ServiceSubcategory.objects.filter(category_id=4)
-    
-    # Handle search
-    query = request.GET.get('query', '')
-    if query:
-        services = Service.objects.filter(
-            Q(service_name__icontains=query) |
-            Q(description__icontains=query) |
-            Q(subcategory__name__icontains=query) |
-            Q(subcategory__category__name__icontains=query),
-            subcategory__category_id=4  # Ensure we're only searching within waxing services
-        ).distinct()
-    else:
-        services = None
-    
-    context = {
-        'waxing_service_subcategories': waxing_service_subcategories,
-        'client': client,
-        'services': services,
-        'query': query,
-    }
-    
-    return render(request, 'client/waxing-services.html', context)
-
 
 from django.shortcuts import render, get_object_or_404
 from .models import Service
@@ -1966,3 +1767,43 @@ def chatbot_response(request):
 
 def dashboard(request):
     return render(request, 'dashboard.html')
+
+from django.shortcuts import render
+from .models import ServiceCategory, ServiceSubcategory, Service  # Import your models
+
+def client_women_services(request):
+    # Fetch all categories
+    categories = ServiceCategory.objects.all()
+    
+    # Fetch all subcategories with their related categories
+    subcategories = ServiceSubcategory.objects.select_related('category').all()
+    
+    # Fetch all services with their related subcategories
+    services = Service.objects.select_related('subcategory').all()
+
+    # Get the selected category and subcategory IDs from the request
+    selected_category_id = request.GET.get('category')
+    selected_subcategory_id = request.GET.get('subcategory')
+
+    # Filter subcategories if category is selected
+    if selected_category_id:
+        subcategories = subcategories.filter(category_id=selected_category_id)
+        
+    # Filter services if subcategory is selected
+    if selected_subcategory_id:
+        services = services.filter(subcategory_id=selected_subcategory_id)
+
+    context = {
+        'categories': categories,
+        'subcategories': subcategories,
+        'services': services,
+        'selected_category': selected_category_id,
+        'selected_subcategory': selected_subcategory_id,
+    }
+
+    # Add debug information to verify data is being passed correctly
+    print(f"Number of categories: {categories.count()}")
+    print(f"Number of subcategories: {subcategories.count()}")
+    print(f"Number of services: {services.count()}")
+
+    return render(request, 'client_women_services.html', context)

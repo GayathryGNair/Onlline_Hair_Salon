@@ -5,7 +5,6 @@ from . import views
 from django.contrib.auth import views as auth_views
 from .views import manage_client
 from .views import  edit_services, delete_service, manage_service,service_detail,category
-from .views import hair_care_services, services_in_subcategory
 from .views import for_women_services
 from .views import (
     manage_men_category,
@@ -67,13 +66,6 @@ urlpatterns = [
     path('client_update/', views.client_update, name='client_update'),
     path('client_profile/', views.client_profile, name='client_profile'),
     path('client_services/', views.client_services, name='client_services'),
-    path('hair_care_services/', views.hair_care_services, name='hair_care_services'),
-    # path('hair_cut_services/', views.hair_cut_services, name='hair_cut_services'),
-    path('facial_services/', views.facial_services, name='facial_services'),
-    # path('all_type_skin/', views.all_type_skin, name='all_type_skin'),
-    path('mani-pedi-services/', views.mani_pedi_services, name='mani-pedi-services'),
-    path('waxing-services/', views.waxing_services, name='waxing-services'),
-    path('makeup_services/', views.makeup_services, name='makeup_services'),  # Add this line
     
 
     path('toggle-client-status/<int:client_id>/', views.toggle_client_status, name='toggle_client_status'),
@@ -96,7 +88,6 @@ urlpatterns = [
     # path('subcategory/edit/<int:subcategory_id>/', views.edit_subcategory, name='edit_subcategory'),
     path('subcategory/delete/<int:subcategory_id>/', views.delete_subcategory, name='delete_subcategory'),
     path('edit-subcategory/<int:subcategory_id>/', views.edit_subcategory, name='edit_subcategory'),
-    path('hair-care/<int:subcategory_id>/', services_in_subcategory, name='services_in_subcategory'),
     path('billing/<int:booking_id>/', views.billing, name='billing'),  
 
     
@@ -137,6 +128,7 @@ urlpatterns = [
 
     path('forwomen-services/', for_women_services, name='forwomen_services'),
     
+    path('client_women-services/', views.client_women_services, name='client_women_services'),
 
 
 

@@ -93,12 +93,53 @@
             object-position: center;
         }
 
-        /* Ensure consistent column widths */
+        .card-body {
+            padding: 1.25rem;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .card-title {
+            font-weight: bold;
+            color: #FF1493;
+            margin-bottom: 0.75rem;
+            font-size: 1.1rem;
+        }
+
+        .card-text {
+            color: #ff14917e;
+            flex-grow: 1;
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+        }
+
+        /* Subcategory and Service Div Styles */
+        .subcategory-div, .service-div {
+            margin-top: 20px;
+            padding: 20px;
+            background-color: white; /* White background for sections */
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Make all cards in a row the same height */
+        .row {
+            display: flex;
+            flex-wrap: wrap;
+        }
+
         .col-md-4 {
             padding: 0 15px;
             margin-bottom: 20px;
             display: flex;
             width: 33.333%;
+        }
+
+        /* Button positioning */
+        .card-body .btn {
+            margin-top: auto;
+            width: 100%;  /* Make buttons full width */
         }
 
         /* Service specific adjustments */
