@@ -491,11 +491,8 @@ def facial_services(request):
     
     return render(request, 'client/facial_services.html', context)
 
-def hair_cut_services(request):
-    return render(request, 'hair_cut_services.html')
 
-def all_type_skin(request):
-    return render(request, 'all_type_skin.html')
+
 
 from django.shortcuts import render, redirect
 from django.contrib import messages
@@ -700,6 +697,7 @@ def billing(request, booking_id):
     booking = get_object_or_404(Booking, id=booking_id, client=client)
 
     # Calculate total cost (if not already calculated)
+    
     total_cost = booking.service.rate  # Assuming the service has a rate field
     booking.total_cost = total_cost
     booking.save()
@@ -1612,33 +1610,41 @@ from django.shortcuts import render
 from .models import ServiceCategory, ServiceSubcategory, Service  # Import your models
 
 def for_women_services(request):
-    # Get the selected category and subcategory from the query parameters
-    category_name = request.GET.get('category')
-    subcategory_name = request.GET.get('subcategory')
-
     # Fetch all categories
     categories = ServiceCategory.objects.all()
+    
+    # Fetch all subcategories with their related categories
+    subcategories = ServiceSubcategory.objects.select_related('category').all()
+    
+    # Fetch all services with their related subcategories
+    services = Service.objects.select_related('subcategory').all()
 
-    # Fetch subcategories based on the selected category
-    if category_name:
-        subcategories = ServiceSubcategory.objects.filter(category__name=category_name)
-    else:
-        subcategories = ServiceSubcategory.objects.all()  # Fetch all subcategories if no category is selected
+    # Get the selected category and subcategory IDs from the request
+    selected_category_id = request.GET.get('category')
+    selected_subcategory_id = request.GET.get('subcategory')
 
-    # Fetch services based on the selected subcategory
-    if subcategory_name:
-        services = Service.objects.filter(subcategory__name=subcategory_name)
-    else:
-        services = Service.objects.all()  # Fetch all services if no subcategory is selected
+    # Filter subcategories if category is selected
+    if selected_category_id:
+        subcategories = subcategories.filter(category_id=selected_category_id)
+        
+    # Filter services if subcategory is selected
+    if selected_subcategory_id:
+        services = services.filter(subcategory_id=selected_subcategory_id)
 
-    return render(request, 'forwomen_services.html', {
+    context = {
         'categories': categories,
         'subcategories': subcategories,
         'services': services,
-        'selected_category': category_name,
-        'selected_subcategory': subcategory_name,
-    })
+        'selected_category': selected_category_id,
+        'selected_subcategory': selected_subcategory_id,
+    }
 
+    # Add debug information to verify data is being passed correctly
+    print(f"Number of categories: {categories.count()}")
+    print(f"Number of subcategories: {subcategories.count()}")
+    print(f"Number of services: {services.count()}")
+
+    return render(request, 'forwomen_services.html', context)
 ##################################################################################
 # myproject/myapp/views.py
 from django.shortcuts import render, redirect, get_object_or_404
@@ -1957,3 +1963,6 @@ def chatbot_response(request):
     return JsonResponse({
         'error': 'Invalid request method'
     })
+
+def dashboard(request):
+    return render(request, 'dashboard.html')

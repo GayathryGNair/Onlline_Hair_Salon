@@ -1,4 +1,4 @@
-# from django.core.management.base import BaseCommand
+""" # from django.core.management.base import BaseCommand
 # from myapp.models import ServiceCategory, ServiceSubcategory, Service
 
 # class Command(BaseCommand):
@@ -41,3 +41,4 @@
 #                 self.stdout.write(self.style.SUCCESS(f'Successfully added {service.service_name}'))
 #             else:
 #                 self.stdout.write(self.style.WARNING(f'{service.service_name} already exists'))
+ """

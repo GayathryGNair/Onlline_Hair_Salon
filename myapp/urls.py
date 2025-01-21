@@ -68,9 +68,9 @@ urlpatterns = [
     path('client_profile/', views.client_profile, name='client_profile'),
     path('client_services/', views.client_services, name='client_services'),
     path('hair_care_services/', views.hair_care_services, name='hair_care_services'),
-    path('hair_cut_services/', views.hair_cut_services, name='hair_cut_services'),
+    # path('hair_cut_services/', views.hair_cut_services, name='hair_cut_services'),
     path('facial_services/', views.facial_services, name='facial_services'),
-    path('all_type_skin/', views.all_type_skin, name='all_type_skin'),
+    # path('all_type_skin/', views.all_type_skin, name='all_type_skin'),
     path('mani-pedi-services/', views.mani_pedi_services, name='mani-pedi-services'),
     path('waxing-services/', views.waxing_services, name='waxing-services'),
     path('makeup_services/', views.makeup_services, name='makeup_services'),  # Add this line
@@ -159,7 +159,9 @@ urlpatterns = [
 
 
     path('api/chatbot/', views.chatbot_response, name='chatbot_response'),
-    
+    path('dashboard/', views.dashboard, name='dashboard')
+   
+
    
    ]
    
