@@ -118,7 +118,7 @@
                     </div>
                     <ul class="nav flex-column">
                         <li class="nav-item">
-                            <a class="nav-link active" href="{% url 'client_dashboard' %}">
+                            <a class="nav-link" href="{% url 'client_dashboard' %}">
                                 <i class="fas fa-home me-2"></i> Dashboard
                             </a>
                         </li>
@@ -132,39 +132,24 @@
                                 <i class="fas fa-calendar-alt me-2"></i> Appointments
                             </a>
                         </li>   
-                        <li class="nav-item"></li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'view_payments' %}">
+                                <i class="fas fa-money-bill"></i> Payments
+                            </a>
+                        </li>
+                        <li class="nav-item">
                             <a class="nav-link" href="{% url 'client_bookings' %}">
                                 <i class="fas fa-concierge-bell me-2"></i> Feedback
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="{% url 'client_services' %}">
+                            <a class="nav-link active" href="{% url 'client_services' %}">
                                 <i class="fas fa-concierge-bell me-2"></i> Services
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="{% url 'hair_care_services' %}">
-                                <i class="fas fa-cut me-2"></i> Hair Care
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'facial_services' %}">
-                                <i class="fas fa-spa me-2"></i> Facial
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'mani-pedi-services' %}">
-                                <i class="fas fa-hand-sparkles me-2"></i> Mani & Pedi
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'waxing-services' %}">
-                                <i class="fas fa-feather me-2"></i> Waxing
-                            </a>
-                        </li>
-                        <li class="nav-item">
                             <a class="nav-link" href="{% url 'service_history' %}">
-                                <i class="fas fa-feather me-2"></i> Service History
+                                <i class="fas fa-history me-2"></i> Service History
                             </a>
                         </li>
                     </ul>

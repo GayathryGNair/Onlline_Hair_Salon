@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.hashers import make_password
+from decimal import Decimal
 
 class User(models.Model):
     first_name = models.CharField(max_length=100)
@@ -68,7 +69,18 @@ class Service(models.Model):
     service_name = models.CharField(max_length=100)
     description = models.TextField()
     rate = models.DecimalField(max_digits=10, decimal_places=2, help_text="Rate in Indian Rupees")
+    discount_percentage = models.DecimalField(max_digits=5, decimal_places=2, default=0)
     image = models.ImageField(upload_to='service_images/', blank=True, null=True)
+
+    def active_offers(self):
+        return self.offers.filter(is_active=True, start_date__lte=timezone.now(), end_date__gte=timezone.now())
+    
+    def discounted_price(self):
+        offers = self.active_offers()
+        if offers.exists():
+            discount = Decimal(offers.first().discount_percentage)
+            return self.rate * (1 - discount / Decimal(100))
+        return self.rate
 
     def __str__(self):
         return f"{self.service_name} ({self.subcategory.name} - {self.subcategory.category.name})"
@@ -192,3 +204,22 @@ class BlogPost(models.Model):
 
     def __str__(self):
         return self.title
+
+########offers##########
+
+
+class Offer(models.Model):
+    service = models.ForeignKey(Service, related_name='offers', on_delete=models.CASCADE)
+    discount_percentage = models.FloatField()
+    start_date = models.DateField()
+    end_date = models.DateField()
+    is_active = models.BooleanField(default=True)
+
+    def clean(self):
+        if self.start_date > self.end_date:
+            raise ValidationError("Start date cannot be after the end date.")
+        if self.end_date < timezone.now().date():
+            raise ValidationError("Offer end date cannot be in the past.")
+
+    def __str__(self):
+        return f"Discount: {self.discount_percentage}% off on {self.service.service_name}"

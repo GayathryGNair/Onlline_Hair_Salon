@@ -1772,7 +1772,12 @@ from django.shortcuts import render
 from .models import ServiceCategory, ServiceSubcategory, Service  # Import your models
 
 def client_women_services(request):
-    # Fetch all categories
+    user_id = request.session.get('user_id')  # Adjust this if needed based on how you store the session
+    if not user_id:
+        messages.error(request, "You want to loggin to access dashboard.")
+        return redirect('login')
+    client = Client.objects.get(id=user_id)
+    # Fetch all categories    
     categories = ServiceCategory.objects.all()
     
     # Fetch all subcategories with their related categories
@@ -1801,9 +1806,122 @@ def client_women_services(request):
         'selected_subcategory': selected_subcategory_id,
     }
 
-    # Add debug information to verify data is being passed correctly
-    print(f"Number of categories: {categories.count()}")
-    print(f"Number of subcategories: {subcategories.count()}")
-    print(f"Number of services: {services.count()}")
-
     return render(request, 'client_women_services.html', context)
+
+from django.shortcuts import render
+from .models import ServiceCategoryMen, ServiceSubcategoryMen, ServiceMen  # Import men's models
+
+def client_men_services(request):
+    # Fetch all categories for men
+    categories_men = ServiceCategoryMen.objects.all()
+    
+    # Fetch all subcategories with their related categories
+    subcategories_men = ServiceSubcategoryMen.objects.select_related('category').all()
+    
+    # Fetch all services with their related subcategories
+    services_men = ServiceMen.objects.select_related('subcategory').all()
+
+    # Get the selected category and subcategory IDs from the request
+    selected_category_id = request.GET.get('category')
+    selected_subcategory_id = request.GET.get('subcategory')
+
+    # Filter subcategories if category is selected
+    if selected_category_id:
+        subcategories_men = subcategories_men.filter(category_id=selected_category_id)
+        
+    # Filter services if subcategory is selected
+    if selected_subcategory_id:
+        services_men = services_men.filter(subcategory_id=selected_subcategory_id)
+
+    context = {
+        'categories_men': categories_men,
+        'subcategories_men': subcategories_men,
+        'services_men': services_men,
+        'selected_category': selected_category_id,
+        'selected_subcategory': selected_subcategory_id,
+    }
+
+    # Add debug information to verify data is being passed correctly
+    print(f"Number of men's categories: {categories_men.count()}")
+    print(f"Number of men's subcategories: {subcategories_men.count()}")
+    print(f"Number of men's services: {services_men.count()}")
+
+    return render(request, 'client_men_services.html', context)
+
+from django.shortcuts import render
+from .models import ServiceCategoryMen, ServiceSubcategoryMen, ServiceMen  # Import men's models
+
+def for_men_services(request):
+    # Fetch all categories for men
+    categories_men = ServiceCategoryMen.objects.all()
+    
+    # Fetch all subcategories with their related categories
+    subcategories_men = ServiceSubcategoryMen.objects.select_related('category').all()
+    
+    # Fetch all services with their related subcategories
+    services_men = ServiceMen.objects.select_related('subcategory').all()
+
+    # Get the selected category and subcategory IDs from the request
+    selected_category_id = request.GET.get('category')
+    selected_subcategory_id = request.GET.get('subcategory')
+
+    # Filter subcategories if category is selected
+    if selected_category_id:
+        subcategories_men = subcategories_men.filter(category_id=selected_category_id)
+        
+    # Filter services if subcategory is selected
+    if selected_subcategory_id:
+        services_men = services_men.filter(subcategory_id=selected_subcategory_id)
+
+    context = {
+        'categories_men': categories_men,
+        'subcategories_men': subcategories_men,
+        'services_men': services_men,
+        'selected_category': selected_category_id,
+        'selected_subcategory': selected_subcategory_id,
+    }
+
+    # Add debug information to verify data is being passed correctly
+    print(f"Number of men's categories: {categories_men.count()}")
+    print(f"Number of men's subcategories: {subcategories_men.count()}")
+    print(f"Number of men's services: {services_men.count()}")
+
+    return render(request, 'formen_services.html', context)
+############offers##########
+from django.shortcuts import render, redirect, get_object_or_404
+from .models import Offer, Service
+from django.utils import timezone
+from django.core.exceptions import ValidationError
+
+def add_offer(request):
+    if request.method == 'POST':
+        service_id = request.POST.get('service')
+        title = request.POST.get('title')
+        description = request.POST.get('description')
+        discount_percentage = request.POST.get('discount_percentage')
+        start_date = request.POST.get('start_date')
+        end_date = request.POST.get('end_date')
+        is_active = request.POST.get('is_active') == 'on'
+
+        service = get_object_or_404(Service, id=service_id)
+        try:
+            offer = Offer(
+                service=service,
+                title=title,
+                description=description,
+                discount_percentage=discount_percentage,
+                start_date=start_date,
+                end_date=end_date,
+                is_active=is_active
+            )
+            offer.full_clean()
+            offer.save()
+            return redirect('offer_list')
+        except ValidationError as e:
+            return render(request, 'offers/add_offer.html', {'errors': e.messages, 'services': Service.objects.all()})
+
+    return render(request, 'add_offer.html', {'services': Service.objects.all()})
+
+def offer_list(request):
+    offers = Offer.objects.all()
+    return render(request, 'offer_list.html', {'offers': offers})

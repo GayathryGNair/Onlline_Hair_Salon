@@ -1,0 +1,30 @@
+<h2>Add Offer</h2>
+<form method="post">
+    {% csrf_token %}
+    <label for="service">Select Service:</label>
+    <select name="service">
+        {% for service in services %}
+        <option value="{{ service.id }}">{{ service.service_name }}</option>
+        {% endfor %}
+    </select><br>
+
+    <label for="title">Offer Title:</label>
+    <input type="text" name="title"><br>
+
+    <label for="description">Description:</label>
+    <textarea name="description"></textarea><br>
+
+    <label for="discount_percentage">Discount Percentage:</label>
+    <input type="number" name="discount_percentage" step="0.01" min="0" max="100"><br>
+
+    <label for="start_date">Start Date:</label>
+    <input type="date" name="start_date"><br>
+
+    <label for="end_date">End Date:</label>
+    <input type="date" name="end_date"><br>
+
+    <label for="is_active">Is Active:</label>
+    <input type="checkbox" name="is_active" checked><br>
+
+    <button type="submit">Add Offer</button>
+</form>

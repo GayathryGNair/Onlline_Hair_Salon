@@ -127,8 +127,10 @@ urlpatterns = [
     path('women_services/', views.women_services, name='women_services'),
 
     path('forwomen-services/', for_women_services, name='forwomen_services'),
+    path('formen-services/', views.for_men_services, name='formen_services'),
     
     path('client_women-services/', views.client_women_services, name='client_women_services'),
+     path('client_men-services/', views.client_men_services, name='client_men_services'),
 
 
 
@@ -151,11 +153,16 @@ urlpatterns = [
 
 
     path('api/chatbot/', views.chatbot_response, name='chatbot_response'),
-    path('dashboard/', views.dashboard, name='dashboard')
+    path('dashboard/', views.dashboard, name='dashboard'),
+
+    path('offers/add/', views.add_offer, name='add_offer'),
+    path('offers/', views.offer_list, name='offer_list'),
+]
+
    
 
    
-   ]
+
    
 
 

@@ -1,0 +1,23 @@
+<h2>Offer List</h2>
+<table>
+    <tr>
+        <th>Title</th>
+        <th>Service</th>
+        <th>Description</th>
+        <th>Discount</th>
+        <th>Start Date</th>
+        <th>End Date</th>
+        <th>Active</th>
+    </tr>
+    {% for offer in offers %}
+    <tr>
+        <td>{{ offer.title }}</td>
+        <td>{{ offer.service.service_name }}</td>
+        <td>{{ offer.description }}</td>
+        <td>{{ offer.discount_percentage }}%</td>
+        <td>{{ offer.start_date }}</td>
+        <td>{{ offer.end_date }}</td>
+        <td>{{ offer.is_active|yesno:"Yes,No" }}</td>
+    </tr>
+    {% endfor %}
+</table>
