@@ -24,6 +24,8 @@ from .models import Client, Employee  # Make sure to import your User subclasses
 from django.contrib.auth.hashers import make_password 
 from .models import Client, Employee
 from django.db import IntegrityError
+from decimal import Decimal
+from django.db.models import Q  # Ensure you have this import
 
 
 def home(request):
@@ -396,24 +398,46 @@ from .models import Service, Booking, Employee, Client
 from .forms import BookingForm
 from django.utils import timezone
 from django.core.exceptions import ValidationError
+
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def booking_service(request, service_id):
     service = get_object_or_404(Service, id=service_id)
     user_id = request.session.get('user_id')
     client = get_object_or_404(Client, id=user_id)
     
+    # Get specialized employees
     specialized_employees = Employee.objects.filter(
         specializations=service.subcategory.category.specialization,
         approved=True,
         status=True
     ).distinct()
 
-    # Check if the client has already booked this service
-    existing_client_booking = Booking.objects.filter(
-        client=client,
+    # Fetch the active offer for the service
+    active_offer = Offer.objects.filter(
         service=service,
+        is_active=True,
+        start_date__lte=timezone.now(),
+        end_date__gte=timezone.now()
+    ).first()
+
+    # Calculate the discounted price if an active offer exists
+    if active_offer:
+        discount_percentage_decimal = Decimal(active_offer.discount_percentage)
+        discounted_price = service.rate - (service.rate * (discount_percentage_decimal / Decimal(100)))
+        discount_percentage = active_offer.discount_percentage
+    else:
+        discounted_price = None
+        discount_percentage = None
+
+    # Get existing bookings for today and future
+    existing_bookings = Booking.objects.filter(
+        service=service,
+        booking_date__gte=timezone.now().date(),
         status__in=['Pending', 'Confirmed']
-    ).exists()
+    ).values_list('booking_time', flat=True)
+
+    # Convert time objects to string format before JSON serialization
+    existing_booking_times = [booking_time.strftime('%H:%M') for booking_time in existing_bookings]
 
     if request.method == 'POST':
         form = BookingForm(request.POST, specialized_employees=specialized_employees)
@@ -422,62 +446,30 @@ def booking_service(request, service_id):
             booking.client = client
             booking.service = service
             
-            # Check if the selected time is valid (not in the past)
-            now = timezone.now()
-            selected_datetime = timezone.make_aware(timezone.datetime.combine(booking.booking_date, booking.booking_time))
-            if selected_datetime <= now:
-                form.add_error('booking_time', 'Please select a future time.')
-                messages.error(request, "Please select a future time.")
-            else:
-                try:
-                    booking.full_clean()
-                except ValidationError as e:
-                    form.add_error(None, e)
-                else:
-                    # Check if the selected time slot is available for the chosen employee
-                    existing_bookings = Booking.objects.filter(
-                        staff=booking.staff,
-                        booking_date=booking.booking_date,
-                        booking_time=booking.booking_time,
-                        status__in=['Pending', 'Confirmed']
-                    )
-                    
-                    if existing_bookings.exists():
-                        messages.error(request, "This time slot is already booked for the selected employee. Please choose another time or employee.")
-                    else:
-                        # Set the total cost based on the service rate
-                        booking.total_cost = service.rate  # Assuming the service has a rate field
-                        
-                        if existing_client_booking:
-                            # If rebooking is confirmed
-                            if request.POST.get('confirm_rebooking') == 'yes':
-                                booking.save()
-                                messages.success(request, "Your booking has been confirmed!")
-                                return redirect('billing', booking_id=booking.id)  # Redirect to billing
-                            else:
-                                # Show rebooking confirmation
-                                context = {
-                                    'service': service,
-                                    'form': form,
-                                    'existing_booking': existing_client_booking,
-                                    'show_rebooking_confirmation': True
-                                }
-                                return render(request, 'client/booking_service.html', context)
-                        else:
-                            booking.save()
-                            messages.success(request, "Your booking has been confirmed!")
-                            return redirect('billing', booking_id=booking.id)  # Redirect to billing
+            try:
+                booking.save()
+                messages.success(request, "Your booking has been confirmed!")
+                return redirect('billing', booking_id=booking.id)
+            except Exception as e:
+                messages.error(request, f"Error creating booking: {str(e)}")
         else:
-            messages.error(request, "Please correct the errors below.")
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f"{error}")
     else:
         form = BookingForm(specialized_employees=specialized_employees)
+
+    # Convert existing bookings to JSON for JavaScript
+    existing_booking_json = json.dumps(existing_booking_times)
 
     context = {
         'service': service,
         'form': form,
-        'existing_booking': existing_client_booking,
-        'current_time': timezone.now(),  # Pass current time to the template
+        'existing_booking': existing_booking_json,
+        'current_time': timezone.now().strftime('%H:%M'),
+        'discount_percentage': discount_percentage,
     }
+
     return render(request, 'client/booking_service.html', context)
 
 # The booking_confirmation view remains unchanged
@@ -1206,6 +1198,14 @@ def send_bill(request, booking_id):
     # Set the amount to be billed
     amount = booking.service.rate  # Assuming the rate is the amount to be billed
 
+    # Calculate the discounted price
+    if service.discounted_price:  # Check if discounted_price method exists
+        discount_amount = amount - service.discounted_price()  # Call the method here
+        discounted_price = service.discounted_price()  # Get the discounted price
+    else:
+        discount_amount = 0  # No discount
+        discounted_price = 0  # Set discounted price to 0 if no discount
+
     if request.method == 'POST':
         # Create a new Payment record
         Payment.objects.create(
@@ -1225,6 +1225,8 @@ def send_bill(request, booking_id):
         'employee': employee,
         'service': service,
         'amount': amount,
+        'discount_amount': discount_amount,
+        'discounted_price': discounted_price,  # Include discounted price in context
         'booking_id': booking_id,
     }
     return render(request, 'emp/sendbill.html', context)
@@ -1384,13 +1386,13 @@ def makeup_services(request):
     make_up_subcategories = ServiceSubcategory.objects.filter(category__name='Makeup')
     
     # Handle search
-    query = request.GET.get('query', '')
-    if query:
+    search_query = request.GET.get('query', '')
+    if search_query:
         services = Service.objects.filter(
-            Q(service_name__icontains=query) |
-            Q(description__icontains=query) |
-            Q(subcategory__name__icontains=query) |
-            Q(subcategory__category__name__icontains=query),
+            Q(service_name__icontains=search_query) |
+            Q(description__icontains=search_query) |
+            Q(subcategory__name__icontains=search_query) |
+            Q(subcategory__category__name__icontains=search_query),
             subcategory__category__name='Makeup'  # Ensure we're only searching within makeup services
         ).distinct()
     else:
@@ -1400,7 +1402,7 @@ def makeup_services(request):
         'make_up_subcategories': make_up_subcategories,
         'client': client,
         'services': services,
-        'query': query,
+        'query': search_query,
     }
     
     return render(request, 'client/makeup_services.html', context)
@@ -1439,11 +1441,6 @@ def for_women_services(request):
         'selected_category': selected_category_id,
         'selected_subcategory': selected_subcategory_id,
     }
-
-    # Add debug information to verify data is being passed correctly
-    print(f"Number of categories: {categories.count()}")
-    print(f"Number of subcategories: {subcategories.count()}")
-    print(f"Number of services: {services.count()}")
 
     return render(request, 'forwomen_services.html', context)
 ##################################################################################
@@ -1486,7 +1483,11 @@ def manage_men_category(request):
         return redirect('manage_men_category')  # Redirect to the same page after saving
 
     categories = ServiceCategoryMen.objects.all()  # Fetch all male categories
-    return render(request, 'admin/mens_category.html', {'categories': categories})
+    subcategories = ServiceSubcategoryMen.objects.all()  # Fetch all male subcategories
+    return render(request, 'admin/mens_category.html', {
+        'categories': categories,
+        'subcategories': subcategories  # Add subcategories to the context
+    })
 
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
@@ -1570,6 +1571,8 @@ def edit_men_subcategory(request, subcategory_id):
         'subcategory': subcategory,
         'categories': categories
     })
+
+
 
 def delete_men_subcategory(request, subcategory_id):
     subcategory = get_object_or_404(ServiceSubcategoryMen, id=subcategory_id)
@@ -1772,23 +1775,31 @@ from django.shortcuts import render
 from .models import ServiceCategory, ServiceSubcategory, Service  # Import your models
 
 def client_women_services(request):
-    user_id = request.session.get('user_id')  # Adjust this if needed based on how you store the session
+    user_id = request.session.get('user_id')
     if not user_id:
-        messages.error(request, "You want to loggin to access dashboard.")
+        messages.error(request, "You want to log in to access the dashboard.")
         return redirect('login')
+    
     client = Client.objects.get(id=user_id)
-    # Fetch all categories    
     categories = ServiceCategory.objects.all()
-    
-    # Fetch all subcategories with their related categories
     subcategories = ServiceSubcategory.objects.select_related('category').all()
-    
-    # Fetch all services with their related subcategories
     services = Service.objects.select_related('subcategory').all()
 
-    # Get the selected category and subcategory IDs from the request
     selected_category_id = request.GET.get('category')
     selected_subcategory_id = request.GET.get('subcategory')
+
+    # Handle search query
+    search_query = request.GET.get('search', '')
+    if search_query:
+        services = services.filter(
+            Q(service_name__icontains=search_query) |
+            Q(subcategory__name__icontains=search_query) |
+            Q(subcategory__category__name__icontains=search_query)
+        ).distinct()  # Use distinct to avoid duplicates
+
+        # Debugging: Print the search query and the number of services found
+        print(f"Search Query: {search_query}")
+        print(f"Number of Services Found: {services.count()}")
 
     # Filter subcategories if category is selected
     if selected_category_id:
@@ -1804,6 +1815,7 @@ def client_women_services(request):
         'services': services,
         'selected_category': selected_category_id,
         'selected_subcategory': selected_subcategory_id,
+        'search_query': search_query,
     }
 
     return render(request, 'client_women_services.html', context)
@@ -1894,8 +1906,12 @@ from django.utils import timezone
 from django.core.exceptions import ValidationError
 
 def add_offer(request):
+    selected_category_id = request.POST.get('category') if request.method == 'POST' else None
+    selected_subcategory_id = request.POST.get('subcategory') if request.method == 'POST' else None
+    selected_service_id = request.POST.get('service') if request.method == 'POST' else None
+    services = []
+
     if request.method == 'POST':
-        service_id = request.POST.get('service')
         title = request.POST.get('title')
         description = request.POST.get('description')
         discount_percentage = request.POST.get('discount_percentage')
@@ -1903,25 +1919,158 @@ def add_offer(request):
         end_date = request.POST.get('end_date')
         is_active = request.POST.get('is_active') == 'on'
 
-        service = get_object_or_404(Service, id=service_id)
-        try:
-            offer = Offer(
-                service=service,
-                title=title,
-                description=description,
-                discount_percentage=discount_percentage,
-                start_date=start_date,
-                end_date=end_date,
-                is_active=is_active
-            )
-            offer.full_clean()
-            offer.save()
+        if 'apply_category' in request.POST:
+            # Apply offer to all services in the selected category
+            services = Service.objects.filter(subcategory__category_id=selected_category_id)
+            for service in services:
+                try:
+                    offer = Offer(
+                        service=service,
+                        title=title,
+                        description=description,
+                        discount_percentage=discount_percentage,
+                        start_date=start_date,
+                        end_date=end_date,
+                        is_active=is_active
+                    )
+                    offer.full_clean()
+                    offer.save()
+                except ValidationError as e:
+                    # Handle validation errors if needed
+                    continue
             return redirect('offer_list')
-        except ValidationError as e:
-            return render(request, 'offers/add_offer.html', {'errors': e.messages, 'services': Service.objects.all()})
 
-    return render(request, 'add_offer.html', {'services': Service.objects.all()})
+        if 'apply_subcategory' in request.POST:
+            # Apply offer to all services in the selected subcategory
+            services = Service.objects.filter(subcategory_id=selected_subcategory_id)
+            for service in services:
+                try:
+                    offer = Offer(
+                        service=service,
+                        title=title,
+                        description=description,
+                        discount_percentage=discount_percentage,
+                        start_date=start_date,
+                        end_date=end_date,
+                        is_active=is_active
+                    )
+                    offer.full_clean()
+                    offer.save()
+                except ValidationError as e:
+                    # Handle validation errors if needed
+                    continue
+            return redirect('offer_list')
+
+        if selected_service_id:
+            service = get_object_or_404(Service, id=selected_service_id)
+            try:
+                offer = Offer(
+                    service=service,
+                    title=title,
+                    description=description,
+                    discount_percentage=discount_percentage,
+                    start_date=start_date,
+                    end_date=end_date,
+                    is_active=is_active
+                )
+                offer.full_clean()
+                offer.save()
+                return redirect('offer_list')
+            except ValidationError as e:
+                return render(request, 'add_offer.html', {'errors': e.messages})
+
+    # Fetch categories, subcategories, and services based on selections
+    categories = ServiceCategory.objects.all()
+    subcategories = ServiceSubcategory.objects.filter(category_id=selected_category_id) if selected_category_id else []
+    services = Service.objects.filter(subcategory_id=selected_subcategory_id) if selected_subcategory_id else []
+
+    return render(request, 'add_offer.html', {
+        'categories': categories,
+        'subcategories': subcategories,
+        'services': services,
+        'selected_category_id': selected_category_id,
+        'selected_subcategory_id': selected_subcategory_id,
+        'selected_service_id': selected_service_id,
+    })
 
 def offer_list(request):
     offers = Offer.objects.all()
     return render(request, 'offer_list.html', {'offers': offers})
+
+from django.shortcuts import render, get_object_or_404, redirect
+from django.http import JsonResponse
+from .models import Offer  # Assuming you have an Offer model
+from django.views.decorators.csrf import csrf_exempt
+
+
+from django.shortcuts import render, get_object_or_404
+from django.http import JsonResponse
+from .models import Offer  # Assuming you have an Offer model
+from django.views.decorators.csrf import csrf_exempt
+
+@csrf_exempt
+def edit_offer(request, offer_id):
+    offer = get_object_or_404(Offer, id=offer_id)
+    
+    if request.method == 'POST':
+        # Update the offer with the data from the request
+        offer.title = request.POST.get('title')
+        offer.description = request.POST.get('description')
+        offer.discount_percentage = request.POST.get('discount_percentage')
+        offer.start_date = request.POST.get('start_date')
+        offer.end_date = request.POST.get('end_date')
+        offer.is_active = request.POST.get('is_active') == 'True'
+        offer.save()
+        
+        # Return a JSON response with the updated offer data
+        return JsonResponse({
+            'id': offer.id,
+            'title': offer.title,
+            'description': offer.description,
+            'discount_percentage': offer.discount_percentage,
+            'start_date': offer.start_date,
+            'end_date': offer.end_date,
+            'is_active': offer.is_active
+        })
+    
+    # Handle GET request to return the current offer data
+    return JsonResponse({
+        'id': offer.id,
+        'title': offer.title,
+        'description': offer.description,
+        'discount_percentage': offer.discount_percentage,
+        'start_date': offer.start_date,
+        'end_date': offer.end_date,
+        'is_active': offer.is_active
+    })
+@csrf_exempt
+def delete_offer(request, offer_id):
+    offer = get_object_or_404(Offer, id=offer_id)
+    if request.method == 'DELETE':
+        offer.delete()
+        return JsonResponse({'success': True})
+
+from django.shortcuts import render, redirect
+from .models import Offer
+
+def delete_all_offers(request):
+    if request.method == 'POST':
+        Offer.objects.all().delete()  # Delete all offers
+        return redirect('offer_list')  # Redirect to the offer list after deletion
+
+from django.db.models import Q
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
+def search_services_men(request):
+    query = request.GET.get('query', '')
+    services = ServiceMen.objects.filter(
+        Q(service_name__icontains=query) |
+        Q(description__icontains=query) |
+        Q(subcategory__name__icontains=query) |
+        Q(subcategory__category__name__icontains=query)
+    ).distinct()
+
+    context = {
+        'services': services,
+        'query': query,
+    }
+    return render(request, 'search_results_men.html', context)

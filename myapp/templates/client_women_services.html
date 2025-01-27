@@ -334,37 +334,15 @@
                 <!-- Existing content goes here -->
                 <div class="container">
                     <h1>All Services for Women</h1>
-                   
 
-                    <script>
-                        function toggleSubcategories(category) {
-                            // Hide all subcategory divs
-                            const subcategoryDivs = document.querySelectorAll('.subcategory-div');
-                            const serviceDivs = document.querySelectorAll('.service-div');
-                            subcategoryDivs.forEach(div => div.style.display = 'none');
-                            serviceDivs.forEach(div => div.style.display = 'none');
-                    
-                            // Show the selected category's subcategory div
-                            const selectedDiv = document.getElementById(`subcategories-${category}`);
-                            if (selectedDiv) {
-                                selectedDiv.style.display = 'block';
-                            }
-                        }
-                    
-                        function toggleServices(subcategoryId) {
-                            // Hide all subcategory and service divs
-                            const subcategoryDivs = document.querySelectorAll('.subcategory-div');
-                            const serviceDivs = document.querySelectorAll('.service-div');
-                            subcategoryDivs.forEach(div => div.style.display = 'none');
-                            serviceDivs.forEach(div => div.style.display = 'none');
-                    
-                            // Show the selected subcategory's service div
-                            const selectedDiv = document.getElementById(`services-${subcategoryId}`);
-                            if (selectedDiv) {
-                                selectedDiv.style.display = 'block';
-                            }
-                        }
-                    </script>
+                    <!-- Search Box -->
+                    <div class="mb-4">
+                        <h5>Search Services:</h5>
+                        <form method="GET" action="{% url 'search_services' %}">
+                            <input type="text" name="query" placeholder="Search for services..." class="form-control" />
+                            <button type="submit" class="btn btn-secondary mt-2">Search</button>
+                        </form>
+                    </div>
                     
                     <!-- Category Buttons -->
                     <div class="mb-4">
@@ -434,7 +412,7 @@
                                                                 <p class="card-text"><strong>Discount:</strong> <span class="discount-percentage">{{ service.active_offers.first.discount_percentage }}%</span></p>
                                                             </div>
                                                         {% endif %}
-                                                        <a href="{% url 'booking_service' service.id %}" class="btn btn-primary">Book Now!</a>
+                                                        <a href="{% url 'booking_service' service.id %}" class="btn btn-secondary">Book Now!</a>
                                                     </div>
                                                 </div>
                                             </div>

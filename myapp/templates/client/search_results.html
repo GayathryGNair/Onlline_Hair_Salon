@@ -9,11 +9,11 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
         :root {
-            --primary-color: #FF69B4;
-            --secondary-color: #FFB6C1;
-            --accent-color: #FF1493;
+            --primary-color: #FF69B4;    /* Hot Pink */
+            --secondary-color: #FFB6C1;  /* Light Pink */
+            --accent-color: #FF1493;     /* Deep Pink */
             --text-color: #333;
-            --bg-color: #FFF0F5;
+            --bg-color: #FFF0F5;         /* Lavender Blush */
             --card-bg: #ffffff;
         }
         body {
@@ -47,8 +47,18 @@
         .sidebar .nav-link.active {
             background-color: rgba(255,255,255,0.2);
         }
+         /* Sidebar Styles */
+         .sidebar {
+            position: fixed; /* Make the sidebar fixed */
+            height: 100vh; /* Full height of the viewport */
+            background: linear-gradient(135deg, #FF69B4, #FFB6C1);
+            color: white;
+            padding-top: 20px;
+        }
+
+        /* Adjust main content to account for fixed sidebar */
         .main-content {
-            padding: 20px;
+            margin-left: 250px; /* Adjust margin to prevent overlap with sidebar */
         }
         .header {
             background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
@@ -58,6 +68,23 @@
             margin-bottom: 1rem;
             border-radius: 10px;
         }
+        .profile-dropdown .dropdown-toggle::after {
+            display: none;
+        }
+
+        .logo-container {
+            text-align: center;
+            padding: 20px 0;
+        }
+
+        .logo {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
         .header h1 {
             margin: 0;
             font-size: 1.5rem;
@@ -66,7 +93,9 @@
             border: none;
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
             transition: all 0.3s;
-            margin-bottom: 20px;
+            background-color: var(--card-bg);
+            border-radius: 15px;
+            overflow: hidden;
         }
         .card:hover {
             transform: translateY(-5px);
@@ -74,11 +103,29 @@
         }
         .btn-primary {
             background-color: var(--primary-color);
-            border-color: var(--primary-color);
+            border: none;
+            border-radius: 20px;
+            padding: 10px 20px;
+            transition: all 0.3s;
         }
         .btn-primary:hover {
             background-color: var(--accent-color);
-            border-color: var(--accent-color);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .card-img-container {
+            position: relative;
+            width: 100%;
+            height: 300px;
+            overflow: hidden;
+            border-top-left-radius: 10px;
+            border-top-right-radius: 10px;
+        }
+        .card-img-top {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center;
         }
     </style>
 </head>
@@ -88,6 +135,10 @@
             <!-- Sidebar -->
             <nav id="sidebar" class="col-md-3 col-lg-2 d-md-block sidebar collapse">
                 <div class="position-sticky sidebar-sticky">
+                    <h2 class="text-center mb-4">GlamourQuest</h2>
+                    <div class="logo-container">
+                        <img src="{% static 'images/logo.png' %}" alt="GlamourQuest Logo" class="logo">
+                    </div>
                     <ul class="nav flex-column">
                         <li class="nav-item">
                             <a class="nav-link" href="{% url 'client_dashboard' %}">
@@ -100,42 +151,67 @@
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="{% url 'client_services' %}">
+                            <a class="nav-link" href="{% url 'client_current_bookings' %}">
+                                <i class="fas fa-calendar-alt me-2"></i> Appointments
+                            </a>
+                        </li>   
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'view_payments' %}">
+                                <i class="fas fa-money-bill"></i> Payments
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'client_bookings' %}">
+                                <i class="fas fa-concierge-bell me-2"></i> Feedback
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link active" href="{% url 'client_services' %}">
                                 <i class="fas fa-concierge-bell me-2"></i> Services
                             </a>
                         </li>
-                        <!-- Add other sidebar items as needed -->
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'service_history' %}">
+                                <i class="fas fa-history me-2"></i> Service History
+                            </a>
+                        </li>
                     </ul>
                 </div>
             </nav>
 
-            <!-- Main content -->
-            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
-                <!-- Header -->
+             <!-- Main content -->
+             <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
                 <header class="header d-flex justify-content-between align-items-center mb-4">
-                    <h1 class="h3 mb-0">Search Results for "{{ query }}"</h1>
+                    <h1 class="h3 mb-0">Search Results</h1>
                 </header>
 
-                <!-- Search Results -->
-                <div class="row">
+                <div class="container">
                     {% if services %}
-                        {% for service in services %}
-                            <div class="col-md-4 mb-4">
-                                <div class="card">
-                                    <div class="card-body">
-                                        <h5 class="card-title">{{ service.service_name }}</h5>
-                                        <p class="card-text">{{ service.description|truncatewords:20 }}</p>
-                                        <p class="card-text"><small class="text-muted">Category: {{ service.subcategory.category.name }} - {{ service.subcategory.name }}</small></p>
-                                        <a href="{% url 'booking_service' service.id %}" class="btn btn-primary">Book Now</a>
+                        <h5>Results for: "{{ query }}"</h5>
+                        <div class="row">
+                            {% for service in services %}
+                                <div class="col-md-4 mb-4">
+                                    <div class="card">
+                                        <div class="card-img-container">
+                                            <img src="{{ service.image.url }}" class="card-img-top" alt="{{ service.service_name }}">
+                                        </div>
+                                        <div class="card-body">
+                                            <h5 class="card-title">{{ service.service_name }}</h5>
+                                            <p class="card-text">{{ service.description }}</p>
+                                            <p class="card-text">
+                                                <strong>Price:</strong> ${{ service.rate }}
+                                            </p>
+                                            <a href="{% url 'booking_service' service.id %}" class="btn btn-primary">Book Now!</a>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        {% endfor %}
-                    {% else %}
-                        <div class="col-12">
-                            <p>No services found matching your search.</p>
+                            {% endfor %}
                         </div>
+                    {% else %}
+                        <h5>No results found for "{{ query }}". Please try a different search.</h5>
                     {% endif %}
+                    
+                    <a href="{% url 'client_women_services' %}" class="btn btn-primary mt-4">Back to Services</a>
                 </div>
             </main>
         </div>

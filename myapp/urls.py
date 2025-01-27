@@ -23,6 +23,9 @@ from .views import (
     delete_men_service,
     # other views...
 )
+from .views import delete_all_offers
+from .views import search_services
+from .views import search_services_men
 
 
 
@@ -78,6 +81,7 @@ urlpatterns = [
     path('service/<int:service_id>/', service_detail, name='service_detail'),
     path('category/', views.category, name='category'),
     path('search/', views.search_services, name='search_services'),
+    path('search_men/', views.search_services_men, name='search_services_men'),
 
     path('booking/<int:service_id>/', views.booking_service, name='booking_service'),
     path('booking-confirmation/<int:booking_id>/', views.booking_confirmation, name='booking_confirmation'),
@@ -157,6 +161,10 @@ urlpatterns = [
 
     path('offers/add/', views.add_offer, name='add_offer'),
     path('offers/', views.offer_list, name='offer_list'),
+    path('offers/<int:offer_id>/edit/', views.edit_offer, name='edit_offer'),
+    path('offers/<int:offer_id>/delete/', views.delete_offer, name='delete_offer'),
+    path('offers/delete_all/', delete_all_offers, name='delete_all_offers'),
+
 ]
 
    

@@ -16,24 +16,35 @@
             --bg-color: #FFF0F5;         /* Lavender Blush */
             --card-bg: #ffffff;
         }
+        html {
+            height: 100%;
+            overflow: hidden;
+        }
+        
         body {
+            height: 100%;
+            overflow: hidden;
             font-family: 'Poppins', sans-serif;
             background-color: var(--bg-color);
             color: var(--text-color);
         }
+        .container-fluid {
+            height: 100%;
+            overflow: hidden;
+        }
         .sidebar {
+            position: fixed;
             height: 100vh;
+            width: 250px;
             background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
             color: white;
             padding-top: 20px;
-            position: fixed;  /* Make sidebar fixed */
-            width: inherit;   /* Maintain width based on col-md-3/col-lg-2 */
-            z-index: 100;     /* Ensure sidebar stays on top */
-            overflow-y: auto; /* Allow scrolling if content is too long */
+            overflow-y: auto;
+            z-index: 100;
         }
         .sidebar-sticky {
-            position: relative;  /* Change from sticky to relative */
-            height: auto;       /* Allow content to determine height */
+            position: relative;
+            height: auto;
             padding-top: .5rem;
             overflow-x: hidden;
             overflow-y: visible;
@@ -50,7 +61,10 @@
         .sidebar .nav-link.active {
             background-color: rgba(255,255,255,0.2);
         }
-        .main-content {
+        .col-md-9.ms-sm-auto.col-lg-10 {
+            margin-left: 250px;
+            height: 100vh;
+            overflow-y: auto;
             padding: 20px;
         }
         .header {
@@ -106,6 +120,20 @@
         object-fit: cover;  /* Ensure the image covers the area without stretching */
         border: 3px solid white;  /* Add a white border */
         box-shadow: 0 2px 4px rgba(0,0,0,0.1);  /* Add a subtle shadow */
+    }
+    @media (max-width: 768px) {
+        .sidebar {
+            transform: translateX(-100%);
+        }
+
+        .col-md-9.ms-sm-auto.col-lg-10 {
+            margin-left: 0;
+            width: 100%;
+        }
+
+        .sidebar.show {
+            transform: translateX(0);
+        }
     }
     </style>
 </head>

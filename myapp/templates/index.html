@@ -16,12 +16,28 @@
             --text-color: #333;
             --bg-color: #FFF0F5;
         }
+        html {
+            scroll-behavior: smooth;
+            overflow-y: scroll; /* Always show scrollbar to prevent layout shift */
+        }
         body {
             font-family: 'Poppins', sans-serif;
             background-color: var(--bg-color);
             color: var(--text-color);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            overflow-x: hidden; /* Prevent horizontal scroll */
         }
         .navbar {
+            position: fixed; /* Change from relative to fixed */
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
             background-color: var(--primary-color);
             padding: 1rem 0;
         }
@@ -56,7 +72,8 @@
             object-fit: cover;
         }
         .hero {
-            height: 100vh;
+            padding-top: 0; /* Remove extra padding since main has padding */
+            height: calc(100vh - 80px); /* Adjust height to account for navbar */
             position: relative;
             overflow: hidden;
             background-color: #f8f9fa;
@@ -301,8 +318,33 @@
             padding-top: 0;
             padding-bottom: 30px;
         }
+        .whatsapp-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 50px; /* Width of the icon */
+            height: 50px; /* Height of the icon */
+            background-color: #25D366; /* WhatsApp green */
+            border-radius: 50%; /* Circular shape */
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2); /* Shadow for depth */
+            transition: background-color 0.3s; /* Smooth background change */
+            text-decoration: none; /* Remove underline */
+        }
 
-  
+        .whatsapp-icon:hover {
+            background-color: #128C7E; /* Darker green on hover */
+        }
+
+        .whatsapp-icon i {
+            color: white; /* Icon color */
+            font-size: 42px; /* Icon size */
+        }
+
+        main {
+            padding-top: 80px; /* Add padding equal to navbar height */
+            flex: 1;
+            width: 100%;
+        }
     </style>
 </head>
 <body>
@@ -340,83 +382,88 @@
             </div>
         </div>
     </nav>
+    <div id="whatsapp-icon" class="whatsapp-icon" style="position: fixed; bottom: 130px; right: 20px; z-index: 1000;">
+        <a href="https://wa.me/9656734981" target="_blank" class="whatsapp-icon">
+            <i class="fab fa-whatsapp"></i>
+        </a>
+    </div>
 
-    <section class="hero">
-        <div class="hero-slider">
-            <div class="hero-slider-item active" style="background-image: url('{% static "images/hair-styling.jpg" %}');"></div>
-            <div class="hero-slider-item"style="background-image: url('{% static "images/oily-skin.jpg" %}');"></div>
-            <div class="hero-slider-item"style="background-image: url('{% static "images/pedicure.jpg" %}');"></div>
-            <div class="hero-slider-item"style="background-image: url('{% static "images/manicure.jpg" %}');"></div>
-            <div class="hero-slider-item"style="background-image: url('{% static "images/hair-spa.jpg" %}');"></div>
-            <div class="hero-slider-item"style="background-image: url('{% static "images/all-type.jpg" %}');"></div>
-            <div class="hero-slider-item"style="background-image: url('{% static "images/honey-waxing.jpg" %}');"></div>
-            <div class="hero-content">
-                <h1>Welcome to GlamourQuest</h1>
-                <p>Experience the ultimate in beauty and relaxation</p>
-                <a href="{% url 'services' %}" class="btn btn-primary">Explore Our Services</a>
+    <main>
+        <section class="hero">
+            <div class="hero-slider">
+                <div class="hero-slider-item active" style="background-image: url('{% static "images/hair-styling.jpg" %}');"></div>
+                <div class="hero-slider-item"style="background-image: url('{% static "images/oily-skin.jpg" %}');"></div>
+                <div class="hero-slider-item"style="background-image: url('{% static "images/pedicure.jpg" %}');"></div>
+                <div class="hero-slider-item"style="background-image: url('{% static "images/manicure.jpg" %}');"></div>
+                <div class="hero-slider-item"style="background-image: url('{% static "images/hair-spa.jpg" %}');"></div>
+                <div class="hero-slider-item"style="background-image: url('{% static "images/all-type.jpg" %}');"></div>
+                <div class="hero-slider-item"style="background-image: url('{% static "images/honey-waxing.jpg" %}');"></div>
+                <div class="hero-content">
+                    <h1>Welcome to GlamourQuest</h1>
+                    <p>Experience the ultimate in beauty and relaxation</p>
+                    <a href="{% url 'services' %}" class="btn btn-primary">Explore Our Services</a>
+                </div>
             </div>
-        </div>
-    </section>
+        </section>
 
-    <!-- Services Section -->
-    <section class="services-section mt-5"> 
-        <h2 class="text-center mb-4">Our Services</h2>
-        <div class="row">
-            <!-- For Women Services -->
-            <div class="col-md-6 mb-4">
-                <div class="service-card card h-100">
-                    <div class="card-img-container">
-                        <img src="{% static 'images/forwomen.jpg' %}" class="card-img-top" alt="Women Services">
-                        <div class="card-img-overlay d-flex align-items-end">
-                            <div class="overlay-content w-100 text-center p-3">
-                                <h3 class="card-title mb-3">For Women</h3>
-                                <a href="{% url 'forwomen_services' %}" class="btn btn-primary">Explore Services</a>
+        <!-- Services Section -->
+        <section class="services-section mt-5"> 
+            <h2 class="text-center mb-4">Our Services</h2>
+            <div class="row">
+                <!-- For Women Services -->
+                <div class="col-md-6 mb-4">
+                    <div class="service-card card h-100">
+                        <div class="card-img-container">
+                            <img src="{% static 'images/forwomen.jpg' %}" class="card-img-top" alt="Women Services">
+                            <div class="card-img-overlay d-flex align-items-end">
+                                <div class="overlay-content w-100 text-center p-3">
+                                    <h3 class="card-title mb-3">For Women</h3>
+                                    <a href="{% url 'forwomen_services' %}" class="btn btn-primary">Explore Services</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- For Men Services -->
+                <div class="col-md-6 mb-4">
+                    <div class="service-card card h-100">
+                        <div class="card-img-container">
+                            <img src="{% static 'images/formen.jpg' %}" class="card-img-top" alt="Men Services">
+                            <div class="card-img-overlay d-flex align-items-end">
+                                <div class="overlay-content w-100 text-center p-3">
+                                    <h3 class="card-title mb-3">For Men</h3>
+                                    <a href="{% url 'formen_services' %}" class="btn btn-primary">Explore Services</a>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-            
-            <!-- For Men Services -->
-            <div class="col-md-6 mb-4">
-                <div class="service-card card h-100">
-                    <div class="card-img-container">
-                        <img src="{% static 'images/formen.jpg' %}" class="card-img-top" alt="Men Services">
-                        <div class="card-img-overlay d-flex align-items-end">
-                            <div class="overlay-content w-100 text-center p-3">
-                                <h3 class="card-title mb-3">For Men</h3>
-                                <a href="{% url 'formen_services' %}" class="btn btn-primary">Explore Services</a>
-                            </div>
-                        </div>
+        </section>
+
+        <section class="features">
+            <div class="container">
+                <div class="row text-center">
+                    <div class="col-md-4 mb-4">
+                        <i class="fas fa-cut feature-icon"></i>
+                        <h3>Expert Stylists</h3>
+                        <p>Our team of professional stylists are here to make you look and feel amazing.</p>
+                    </div>
+                    <div class="col-md-4 mb-4">
+                        <i class="fas fa-spa feature-icon"></i>
+                        <h3>Relaxing Atmosphere</h3>
+                        <p>Enjoy a serene environment designed for your comfort and relaxation.</p>
+                    </div>
+                    <div class="col-md-4 mb-4">
+                        <i class="fas fa-gem feature-icon"></i>
+                        <h3>Premium Products</h3>
+                        <p>We use only the highest quality products to ensure the best results for you.</p>
                     </div>
                 </div>
             </div>
-        </div>
-    </section>
-
-    <section class="features">
-        <div class="container">
-            <div class="row text-center">
-                <div class="col-md-4 mb-4">
-                    <i class="fas fa-cut feature-icon"></i>
-                    <h3>Expert Stylists</h3>
-                    <p>Our team of professional stylists are here to make you look and feel amazing.</p>
-                </div>
-                <div class="col-md-4 mb-4">
-                    <i class="fas fa-spa feature-icon"></i>
-                    <h3>Relaxing Atmosphere</h3>
-                    <p>Enjoy a serene environment designed for your comfort and relaxation.</p>
-                </div>
-                <div class="col-md-4 mb-4">
-                    <i class="fas fa-gem feature-icon"></i>
-                    <h3>Premium Products</h3>
-                    <p>We use only the highest quality products to ensure the best results for you.</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    
+        </section>
+    </main>
 
     <footer class="text-center">
         <div class="container">
@@ -561,7 +608,6 @@
         }
     });
 </script>
-
 
 </body>
 </html>

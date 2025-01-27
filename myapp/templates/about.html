@@ -28,247 +28,141 @@
             --text-color: #333;
             --bg-color: #FFF0F5;
         }
-        /* Copy navbar styles from gallery.html */
+        
+        html {
+            scroll-behavior: smooth;
+            overflow-y: scroll;
+        }
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            overflow-x: hidden;
+        }
+        
         .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
             background-color: var(--primary-color);
             padding: 1rem 0;
         }
+        
         .navbar-brand, .nav-link {
             color: white !important;
             transition: color 0.3s ease;
         }
+        
         .nav-link {
             font-size: 1.1rem;
             font-weight: 500;
             padding: 0.5rem 1rem !important;
         }
+        
         .nav-link:hover {
             color: var(--secondary-color) !important;
         }
+        
+        .navbar-brand {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-right: 2rem;
+        }
+        
         .logo-wrapper {
-            width: 70px;
-            height: 70px;
+            width: 50px;
+            height: 50px;
             overflow: hidden;
             border-radius: 50%;
             border: 3px solid white;
             box-shadow: 0 0 10px rgba(0,0,0,0.1);
         }
+        
         .logo-img {
             width: 100%;
             height: 100%;
             object-fit: cover;
         }
 
-        /* Update about page specific styles */
-        .ftco-section {
-            background-color: white;
-            padding: 5rem 0;
-        }
-        .subheading {
-            color: var(--primary-color);
-        }
-        .btn-primary {
-            background-color: var(--primary-color);
-            border-color: var(--primary-color);
-        }
-        .btn-primary:hover {
-            background-color: var(--accent-color);
-            border-color: var(--accent-color);
-        }
-        .testimony-section {
-            background-color: var(--bg-color);
-        }
-        footer {
-            background-image: linear-gradient(to right, 
-                var(--secondary-color), /* Starting with lighter pink */
-                var(--primary-color)    /* Ending with medium pink */
-            );
-            color: var(--text-color);   /* Darker text for better contrast */
-            padding: 1.5rem 0;
-            text-align: center;
-            box-shadow: 0 -4px 10px rgba(255, 182, 193, 0.3); /* Lighter shadow */
+        main {
+            padding-top: 80px;
+            flex: 1;
+            width: 100%;
         }
 
+        footer {
+            background-image: linear-gradient(to right, var(--secondary-color), var(--primary-color));
+            color: var(--text-color);
+            padding: 1rem 0;
+            text-align: center;
+            box-shadow: 0 -4px 10px rgba(255, 182, 193, 0.3);
+        }
+        
         footer p {
             margin: 0;
             font-size: 1.1rem;
             letter-spacing: 1px;
-            text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.5); /* White text shadow */
+            text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.5);
         }
-
+        
         footer a {
-            color: var(--accent-color); /* Darker pink for links */
+            color: var(--accent-color);
             text-decoration: none;
             transition: color 0.3s ease;
             font-weight: 600;
         }
-
+        
         footer a:hover {
             color: var(--text-color);
-        }
-
-        /* Team section styling */
-        .ftco-team {
-            background-color: var(--bg-color);
-            padding: 5rem 0;
-        }
-        
-        .team .img {
-            border: 3px solid var(--primary-color);
-            transition: transform 0.3s ease;
-        }
-        
-        .team:hover .img {
-            transform: scale(1.05);
-        }
-        
-        .team h2 {
-            color: var(--accent-color);
-            margin-top: 1rem;
-        }
-        
-        .position {
-            color: var(--primary-color);
-        }
-        
-        /* Services section styling */
-        .services-wrap {
-            position: relative;
-            transition: transform 0.3s ease;
-        }
-        
-        .services-wrap:hover {
-            transform: translateY(-5px);
-        }
-        
-        .services-wrap .text {
-            background: rgba(255, 105, 180, 0.8);
-            padding: 2rem;
-        }
-        
-        .services-wrap h3 {
-            color: white;
-        }
-        
-        .btn-custom {
-            color: white;
-            border: 2px solid white;
-            padding: 0.5rem 1.5rem;
-            transition: all 0.3s ease;
-        }
-        
-        .btn-custom:hover {
-            background: white;
-            color: var(--primary-color);
-            text-decoration: none;
-        }
-        
-        /* Testimony section styling */
-        .testimony-section {
-            background-color: var(--bg-color) !important;
-        }
-        
-        .testimony-wrap {
-            background: white;
-            border-radius: 10px;
-            padding: 2rem;
-            box-shadow: 0 5px 15px rgba(255, 105, 180, 0.1);
-        }
-        
-        .testimony-wrap .text p {
-            color: var(--text-color);
-        }
-        
-        .user-img {
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            border: 3px solid var(--primary-color);
-        }
-        
-        .pos .name {
-            color: var(--accent-color);
-            margin-bottom: 0;
-        }
-        
-        .pos .position {
-            color: var(--primary-color);
-        }
-        
-        /* Text styling */
-        .subheading {
-            color: var(--primary-color);
-            font-weight: 600;
-            letter-spacing: 1px;
-        }
-        
-        .heading-section h2 {
-            color: var(--accent-color);
-        }
-        
-        /* Button styling */
-        .btn-outline-primary {
-            color: var(--primary-color);
-            border-color: var(--primary-color);
-        }
-        
-        .btn-outline-primary:hover {
-            background-color: var(--primary-color);
-            border-color: var(--primary-color);
-            color: white;
-        }
-        
-        /* Welcome section styling */
-        .text-about {
-            background-color: white;
-        }
-        
-        .text-about h1 a {
-            color: var(--primary-color);
-        }
-        
-        .text-about h2 {
-            color: var(--accent-color);
         }
     </style>
   </head>
   <body>
     <nav class="navbar navbar-expand-lg navbar-dark">
-        <div class="container">
-            <a class="navbar-brand d-flex align-items-center" href="{% url 'index' %}">
-                <div class="logo-wrapper">
-                    <img src="{% static 'images/logo.png' %}" alt="GlamourQuest Icon" class="logo-img">
-                </div>
-                <span class="ms-3">GlamourQuest</span>
-            </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#ftco-nav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
+      <div class="container">
+          <a class="navbar-brand d-flex align-items-center" href="{% url 'index' %}">
+              <div class="logo-wrapper">
+                  <img src="{% static 'images/logo.png' %}" alt="GlamourQuest Icon" class="logo-img">
+              </div>
+              <span class="ms-3">GlamourQuest</span>
+          </a>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#ftco-nav" aria-controls="ftco-nav" aria-expanded="false" aria-label="Toggle navigation">
+              <span class="navbar-toggler-icon"></span>
+          </button>
 
-            <div class="collapse navbar-collapse" id="ftco-nav">
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item"><a href="{% url 'index' %}" class="nav-link">Home</a></li>
-                    <li class="nav-item"><a href="{% url 'services' %}" class="nav-link">Services</a></li>
-                    <li class="nav-item"><a href="{% url 'gallery' %}" class="nav-link">Gallery</a></li>
-                    <li class="nav-item active"><a href="{% url 'about' %}" class="nav-link">About</a></li>
-                    <li class="nav-item"><a href="{% url 'blog' %}" class="nav-link">Blog</a></li>
-                    <li class="nav-item"><a href="{% url 'contact' %}" class="nav-link">Contact</a></li>
-                    <li class="nav-item"><a href="{% url 'login' %}" class="nav-link">Login</a></li>
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="signupDropdown" role="button" data-bs-toggle="dropdown">
-                            Sign Up
-                        </a>
-                        <ul class="dropdown-menu" aria-labelledby="signupDropdown">
-                            <li><a class="dropdown-item" href="{% url 'register' %}">Sign Up as Client</a></li>
-                            <li><a class="dropdown-item" href="{% url 'employee_registeration' %}">Sign Up as Employee</a></li>
-                        </ul>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </nav>
-
-    <section class="ftco-section ftco-no-pb ftco-no-pt">
+          <div class="collapse navbar-collapse" id="ftco-nav">
+              <ul class="navbar-nav ms-auto">
+                  <li class="nav-item active"><a href="{% url 'index' %}" class="nav-link">Home</a></li>
+                  <li class="nav-item"><a href="{% url 'services' %}" class="nav-link">Services</a></li>
+                  <li class="nav-item"><a href="{% url 'gallery' %}" class="nav-link">Gallery</a></li>
+                  <li class="nav-item"><a href="{% url 'about' %}" class="nav-link">About</a></li>
+                  <li class="nav-item"><a href="{% url 'blog' %}" class="nav-link">Blog</a></li>
+                  <li class="nav-item"><a href="{% url 'contact' %}" class="nav-link">Contact</a></li>
+                  <li class="nav-item"><a href="{% url 'login' %}" class="nav-link">Login</a></li>
+                  <li class="nav-item dropdown">
+                      <a class="nav-link dropdown-toggle" href="#" id="signupDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                          Sign Up
+                      </a>
+                      <ul class="dropdown-menu" aria-labelledby="signupDropdown">
+                          <li><a class="dropdown-item" href="{% url 'register' %}">Sign Up as Client</a></li>
+                          <li><a class="dropdown-item" href="{% url 'employee_registeration' %}">Sign Up as Employee</a></li>
+                      </ul>
+                  </li>
+              </ul>
+          </div>
+      </div>
+  </nav>
+    <main>
+        <section class="ftco-section ftco-no-pb ftco-no-pt">
 			<div class="container">
 				<div class="row">
 					<div class="col-md-6 d-flex">
@@ -473,6 +367,7 @@
         </div>
       </div>
     </section>
+    </main>
 
     <footer class="text-center">
         <div class="container">

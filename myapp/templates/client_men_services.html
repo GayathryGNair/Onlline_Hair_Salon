@@ -307,6 +307,14 @@
                 <div class="container">
                     <h1>All Services for Men</h1>
 
+                    <!-- Search Box -->
+                    <div class="mb-4">
+                        <h5>Search Services:</h5>
+                        <form method="GET" action="{% url 'search_services_men' %}">
+                            <input type="text" name="query" placeholder="Search for services..." class="form-control" />
+                            <button type="submit" class="btn btn-secondary mt-2">Search</button>
+                        </form>
+                    </div>
                     <!-- Category Buttons -->
                     <div class="mb-4">
                         <h5>Filter by Category:</h5>
@@ -318,7 +326,7 @@
                     </div>
                     
                     <!-- Subcategory Divs -->
-                    <div class="row">
+                    <div class="row" id="subcategoryContainer">
                         {% for category in categories_men %}
                             <div id="subcategories-{{ category.name }}" class="subcategory-div" style="display: none;">
                                 <h6>{{ category.name }} Subcategories:</h6>
@@ -326,7 +334,7 @@
                                     {% for subcategory in subcategories_men %}
                                         {% if subcategory.category.name == category.name %}
                                             <div class="col-md-4 mb-4">
-                                                <div class="card">
+                                                <div class="card service-card">
                                                     <div class="card-img-container">
                                                         <img src="{{ subcategory.image.url }}" class="card-img-top" alt="{{ subcategory.name }}">
                                                     </div>
@@ -346,7 +354,7 @@
                     </div>
                     
                     <!-- Services Divs -->
-                    <div class="row">
+                    <div class="row" id="servicesContainer">
                         {% for subcategory in subcategories_men %}
                             <div id="services-{{ subcategory.id }}" class="service-div" style="display: none;">
                                 <div class="mb-3">
@@ -359,7 +367,7 @@
                                 <div class="row">
                                     {% for service in services_men %}
                                         {% if service.subcategory.id == subcategory.id %}
-                                            <div class="col-md-4 mb-4">
+                                            <div class="col-md-4 mb-4 service-card">
                                                 <div class="card">
                                                     <div class="card-img-container">
                                                         <img src="{{ service.image.url }}" class="card-img-top" alt="{{ service.service_name }}">
@@ -368,7 +376,7 @@
                                                         <h5 class="card-title">{{ service.service_name }}</h5>
                                                         <p class="card-text">{{ service.description }}</p>
                                                         <p class="card-text"><strong>Price:</strong> ₹{{ service.rate }}</p>
-                                                        <a href="{% url 'book_service' service.id %}" class="btn btn-primary">Book Now!</a>
+                                                        <a href="{% url 'booking_service' service.id %}" class="btn btn-primary">Book Now!</a>
                                                     </div>
                                                 </div>
                                             </div>
@@ -384,5 +392,25 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function searchServices() {
+            const input = document.getElementById('searchInput').value.toLowerCase();
+            const serviceCards = document.querySelectorAll('.service-card');
+            let found = false;
+
+            serviceCards.forEach(card => {
+                const title = card.querySelector('.card-title').textContent.toLowerCase();
+                if (title.includes(input)) {
+                    card.style.display = 'block'; // Show the card if it matches
+                    found = true;
+                } else {
+                    card.style.display = 'none'; // Hide the card if it doesn't match
+                }
+            });
+
+            // Show or hide the no results message
+            document.getElementById('noResults').style.display = found ? 'none' : 'block';
+        }
+    </script>
 </body>
 </html>

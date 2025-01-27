@@ -47,9 +47,16 @@
         .sidebar .nav-link.active {
             background-color: rgba(255,255,255,0.2);
         }
-        .main-content {
-            padding: 20px;
-        }
+        .sidebar {
+        position: fixed; /* Make the sidebar fixed */
+        height: 100vh; /* Full height of the viewport */
+        width: 250px; /* Set a fixed width for the sidebar */
+        /* ... existing styles ... */
+    }
+    .main-content {
+        margin-left: 250px; /* Adjust main content margin to accommodate the sidebar */
+        padding: 20px;
+    }
         .header {
             background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
             color: white;
@@ -109,7 +116,7 @@
                     </div>
                     <ul class="nav flex-column">
                         <li class="nav-item">
-                            <a class="nav-link" href="{% url 'admin_dashboard' %}">
+                            <a class="nav-link active" href="{% url 'admin_dashboard' %}">
                                 <i class="fas fa-home me-2"></i> Dashboard
                             </a>
                         </li>
@@ -119,7 +126,7 @@
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="{% url 'manage_employee' %}">
+                            <a class="nav-link" href="{% url 'manage_employee' %}" id="manage_employee">
                                 <i class="fas fa-user-tie me-2"></i> Manage Employees
                             </a>
                         </li>
@@ -129,15 +136,35 @@
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link active" href="{% url 'manage_service' %}">
-                                <i class="fas fa-concierge-bell me-2"></i> Manage Services
+                            <a class="nav-link" href="{% url 'manage_service' %}" id="manage_service">
+                                <i class="fas fa-concierge-bell me-2"></i> Add Female Services
                             </a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" href="{% url 'category' %}">
-                                <i class="fas fa-tags me-2"></i> Manage Categories
+                                <i class="fas fa-tags me-2"></i> Add Female Categories
                             </a>
                         </li>
+                        <li class="nav-item"></li>
+                            <a class="nav-link" href="{% url 'manage_men_service' %}" >
+                                <i class="fas fa-concierge-bell me-2"></i> Add Male Services
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'manage_men_category' %}">
+                                <i class="fas fa-tags me-2"></i> Add Male Categories
+                            </a>
+                        </li>
+                        <li class="nav-item"></li>
+                            <a class="nav-link" href="{% url 'add_offer' %}">
+                                <i class="fas fa-gift me-2"></i> Add offers
+                            </a>
+                        </li>
+                        <li class="nav-item"></li>
+                        <a class="nav-link" href="{% url 'offer_list' %}">
+                            <i class="fas fa-gifts me-2"></i>list offers
+                        </a>
+                    </li>
                     </ul>
                 </div>
             </nav>

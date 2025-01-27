@@ -47,9 +47,16 @@
         .sidebar .nav-link.active {
             background-color: rgba(255,255,255,0.2);
         }
-        .main-content {
-            padding: 20px;
-        }
+        .sidebar {
+        position: fixed; /* Make the sidebar fixed */
+        height: 100vh; /* Full height of the viewport */
+        width: 250px; /* Set a fixed width for the sidebar */
+        /* ... existing styles ... */
+    }
+    .main-content {
+        margin-left: 250px; /* Adjust main content margin to accommodate the sidebar */
+        padding: 20px;
+    }
         .header {
             background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
             color: white;
@@ -161,6 +168,16 @@
                                 <i class="fas fa-tags me-2"></i> Add Male Categories
                             </a>
                         </li>
+                        <li class="nav-item"></li>
+                            <a class="nav-link" href="{% url 'add_offer' %}">
+                                <i class="fas fa-gift me-2"></i> Add offers
+                            </a>
+                        </li>
+                        <li class="nav-item"></li>
+                        <a class="nav-link" href="{% url 'offer_list' %}">
+                            <i class="fas fa-gifts me-2"></i>list offers
+                        </a>
+                    </li>
                     </ul>
                 </div>
             </nav>

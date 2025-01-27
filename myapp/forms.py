@@ -33,42 +33,61 @@ class ServiceForm(forms.ModelForm):
 from django import forms
 from .models import Booking, Employee
 from django.utils import timezone
+from datetime import datetime, timedelta
 
 class BookingForm(forms.ModelForm):
-    booking_time = forms.ChoiceField(choices=[(f"{hour:02d}:00", f"{hour:02d}:00") for hour in range(8, 20)])
-    staff = forms.ModelChoiceField(queryset=Employee.objects.none(), empty_label="Preference", required=False)
+    # Generate time slots from 8 AM to 8 PM with "Choose time" as first option
+    TIME_CHOICES = [('', 'Choose time')] + [(f"{hour:02d}:00", f"{hour:02d}:00") for hour in range(8, 21)]
+    
+    booking_time = forms.ChoiceField(
+        choices=TIME_CHOICES,
+        required=True,
+        widget=forms.Select(attrs={'class': 'form-control'})
+    )
+    staff = forms.ModelChoiceField(
+        queryset=Employee.objects.none(),
+        empty_label="Choose staff",
+        required=False,
+        widget=forms.Select(attrs={'class': 'form-control'})
+    )
 
     class Meta:
         model = Booking
         fields = ['booking_date', 'booking_time', 'staff', 'additional_notes']
         widgets = {
-            'booking_date': forms.DateInput(attrs={'type': 'date', 'min': timezone.now().date().strftime('%Y-%m-%d')}),
-            'additional_notes': forms.Textarea(attrs={'rows': 4}), 
+            'booking_date': forms.DateInput(
+                attrs={
+                    'type': 'date',
+                    'min': timezone.now().date().strftime('%Y-%m-%d'),
+                    'class': 'form-control'
+                }
+            ),
+            'additional_notes': forms.Textarea(
+                attrs={
+                    'rows': 4,
+                    'class': 'form-control',
+                    'placeholder': 'Any special requests or notes?'
+                }
+            ),
         }
 
     def __init__(self, *args, **kwargs):
         specialized_employees = kwargs.pop('specialized_employees', None)
         super().__init__(*args, **kwargs)
+        
         if specialized_employees:
             self.fields['staff'].queryset = specialized_employees
+        
+        self.fields['booking_date'].label = "Select Date"
+        self.fields['booking_time'].label = "Select Time"
+        self.fields['staff'].label = "Select Staff"
+        self.fields['additional_notes'].label = "Additional Notes"
+        
         self.fields['staff'].label_from_instance = self.label_from_instance
+        self.fields['booking_time'].widget.attrs.update({'class': 'form-control'})
 
     def label_from_instance(self, obj):
         return f"{obj.first_name} {obj.last_name}"
-
-    @staticmethod
-    def label_from_instance(obj):
-        return f"{obj.first_name} {obj.last_name}"
-
-    def clean_booking_date(self):
-        date = self.cleaned_data.get('booking_date')
-        if not date:
-            raise forms.ValidationError("Booking date is required.")
-        if date < timezone.now().date():
-            raise forms.ValidationError("Booking date cannot be in the past.")
-        if date.weekday() == 6:  # Sunday
-            raise forms.ValidationError("Bookings are not available on Sundays.")
-        return date
 
     def clean(self):
         cleaned_data = super().clean()
@@ -76,16 +95,27 @@ class BookingForm(forms.ModelForm):
         booking_time = cleaned_data.get('booking_time')
         staff = cleaned_data.get('staff')
 
-        if booking_date and booking_time and staff:
-            # Check if the employee is already booked for this time slot
-            existing_bookings = Booking.objects.filter(
-                staff=staff,
-                booking_date=booking_date,
-                booking_time=booking_time,
-                status__in=['Pending', 'Confirmed']
-            )
-            if existing_bookings.exists():
-                raise forms.ValidationError("This time slot is already booked for the selected employee. Please choose another time or employee.")
+        if booking_date and booking_time:
+            # Check if booking is in the past
+            now = timezone.now()
+            booking_datetime = datetime.combine(booking_date, datetime.strptime(booking_time, '%H:%M').time())
+            booking_datetime = timezone.make_aware(booking_datetime)
+
+            if booking_datetime <= now:
+                raise forms.ValidationError("Cannot book appointments in the past.")
+
+            # Check if the selected time slot is available
+            if staff:
+                existing_bookings = Booking.objects.filter(
+                    staff=staff,
+                    booking_date=booking_date,
+                    booking_time=booking_time,
+                    status__in=['Pending', 'Confirmed']
+                )
+                if existing_bookings.exists():
+                    raise forms.ValidationError(
+                        "This time slot is already booked for the selected employee. Please choose another time or employee."
+                    )
 
         return cleaned_data
 

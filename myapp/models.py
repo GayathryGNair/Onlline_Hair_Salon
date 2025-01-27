@@ -176,12 +176,16 @@ class Feedback(models.Model):
     def __str__(self):
         return f"Feedback for {self.booking}"
     
+from django.db import models
+from decimal import Decimal
+    
 class Payment(models.Model):
     booking = models.ForeignKey('Booking', on_delete=models.CASCADE, related_name='payments')
     client = models.ForeignKey(Client, on_delete=models.CASCADE, related_name='payments')  # Client reference
     employee = models.ForeignKey(Employee, on_delete=models.CASCADE, related_name='payments')  # Employee reference
     service = models.ForeignKey(Service, on_delete=models.CASCADE, related_name='payments')  # Service reference
     amount = models.DecimalField(max_digits=10, decimal_places=2)  # Amount paid
+    offer = models.ForeignKey('Offer', on_delete=models.SET_NULL, null=True, blank=True, related_name='payments') 
     payment_id = models.CharField(max_length=100)  # Payment ID from Razorpay
     order_id = models.CharField(max_length=100)  # Order ID from Razorpay
     status = models.CharField(max_length=20, choices=[
@@ -194,6 +198,12 @@ class Payment(models.Model):
     def __str__(self):
         return f"Payment for Booking {self.booking.id} - Amount: {self.amount} - Status: {self.status} - Client: {self.client} - Employee: {self.employee} - Service: {self.service}"
     
+def discounted_amount(self):
+        if self.offer:
+            discount = self.offer.discount_percentage
+            return self.amount * (1 - (discount / Decimal(100)))
+        return self.amount  # No discount applied
+
 #######Blog#######
 class BlogPost(models.Model):
     title = models.CharField(max_length=200)
@@ -210,6 +220,8 @@ class BlogPost(models.Model):
 
 class Offer(models.Model):
     service = models.ForeignKey(Service, related_name='offers', on_delete=models.CASCADE)
+    title = models.CharField(max_length=200)
+    description = models.TextField(default="No description available")
     discount_percentage = models.FloatField()
     start_date = models.DateField()
     end_date = models.DateField()

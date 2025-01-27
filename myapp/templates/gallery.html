@@ -16,15 +16,41 @@
             --text-color: #333;
             --bg-color: #FFF0F5;
         }
+
+        html {
+            scroll-behavior: smooth;
+            overflow-y: scroll; /* Always show scrollbar to prevent layout shift */
+        }
+
         body {
             font-family: 'Poppins', sans-serif;
             background-color: var(--bg-color);
             color: var(--text-color);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            overflow-x: hidden; /* Prevent horizontal scroll */
         }
+
         .navbar {
+            position: fixed; /* Change from relative to fixed */
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
             background-color: var(--primary-color);
             padding: 1rem 0;
         }
+
+        main {
+            padding-top: 80px; /* Add padding equal to navbar height */
+            flex: 1;
+            width: 100%;
+        }
+
         .navbar-brand, .nav-link {
             color: white !important;
             transition: color 0.3s ease;
@@ -64,7 +90,8 @@
             color: white;
         }
         .gallery-grid {
-            padding: 50px 0;
+            padding: 2rem 0;
+            margin-top: 0;
         }
         .gallery-item {
             margin-bottom: 30px;
@@ -100,10 +127,30 @@
             opacity: 0.8;
         }
         footer {
-            background-color: #333;
-            color: white;
-            padding: 1.5rem 0;
+            background-image: linear-gradient(to right, 
+                var(--secondary-color),
+                var(--primary-color)
+            );
+            color: var(--text-color);
+            padding: 1rem 0;
             text-align: center;
+            box-shadow: 0 -4px 10px rgba(255, 182, 193, 0.3);
+            margin-top: auto;
+        }
+        footer p {
+            margin: 0;
+            font-size: 1.1rem;
+            letter-spacing: 1px;
+            text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.5);
+        }
+        footer a {
+            color: var(--accent-color);
+            text-decoration: none;
+            transition: color 0.3s ease;
+            font-weight: 600;
+        }
+        footer a:hover {
+            color: var(--text-color);
         }
     </style>
 </head>
@@ -144,149 +191,152 @@
         </div>
     </nav>
 
-
-    <!-- Gallery Grid -->
-    <section class="gallery-grid">
-        <div class="container">
-            <div class="row">
-                <!-- Gallery Item 1 -->
-                <div class="col-md-4">
-                    <div class="gallery-item">
-                        <img src="{% static 'images/work-1.jpg' %}" class="img-fluid" alt="Beard Styling">
-                        <div class="text">
-                            <span>Stylist</span>
-                            <h3>Beard</h3>
+    <main>
+        <!-- Gallery Grid -->
+        <section class="gallery-grid">
+            <div class="container">
+                <div class="row">
+                    <!-- Gallery Item 1 -->
+                    <div class="col-md-4">
+                        <div class="gallery-item">
+                            <img src="{% static 'images/work-1.jpg' %}" class="img-fluid" alt="Beard Styling">
+                            <div class="text">
+                                <span>Stylist</span>
+                                <h3>Beard</h3>
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                <!-- Gallery Item 2 -->
-                <div class="col-md-4">
-                    <div class="gallery-item">
-                        <img src="{% static 'images/work-2.jpg' %}" class="img-fluid" alt="Hair Styling">
-                        <div class="text">
-                            <span>Beauty</span>
-                            <h3>Haircut & Styling</h3>
+                    <!-- Gallery Item 2 -->
+                    <div class="col-md-4">
+                        <div class="gallery-item">
+                            <img src="{% static 'images/work-2.jpg' %}" class="img-fluid" alt="Hair Styling">
+                            <div class="text">
+                                <span>Beauty</span>
+                                <h3>Haircut & Styling</h3>
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                <!-- Gallery Item 3 -->
-                <div class="col-md-4">
-                    <div class="gallery-item">
-                        <img src="{% static 'images/work-3.jpg' %}" class="img-fluid" alt="Manicure">
-                        <div class="text">
-                            <span>Beauty</span>
-                            <h3>Manicure</h3>
+                    <!-- Gallery Item 3 -->
+                    <div class="col-md-4">
+                        <div class="gallery-item">
+                            <img src="{% static 'images/work-3.jpg' %}" class="img-fluid" alt="Manicure">
+                            <div class="text">
+                                <span>Beauty</span>
+                                <h3>Manicure</h3>
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                <!-- Gallery Item 4 -->
-                <div class="col-md-4">
-                    <div class="gallery-item">
-                        <img src="{% static 'images/work-4.jpg' %}" class="img-fluid" alt="Hair Color">
-                        <div class="text">
-                            <span>Beauty</span>
-                            <h3>Hair Coloring</h3>
+                    <!-- Gallery Item 4 -->
+                    <div class="col-md-4">
+                        <div class="gallery-item">
+                            <img src="{% static 'images/work-4.jpg' %}" class="img-fluid" alt="Hair Color">
+                            <div class="text">
+                                <span>Beauty</span>
+                                <h3>Hair Coloring</h3>
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                <!-- Gallery Item 5 -->
-                <div class="col-md-4">
-                    <div class="gallery-item">
-                        <img src="{% static 'images/work-5.jpg' %}" class="img-fluid" alt="Makeup">
-                        <div class="text">
-                            <span>Beauty</span>
-                            <h3>Makeup</h3>
+                    <!-- Gallery Item 5 -->
+                    <div class="col-md-4">
+                        <div class="gallery-item">
+                            <img src="{% static 'images/work-5.jpg' %}" class="img-fluid" alt="Makeup">
+                            <div class="text">
+                                <span>Beauty</span>
+                                <h3>Makeup</h3>
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                <!-- Gallery Item 6 -->
-                <div class="col-md-4">
-                    <div class="gallery-item">
-                        <img src="{% static 'images/work-6.jpg' %}" class="img-fluid" alt="Hair Treatment">
-                        <div class="text">
-                            <span>Beauty</span>
-                            <h3>Hair Treatment</h3>
+                    <!-- Gallery Item 6 -->
+                    <div class="col-md-4">
+                        <div class="gallery-item">
+                            <img src="{% static 'images/work-6.jpg' %}" class="img-fluid" alt="Hair Treatment">
+                            <div class="text">
+                                <span>Beauty</span>
+                                <h3>Hair Treatment</h3>
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                <!-- Gallery Item 7 -->
-                <div class="col-md-4">
-                    <div class="gallery-item">
-                        <img src="{% static 'images/work-7.jpg' %}" class="img-fluid" alt="Facial">
-                        <div class="text">
-                            <span>Beauty</span>
-                            <h3>Facial Treatment</h3>
+                    <!-- Gallery Item 7 -->
+                    <div class="col-md-4">
+                        <div class="gallery-item">
+                            <img src="{% static 'images/work-7.jpg' %}" class="img-fluid" alt="Facial">
+                            <div class="text">
+                                <span>Beauty</span>
+                                <h3>Facial Treatment</h3>
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                <!-- Gallery Item 8 -->
-                <div class="col-md-4">
-                    <div class="gallery-item">
-                        <img src="{% static 'images/work-8.jpg' %}" class="img-fluid" alt="Pedicure">
-                        <div class="text">
-                            <span>Beauty</span>
-                            <h3>Pedicure</h3>
+                    <!-- Gallery Item 8 -->
+                    <div class="col-md-4">
+                        <div class="gallery-item">
+                            <img src="{% static 'images/work-8.jpg' %}" class="img-fluid" alt="Pedicure">
+                            <div class="text">
+                                <span>Beauty</span>
+                                <h3>Pedicure</h3>
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                <!-- Gallery Item 9 -->
-                <div class="col-md-4">
-                    <div class="gallery-item">
-                        <img src="{% static 'images/work-9.jpg' %}" class="img-fluid" alt="Spa Treatment">
-                        <div class="text">
-                            <span>Beauty</span>
-                            <h3>Spa Treatment</h3>
+                    <!-- Gallery Item 9 -->
+                    <div class="col-md-4">
+                        <div class="gallery-item">
+                            <img src="{% static 'images/work-9.jpg' %}" class="img-fluid" alt="Spa Treatment">
+                            <div class="text">
+                                <span>Beauty</span>
+                                <h3>Spa Treatment</h3>
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                <!-- Gallery Item 10 -->
-                <div class="col-md-4">
-                    <div class="gallery-item">
-                        <img src="{% static 'images/all-type.jpg' %}" class="img-fluid" alt="All Types">
-                        <div class="text">
-                            <span>Beauty</span>
-                            <h3>All Types of Beauty Services</h3>
+                    <!-- Gallery Item 10 -->
+                    <div class="col-md-4">
+                        <div class="gallery-item">
+                            <img src="{% static 'images/all-type.jpg' %}" class="img-fluid" alt="All Types">
+                            <div class="text">
+                                <span>Beauty</span>
+                                <h3>All Types of Beauty Services</h3>
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                <!-- Gallery Item 11 -->
-                <div class="col-md-4">
-                    <div class="gallery-item">
-                        <img src="{% static 'images/honey-waxing.jpg' %}" class="img-fluid" alt="Honey Waxing">
-                        <div class="text">
-                            <span>Beauty</span>
-                            <h3>Honey Waxing</h3>
+                    <!-- Gallery Item 11 -->
+                    <div class="col-md-4">
+                        <div class="gallery-item">
+                            <img src="{% static 'images/honey-waxing.jpg' %}" class="img-fluid" alt="Honey Waxing">
+                            <div class="text">
+                                <span>Beauty</span>
+                                <h3>Honey Waxing</h3>
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                <!-- Gallery Item 12 -->
-                <div class="col-md-4">
-                    <div class="gallery-item">
-                        <img src="{% static 'images/hair-spa.jpg' %}" class="img-fluid" alt="Hair Spa">
-                        <div class="text">
-                            <span>Beauty</span>
-                            <h3>Hair Spa</h3>
+                    <!-- Gallery Item 12 -->
+                    <div class="col-md-4">
+                        <div class="gallery-item">
+                            <img src="{% static 'images/hair-spa.jpg' %}" class="img-fluid" alt="Hair Spa">
+                            <div class="text">
+                                <span>Beauty</span>
+                                <h3>Hair Spa</h3>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
-    </section>
+        </section>
+    </main>
 
     <!-- Footer -->
     <footer>
-        <p>&copy; 2023 GlamourQuest. All rights reserved.</p>
+        <div class="container">
+            <p>&copy; 2025 <a href="{% url 'index' %}">GlamourQuest</a>. All rights reserved.</p>
+        </div>
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
