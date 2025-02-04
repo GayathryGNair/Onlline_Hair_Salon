@@ -257,6 +257,49 @@
                 transform: translateX(0);
             }
         }
+
+        /* Additional styles for Current Offers section */
+        .offer-card {
+            border: 1px solid var(--primary-color);  /* Add border */
+            border-radius: 15px;  /* Rounded corners */
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);  /* Subtle shadow */
+            transition: transform 0.3s, box-shadow 0.3s;  /* Smooth transition */
+        }
+
+        .offer-card:hover {
+            transform: translateY(-5px);  /* Lift effect on hover */
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);  /* Darker shadow on hover */
+        }
+
+        .current-offers h2 {
+            color: var(--accent-color);  /* Change heading color */
+            font-weight: 700;  /* Bold font */
+        }
+
+        .current-offers .card-body {
+            text-align: center;  /* Center text in card body */
+        }
+
+        .current-offers .btn-primary {
+            background-color: var(--primary-color);  /* Button color */
+            border: none;  /* Remove border */
+            transition: background-color 0.3s;  /* Smooth transition */
+        }
+
+        .current-offers .btn-primary:hover {
+            background-color: var(--accent-color);  /* Change button color on hover */
+        }
+
+        /* New offer tag styles */
+        .offer-tag {
+            display: inline-block;
+            background-color: red;  /* Red background for the tag */
+            color: white;  /* White text color */
+            padding: 5px 10px;  /* Padding for the tag */
+            border-radius: 5px;  /* Rounded corners */
+            margin-bottom: 10px;  /* Space below the tag */
+            font-weight: bold;  /* Bold text */
+        }
     </style>
 </head>
 <body>
@@ -304,6 +347,12 @@
                         <li class="nav-item">
                             <a class="nav-link" href="{% url 'service_history' %}">
                                 <i class="fas fa-history me-2"></i> Service History
+                            </a>
+                        </li>
+                      
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'upload_hair_image' %}">
+                                <i class="fas fa-image">Detect Diseases</i>
                             </a>
                         </li>
                     </ul>
@@ -368,6 +417,30 @@
                                 </div>
                             </div>
                         </div>
+                    </div>
+                </div>
+
+                <!-- Add this section in the main content area where you want to display the offers -->
+                <div class="current-offers mt-5">
+                    <h2 class="text-center mb-4">Current Offers</h2>
+                    <div class="row">
+                        {% for offer in current_offers %}
+                        <div class="col-md-4 mb-4">
+                            <div class="card offer-card">
+                                <div class="card-img-container">
+                                    <img src="{{ offer.service.image.url }}" alt="{{ offer.title }}" class="card-img-top">
+                                </div>
+                                <div class="card-body">
+                                    <h5 class="card-title">{{ offer.title }}</h5>
+                                    <span class="badge offer-tag">New Offer</span>
+                                    <p class="card-text">{{ offer.description }}</p>
+                                    <p class="card-text"><strong>Discount:</strong> {{ offer.discount_percentage }}%</p>
+                                    <p class="card-text"><strong>Service:</strong> {{ offer.service.service_name }}</p>
+                                    <a href="{% url 'service_detail' offer.service.id %}" class="btn btn-primary">View Service</a>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
                     </div>
                 </div>
             </main>

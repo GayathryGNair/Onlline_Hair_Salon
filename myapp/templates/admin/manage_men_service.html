@@ -136,17 +136,16 @@
                                 <i class="fas fa-tags me-2"></i> Add Male Categories
                             </a>
                         </li>
-                        <li class="nav-item"></li>
-                            <a class="nav-link" href="{% url 'add_offer' %}">
-                                <i class="fas fa-gift me-2"></i> Add offers
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'add_offer_male' %}">
+                                <i class="fas fa-gift me-2"></i> Add Male Offers
                             </a>
                         </li>
-                        <li class="nav-item"></li>
-                        <a class="nav-link" href="{% url 'offer_list' %}">
-                            <i class="fas fa-gifts me-2"></i>list offers
-                        </a>
-                    </li>
-                        <!-- Add other sidebar links as needed -->
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'offer_list_male' %}">
+                                <i class="fas fa-gifts me-2"></i> List Male Offers
+                            </a>
+                        </li>
                     </ul>
                 </div>
             </nav>
@@ -154,8 +153,8 @@
 
             <!-- Main content -->
             <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
-                <header class="header d-flex justify-content-between align-items-center mb-4">
-                    <h1 class="h3 mb-0">Manage Male Services</h1>
+                <header class="header d-flex justify-content-between align-items-center mb-4 p-3 bg-white rounded shadow-sm">
+                    <h1 class="h3 mb-0">Male Services</h1>
                     <div class="profile-dropdown dropdown">
                         <a href="#" class="d-flex align-items-center text-decoration-none dropdown-toggle" id="dropdownUser1" data-bs-toggle="dropdown" aria-expanded="false">
                             <img src="{% static 'images/profile.png' %}" alt="Profile" width="32" height="32" class="rounded-circle me-2">
@@ -174,7 +173,7 @@
                     <div class="card-body">
                         <h2 class="card-title">Add New Male Service</h2>
                         {% if messages %}
-                        <div class="alert alert-info">
+                        <div class="alert alert-danger">
                             {% for message in messages %}
                             <p>{{ message }}</p>
                             {% endfor %}
@@ -184,7 +183,7 @@
                             {% csrf_token %}
                             <div class="mb-3">
                                 <label for="category" class="form-label">Select Category:</label>
-                                <select id="category" name="category" class="form-select" required>
+                                <select id="category" name="category" class="form-select" required aria-label="Service Category">
                                     <option value="" disabled selected>Choose a Category</option>
                                     {% for category in categories %}
                                     <option value="{{ category.id }}">{{ category.name }}</option>
@@ -193,7 +192,7 @@
                             </div>
                             <div class="mb-3">
                                 <label for="subcategory" class="form-label">Select Subcategory:</label>
-                                <select id="subcategory" name="subcategory" class="form-select" required>
+                                <select id="subcategory" name="subcategory" class="form-select" required aria-label="Service Subcategory">
                                     <option value="" disabled selected>Choose a Subcategory</option>
                                     {% for subcategory in subcategories %}
                                     <option value="{{ subcategory.id }}" data-category="{{ subcategory.category.id }}">{{ subcategory.name }}</option>
@@ -202,21 +201,24 @@
                             </div>
                             <div class="mb-3">
                                 <label for="service_name" class="form-label">Service Name:</label>
-                                <input type="text" id="service_name" name="service_name" class="form-control" required>
+                                <input type="text" id="service_name" name="service_name" class="form-control" required aria-label="Service Name" oninput="validateServiceName(this)">
+                                <div id="serviceNameError" class="text-danger" style="display: none;">Service name must contain only letters.</div>
                             </div>
                             <div class="mb-3">
                                 <label for="description" class="form-label">Description:</label>
-                                <textarea id="description" name="description" class="form-control" required></textarea>
+                                <textarea id="description" name="description" class="form-control" required aria-label="Service Description" oninput="validateDescription(this)"></textarea>
+                                <div id="descriptionError" class="text-danger" style="display: none;">Description must contain only letters.</div>
                             </div>
                             <div class="mb-3">
                                 <label for="rate" class="form-label">Rate (INR):</label>
-                                <input type="number" id="rate" name="rate" class="form-control" required min="1" step="1">
+                                <input type="number" id="rate" name="rate" class="form-control" required aria-label="Service Rate in INR" min="1" step="1" oninput="validateRate(this)">
+                                <div id="rateError" class="text-danger" style="display: none;">Please enter a valid rate greater than zero.</div>
                             </div>
                             <div class="mb-3">
                                 <label for="image" class="form-label">Upload Image:</label>
-                                <input type="file" id="image" name="image" class="form-control">
+                                <input type="file" id="image" name="image" class="form-control" aria-label="Service Image">
                             </div>
-                            <button type="submit" class="btn btn-primary">Add Service</button>
+                            <button type="submit" class="btn btn-primary" id="add_service">Add Service</button>
                         </form>
                     </div>
                 </div>
@@ -240,7 +242,7 @@
                                         <td>{{ service.service_name }}</td>
                                         <td>{{ service.rate }}</td>
                                         <td>
-                                            <a href="{% url 'edit_men_service' service.id %}" class="btn btn-sm btn-primary">Edit</a>
+                                            <a href="{% url 'edit_men_service' service.id %}" class="btn btn-sm btn-primary btn-space">Edit</a>
                                             <form method="POST" action="{% url 'delete_men_service' service.id %}" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this service?');">
                                                 {% csrf_token %}
                                                 <button type="submit" class="btn btn-sm btn-danger">Delete</button>
@@ -262,5 +264,78 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Get references to the category and subcategory dropdowns
+        const categoryDropdown = document.getElementById('category');
+        const subcategoryDropdown = document.getElementById('subcategory');
+
+        // Function to filter subcategories based on selected category
+        function filterSubcategories() {
+            const selectedCategory = categoryDropdown.value;
+            
+            // Loop through subcategory options and show/hide based on selected category
+            for (let i = 0; i < subcategoryDropdown.options.length; i++) {
+                const option = subcategoryDropdown.options[i];
+                const category = option.getAttribute('data-category');
+
+                if (category === selectedCategory) {
+                    option.style.display = 'block';
+                } else {
+                    option.style.display = 'none';
+                }
+            }
+
+            // Reset subcategory selection
+            subcategoryDropdown.value = '';
+        }
+
+        // Add event listener to category dropdown to trigger filtering
+        categoryDropdown.addEventListener('change', filterSubcategories);
+
+        // Initialize the filter when the page loads
+        filterSubcategories();
+
+        function validateServiceName(input) {
+            const value = input.value;
+            const errorDiv = document.getElementById('serviceNameError');
+            const regex = /^[A-Za-z\s]+$/; // Regex to allow only letters and spaces
+
+            if (!regex.test(value)) {
+                errorDiv.style.display = 'block'; // Show error message
+                input.setCustomValidity('Invalid service name'); // Set custom validity message
+            } else {
+                errorDiv.style.display = 'none'; // Hide error message
+                input.setCustomValidity(''); // Reset custom validity
+            }
+        }
+
+        function validateDescription(input) {
+            const value = input.value;
+            const errorDiv = document.getElementById('descriptionError');
+            const regex = /^[A-Za-z\s]+$/; // Regex to allow only letters and spaces
+
+            if (!regex.test(value)) {
+                errorDiv.style.display = 'block'; // Show error message
+                input.setCustomValidity('Invalid description'); // Set custom validity message
+            } else {
+                errorDiv.style.display = 'none'; // Hide error message
+                input.setCustomValidity(''); // Reset custom validity
+            }
+        }
+
+        function validateRate(input) {
+            const value = input.value;
+            const errorDiv = document.getElementById('rateError');
+
+            // Check if the value is a positive integer greater than zero
+            if (value <= 0 || !Number.isInteger(Number(value))) {
+                errorDiv.style.display = 'block'; // Show error message
+                input.setCustomValidity('Please enter a valid rate greater than zero'); // Set custom validity message
+            } else {
+                errorDiv.style.display = 'none'; // Hide error message
+                input.setCustomValidity(''); // Reset custom validity
+            }
+        }
+    </script>
 </body>
 </html>

@@ -187,6 +187,7 @@
                 </div>
             </nav>
 
+
             <!-- Main content -->
             <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
                 <!-- Header -->
@@ -217,11 +218,12 @@
                 <div class="card mb-4">
                     <div class="card-body">
                         <h3 class="card-title">Add Female Category</h3>
-                        <form method="POST" action="{% url 'category' %}">
+                        <form method="POST" action="{% url 'category' %}" onsubmit="return validateCategoryForm();">
                             {% csrf_token %}
                             <div class="mb-3">
                                 <label for="category_name" class="form-label">Category Name:</label>
-                                <input type="text" id="category_name" name="category_name" class="form-control" required aria-label="Category Name">
+                                <input type="text" id="category_name" name="category_name" class="form-control" required aria-label="Category Name" oninput="validateCategoryName(this)">
+                                <div id="categoryNameError" class="text-danger" style="display: none;">Category name must contain only letters.</div>
                             </div>
                             <button type="submit" class="btn btn-primary">Add Category</button>
                         </form>
@@ -232,15 +234,17 @@
                 <div class="card mb-4">
                     <div class="card-body">
                         <h3 class="card-title">Add New Subcategory</h3>
-                        <form method="POST" action="{% url 'category' %}" enctype="multipart/form-data">
+                        <form method="POST" action="{% url 'category' %}" enctype="multipart/form-data" onsubmit="return validateSubcategoryForm();">
                             {% csrf_token %}
                             <div class="mb-3">
                                 <label for="subcategory_name" class="form-label">Subcategory Name:</label>
-                                <input type="text" id="subcategory_name" name="subcategory_name" class="form-control" required aria-label="Subcategory Name">
+                                <input type="text" id="subcategory_name" name="subcategory_name" class="form-control" required aria-label="Subcategory Name" oninput="validateSubcategoryName(this)">
+                                <div id="subcategoryNameError" class="text-danger" style="display: none;">Subcategory name must contain only letters.</div>
                             </div>
                             <div class="mb-3">
                                 <label for="description" class="form-label">Description:</label>
-                                <textarea id="description" name="description" class="form-control" required aria-label="Description"></textarea>
+                                <textarea id="description" name="description" class="form-control" required aria-label="Service Description" oninput="validateDescription(this)"></textarea>
+                                <div id="descriptionError" class="text-danger" style="display: none;">Description must contain only letters.</div>
                             </div>
                             <div class="mb-3">
                                 <label for="category" class="form-label">Select Category:</label>
@@ -344,5 +348,118 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Get references to the category and subcategory dropdowns
+        const categoryDropdown = document.getElementById('category');
+        const subcategoryDropdown = document.getElementById('subcategory');
+
+        // Function to filter subcategories based on selected category
+        function filterSubcategories() {
+            const selectedCategory = categoryDropdown.value;
+            
+            // Loop through subcategory options and show/hide based on selected category
+            for (let i = 0; i < subcategoryDropdown.options.length; i++) {
+                const option = subcategoryDropdown.options[i];
+                const category = option.getAttribute('data-category');
+
+                if (category === selectedCategory) {
+                    option.style.display = 'block';
+                } else {
+                    option.style.display = 'none';
+                }
+            }
+
+            // Reset subcategory selection
+            subcategoryDropdown.value = '';
+        }
+
+        // Add event listener to category dropdown to trigger filtering
+        categoryDropdown.addEventListener('change', filterSubcategories);
+
+        // Initialize the filter when the page loads
+        filterSubcategories();
+
+        // Validation functions for category and subcategory
+        function validateCategoryName(input) {
+            const value = input.value;
+            const errorDiv = document.getElementById('categoryNameError');
+            const regex = /^[A-Za-z\s]+$/; // Regex to allow only letters and spaces
+
+            if (!regex.test(value)) {
+                errorDiv.style.display = 'block'; // Show error message
+                input.setCustomValidity('Invalid category name'); // Set custom validity message
+            } else {
+                errorDiv.style.display = 'none'; // Hide error message
+                input.setCustomValidity(''); // Reset custom validity
+            }
+        }
+
+        function validateSubcategoryName(input) {
+            const value = input.value;
+            const errorDiv = document.getElementById('subcategoryNameError');
+            const regex = /^[A-Za-z\s]+$/; // Regex to allow only letters and spaces
+
+            if (!regex.test(value)) {
+                errorDiv.style.display = 'block'; // Show error message
+                input.setCustomValidity('Invalid subcategory name'); // Set custom validity message
+            } else {
+                errorDiv.style.display = 'none'; // Hide error message
+                input.setCustomValidity(''); // Reset custom validity
+            }
+        }
+
+        function validateDescription(input) {
+            const value = input.value;
+            const errorDiv = document.getElementById('descriptionError');
+            const regex = /^[A-Za-z\s]+$/; // Regex to allow only letters and spaces
+
+            if (!regex.test(value)) {
+                errorDiv.style.display = 'block'; // Show error message
+                input.setCustomValidity('Invalid description'); // Set custom validity message
+            } else {
+                errorDiv.style.display = 'none'; // Hide error message
+                input.setCustomValidity(''); // Reset custom validity
+            }
+        }
+
+        function validateCategoryForm() {
+            const categoryNameInput = document.getElementById('category_name');
+            validateCategoryName(categoryNameInput);
+            return categoryNameInput.checkValidity(); // Return true if valid
+        }
+
+        function validateSubcategoryForm() {
+            const subcategoryNameInput = document.getElementById('subcategory_name');
+            const descriptionInput = document.getElementById('description');
+            validateSubcategoryName(subcategoryNameInput);
+            validateDescription(descriptionInput);
+            return subcategoryNameInput.checkValidity() && descriptionInput.checkValidity(); // Return true if valid
+        }
+
+        // Function to handle form submission
+        document.querySelector('form').addEventListener('submit', function(event) {
+            // Check if the category or subcategory exists error is present
+            const categoryExistsError = document.getElementById('categoryExistsError');
+            const subcategoryExistsError = document.getElementById('subcategoryExistsError');
+            if (categoryExistsError.style.display === 'block' || subcategoryExistsError.style.display === 'block') {
+                event.preventDefault(); // Prevent form submission
+            }
+        });
+
+        // Function to show the category exists error
+        function showCategoryExistsError() {
+            const categoryExistsError = document.getElementById('categoryExistsError');
+            categoryExistsError.style.display = 'block'; // Show error message
+        }
+
+        // Function to show the subcategory exists error
+        function showSubcategoryExistsError() {
+            const subcategoryExistsError = document.getElementById('subcategoryExistsError');
+            subcategoryExistsError.style.display = 'block'; // Show error message
+        }
+
+        // Call these functions when the server returns an error about existing category or subcategory
+        // This should be done in the server response handling logic
+    </script>
 </body>
 </html>

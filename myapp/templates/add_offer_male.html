@@ -1,0 +1,216 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Male Offer</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #7f8c8d;    /* Gray */
+            --secondary-color: #95a5a6;  /* Light Gray */
+            --accent-color: #34495e;     /* Dark Blue */
+            --text-color: #333;
+            --bg-color: #ecf0f1;         /* Light Gray Background */
+            --card-bg: #ffffff;
+        }
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+        }
+        .sidebar {
+            height: 100vh;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding-top: 20px;
+        }
+        .sidebar-sticky {
+            position: sticky;
+            top: 0;
+            height: calc(100vh - 48px);
+            padding-top: .5rem;
+            overflow-x: hidden;
+            overflow-y: auto;
+        }
+        .header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            padding: 15px 20px;
+            margin-bottom: 1rem;
+            border-radius: 10px;
+        }
+        .card {
+            border: none;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: all 0.3s;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 8px rgba(0,0,0,0.15);
+        }
+        .text-danger {
+            display: none; /* Hide error messages by default */
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <nav id="sidebar" class="col-md-3 col-lg-2 d-md-block sidebar collapse">
+                <div class="position-sticky sidebar-sticky">
+                    <h2 class="text-center mb-4">GlamourQuest Admin</h2>
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link active" href="{% url 'admin_dashboard' %}">
+                                <i class="fas fa-home me-2"></i> Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'manage_men_service' %}">
+                                <i class="fas fa-concierge-bell me-2"></i> Add Male Services
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'add_offer_male' %}">
+                                <i class="fas fa-gift me-2"></i> Add Male Offers
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'offer_list_male' %}">
+                                <i class="fas fa-gifts me-2"></i> List Male Offers
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+
+            <!-- Main content -->
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+                <header class="header d-flex justify-content-between align-items-center mb-4">
+                    <h1 class="h3 mb-0">Add Male Offer</h1>
+                </header>
+
+                <form method="post" class="card mb-4" onsubmit="return validateOfferForm();">
+                    {% csrf_token %}
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label for="category" class="form-label">Select Category:</label>
+                            <select id="category" name="category" class="form-select" onchange="this.form.submit()">
+                                <option value="">Select a category</option>
+                                {% for category in categories %}
+                                <option value="{{ category.id }}" {% if category.id|stringformat:"s" == selected_category_id %}selected{% endif %}>{{ category.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="subcategory" class="form-label">Select Subcategory:</label>
+                            <select id="subcategory" name="subcategory" class="form-select" onchange="this.form.submit()">
+                                <option value="">Select a subcategory</option>
+                                {% for subcategory in subcategories %}
+                                <option value="{{ subcategory.id }}" {% if subcategory.id|stringformat:"s" == selected_subcategory_id %}selected{% endif %}>{{ subcategory.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="service" class="form-label">Select Service:</label>
+                            <select id="service" name="service" class="form-select" required>
+                                <option value="">Select a service</option>
+                                {% for service in services %}
+                                <option value="{{ service.id }}">{{ service.service_name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="title" class="form-label">Offer Title:</label>
+                            <input type="text" name="title" class="form-control" required id="title" oninput="validateTitle(this)">
+                            <div id="titleError" class="text-danger">Title must contain only letters.</div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Description:</label>
+                            <textarea name="description" class="form-control" required id="description" oninput="validateDescription(this)"></textarea>
+                            <div id="descriptionError" class="text-danger">Description must contain only letters.</div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="discount_percentage" class="form-label">Discount Percentage:</label>
+                            <input type="number" name="discount_percentage" class="form-control" step="0.01" min="0" max="100" required id="discount_percentage" oninput="validateDiscount(this)">
+                            <div id="discountError" class="text-danger">Discount must be between 0 and 100.</div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="start_date" class="form-label">Start Date:</label>
+                            <input type="date" name="start_date" class="form-control" required id="start_date">
+                        </div>
+                        <div class="mb-3">
+                            <label for="end_date" class="form-label">End Date:</label>
+                            <input type="date" name="end_date" class="form-control" required id="end_date">
+                        </div>
+                        <div class="mb-3">
+                            <label for="is_active" class="form-label">Is Active:</label>
+                            <input type="checkbox" name="is_active" checked>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Add Male Offer</button>
+                    </div>
+                </form>
+            </main>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function validateTitle(input) {
+            const value = input.value;
+            const errorDiv = document.getElementById('titleError');
+            const regex = /^[A-Za-z\s]+$/; // Regex to allow only letters and spaces
+
+            if (!regex.test(value)) {
+                errorDiv.style.display = 'block'; // Show error message
+                input.setCustomValidity('Invalid title'); // Set custom validity message
+            } else {
+                errorDiv.style.display = 'none'; // Hide error message
+                input.setCustomValidity(''); // Reset custom validity
+            }
+        }
+
+        function validateDescription(input) {
+            const value = input.value;
+            const errorDiv = document.getElementById('descriptionError');
+            const regex = /^[A-Za-z\s]+$/; // Regex to allow only letters and spaces
+
+            if (!regex.test(value)) {
+                errorDiv.style.display = 'block'; // Show error message
+                input.setCustomValidity('Invalid description'); // Set custom validity message
+            } else {
+                errorDiv.style.display = 'none'; // Hide error message
+                input.setCustomValidity(''); // Reset custom validity
+            }
+        }
+
+        function validateDiscount(input) {
+            const value = input.value;
+            const errorDiv = document.getElementById('discountError');
+
+            if (value < 0 || value > 100) {
+                errorDiv.style.display = 'block'; // Show error message
+                input.setCustomValidity('Discount must be between 0 and 100'); // Set custom validity message
+            } else {
+                errorDiv.style.display = 'none'; // Hide error message
+                input.setCustomValidity(''); // Reset custom validity
+            }
+        }
+
+        function validateOfferForm() {
+            const titleInput = document.getElementById('title');
+            const descriptionInput = document.getElementById('description');
+            const discountInput = document.getElementById('discount_percentage');
+            validateTitle(titleInput);
+            validateDescription(descriptionInput);
+            validateDiscount(discountInput);
+            return titleInput.checkValidity() && descriptionInput.checkValidity() && discountInput.checkValidity(); // Return true if valid
+        }
+    </script>
+</body>
+</html>

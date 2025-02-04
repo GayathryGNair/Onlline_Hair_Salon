@@ -178,8 +178,10 @@
                             <i class="fas fa-gifts me-2"></i>list offers
                         </a>
                     </li>
+                    </ul>
                 </div>
             </nav>
+
 
             <!-- Main content -->
             <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
@@ -204,7 +206,7 @@
                     <div class="card-body">
                         <h2 class="card-title">Add New Service</h2>
                         {% if messages %}
-                        <div class="alert alert-info">
+                        <div class="alert alert-danger">
                             {% for message in messages %}
                             <p>{{ message }}</p>
                             {% endfor %}
@@ -232,11 +234,14 @@
                             </div>
                             <div class="mb-3">
                                 <label for="service_name" class="form-label">Service Name:</label>
-                                <input type="text" id="service_name" name="service_name" class="form-control" required aria-label="Service Name">
+                                <input type="text" id="service_name" name="service_name" class="form-control" required aria-label="Service Name" oninput="validateServiceName(this)">
+                                <div id="serviceNameError" class="text-danger" style="display: none;">Service name must contain only letters.</div>
+                                <div id="serviceExistsError" class="text-danger" style="display: none;">A service with this name already exists. Please choose a different name.</div>
                             </div>
                             <div class="mb-3">
-                                <label for="description" class="form-label" >Description:</label>
-                                <textarea id="description" name="description" class="form-control" required aria-label="Service Description"></textarea>
+                                <label for="description" class="form-label">Description:</label>
+                                <textarea id="description" name="description" class="form-control" required aria-label="Service Description" oninput="validateDescription(this)"></textarea>
+                                <div id="descriptionError" class="text-danger" style="display: none;">Description must contain only letters.</div>
                             </div>
                             <div class="mb-3">
                                 <label for="rate" class="form-label">Rate (INR):</label>
@@ -323,21 +328,66 @@
 
         // Initialize the filter when the page loads
         filterSubcategories();
-    </script>
-    <script>
-        function validateRate(input) {
+
+        function validateServiceName(input) {
             const value = input.value;
-            const errorDiv = document.getElementById('rateError');
-    
-            // Check if the value is a positive integer greater than zero
-            if (value <= 0 || !Number.isInteger(Number(value))) {
+            const errorDiv = document.getElementById('serviceNameError');
+            const regex = /^[A-Za-z\s]+$/; // Regex to allow only letters and spaces
+
+            if (!regex.test(value)) {
                 errorDiv.style.display = 'block'; // Show error message
-                input.setCustomValidity(''); // Reset custom validity
+                input.setCustomValidity('Invalid service name'); // Set custom validity message
             } else {
                 errorDiv.style.display = 'none'; // Hide error message
                 input.setCustomValidity(''); // Reset custom validity
             }
         }
+
+        function validateDescription(input) {
+            const value = input.value;
+            const errorDiv = document.getElementById('descriptionError');
+            const regex = /^[A-Za-z\s]+$/; // Regex to allow only letters and spaces
+
+            if (!regex.test(value)) {
+                errorDiv.style.display = 'block'; // Show error message
+                input.setCustomValidity('Invalid description'); // Set custom validity message
+            } else {
+                errorDiv.style.display = 'none'; // Hide error message
+                input.setCustomValidity(''); // Reset custom validity
+            }
+        }
+
+        function validateRate(input) {
+            const value = input.value;
+            const errorDiv = document.getElementById('rateError');
+
+            // Check if the value is a positive integer greater than zero
+            if (value <= 0 || !Number.isInteger(Number(value))) {
+                errorDiv.style.display = 'block'; // Show error message
+                input.setCustomValidity('Please enter a valid rate greater than zero'); // Set custom validity message
+            } else {
+                errorDiv.style.display = 'none'; // Hide error message
+                input.setCustomValidity(''); // Reset custom validity
+            }
+        }
+
+        // Function to handle form submission
+        document.querySelector('form').addEventListener('submit', function(event) {
+            // Check if the service exists error is present
+            const serviceExistsError = document.getElementById('serviceExistsError');
+            if (serviceExistsError.style.display === 'block') {
+                event.preventDefault(); // Prevent form submission
+            }
+        });
+
+        // Function to show the service exists error
+        function showServiceExistsError() {
+            const serviceExistsError = document.getElementById('serviceExistsError');
+            serviceExistsError.style.display = 'block'; // Show error message
+        }
+
+        // Call this function when the server returns an error about existing service
+        // This should be done in the server response handling logic
     </script>
 </body>
 </html>

@@ -62,24 +62,31 @@
         .sidebar .nav-link.active {
             background-color: rgba(255,255,255,0.2);
         }
-        .sidebar {
-        position: fixed; /* Make the sidebar fixed */
-        height: 100vh; /* Full height of the viewport */
-        width: 250px; /* Set a fixed width for the sidebar */
-        /* ... existing styles ... */
-    }
-    .main-content {
-        margin-left: 250px; /* Adjust main content margin to accommodate the sidebar */
-        padding: 20px;
-    }
-        .header {
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            color: white;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            padding: 15px 20px;
-            margin-bottom: 1rem;
-            border-radius: 10px;
+        .main-content {
+            margin-left: 250px; /* Adjust main content margin to accommodate the sidebar */
+            padding: 20px;
         }
+        .header {
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); /* Gradient background */
+    color: white; /* Text color */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Shadow for depth */
+    padding: 15px 20px; /* Padding around the header */
+    margin-bottom: 1rem; /* Space below the header */
+    border-radius: 10px; /* Rounded corners */
+}
+
+.profile-dropdown .dropdown-toggle {
+    color: white; /* Dropdown toggle text color */
+}
+
+.profile-dropdown .dropdown-menu {
+    background-color: var(--card-bg); /* Background color for dropdown */
+}
+
+.profile-dropdown .dropdown-item:hover {
+    background-color: var(--secondary-color); /* Hover effect for dropdown items */
+    color: white; /* Text color on hover */
+}
         .table th {
             font-weight: bold;
             width: 20%;
@@ -149,52 +156,61 @@
                             <i class="fas fa-gifts me-2"></i>list offers
                         </a>
                     </li>
-                        <!-- Add other sidebar links as needed -->
                     </ul>
                 </div>
-            </nav>
+            </nav> 
 
             <!-- Main content -->
             <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
                 <header class="header d-flex justify-content-between align-items-center mb-4">
-                    <h1 class="h3 mb-0">Manage Offers</h1>
-                    <form method="post" action="{% url 'delete_all_offers' %}" id="deleteAllForm">
-                        {% csrf_token %}
-                        <button type="submit" class="btn btn-danger">Delete All</button>
-                    </form>
+                    <h1 class="h3 mb-0">Offer List</h1>
+                    <div class="profile-dropdown dropdown">
+
+                        <a href="#" class="d-flex align-items-center text-decoration-none dropdown-toggle" id="dropdownUser1" data-bs-toggle="dropdown" aria-expanded="false">
+                            <img src="{% static 'images/profile.png' %}" alt="Profile" width="32" height="32" class="rounded-circle me-2">
+                            <strong>Admin</strong>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end text-small shadow" aria-labelledby="dropdownUser1">
+                            <li><a class="dropdown-item" href="#">Settings</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{% url 'logout' %}">Sign out</a></li>
+                        </ul>
+                    </div>
                 </header>
 
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th>Title</th>
-                            <th>Service</th>
-                            <th>Description</th>
-                            <th>Discount</th>
-                            <th>Start Date</th>
-                            <th>End Date</th>
-                            <th>Active</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for offer in offers %}
-                        <tr id="offer-{{ offer.id }}">
-                            <td>{{ offer.title }}</td>
-                            <td>{{ offer.service.service_name }}</td>
-                            <td>{{ offer.description }}</td>
-                            <td>{{ offer.discount_percentage }}%</td>
-                            <td>{{ offer.start_date }}</td>
-                            <td>{{ offer.end_date }}</td>
-                            <td>{{ offer.is_active|yesno:"Yes,No" }}</td>
-                            <td>
-                                <button class="btn btn-primary"onclick="openEditModal({{ offer.id }})">Edit</button>
-                                <button class="btn btn-danger"onclick="confirmDelete({{ offer.id }})">Delete</button>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Title</th>
+                                <th>Description</th>
+                                <th>Discount (%)</th>
+                                <th>Start Date</th>
+                                <th>End Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for offer in offers %}
+                            <tr id="offer-{{ offer.id }}">
+                                <td>{{ offer.title }}</td>
+                                <td>{{ offer.description }}</td>
+                                <td>{{ offer.discount_percentage }}</td>
+                                <td>{{ offer.start_date }}</td>
+                                <td>{{ offer.end_date }}</td>
+                                <td>
+                                    <a href="{% url 'edit_offer' offer.id %}" class="btn btn-warning btn-sm">Edit</a>
+                                    <button class="btn btn-danger btn-sm" onclick="confirmDelete({{ offer.id }})">Delete</button>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="6" class="text-center">No offers available.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
 
                 <!-- Edit Offer Modal -->
                 <div class="modal" id="editOfferModal" tabindex="-1" role="dialog">

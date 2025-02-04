@@ -187,6 +187,7 @@
                 </div>
             </nav>
 
+
             <!-- Main content -->
             <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
                 <!-- Header -->
@@ -217,11 +218,12 @@
                 <div class="card mb-4">
                     <div class="card-body">
                         <h3 class="card-title">Add Male Category</h3>
-                        <form method="POST" action="{% url 'manage_men_category' %}">
+                        <form method="POST" action="{% url 'manage_men_category' %}" onsubmit="return validateCategoryForm();">
                             {% csrf_token %}
                             <div class="mb-3">
                                 <label for="category_name" class="form-label">Category Name:</label>
-                                <input type="text" id="category_name" name="category_name" class="form-control" required aria-label="Category Name">
+                                <input type="text" id="category_name" name="category_name" class="form-control" required aria-label="Category Name" oninput="validateCategoryName(this)">
+                                <div id="categoryNameError" class="text-danger" style="display: none;">Category name must contain only letters.</div>
                             </div>
                             <button type="submit" class="btn btn-primary">Add Category</button>
                         </form>
@@ -236,11 +238,13 @@
                             {% csrf_token %}
                             <div class="mb-3">
                                 <label for="subcategory_name" class="form-label">Subcategory Name:</label>
-                                <input type="text" id="subcategory_name" name="subcategory_name" class="form-control" required aria-label="Subcategory Name">
+                                <input type="text" id="subcategory_name" name="subcategory_name" class="form-control" required aria-label="Subcategory Name" oninput="validateSubcategoryName(this)">
+                                <div id="subcategoryNameError" class="text-danger" style="display: none;">Subcategory name must contain only letters.</div>
                             </div>
                             <div class="mb-3">
                                 <label for="description" class="form-label">Description:</label>
-                                <textarea id="description" name="description" class="form-control" required aria-label="Description"></textarea>
+                                <textarea id="description" name="description" class="form-control" required aria-label="Description" oninput="validateDescription(this)"></textarea>
+                                <div id="descriptionError" class="text-danger" style="display: none;">Description must contain only letters.</div>
                             </div>
                             <div class="mb-3">
                                 <label for="category" class="form-label">Select Category:</label>
@@ -344,5 +348,62 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function validateCategoryName(input) {
+            const value = input.value;
+            const errorDiv = document.getElementById('categoryNameError');
+            const regex = /^[A-Za-z\s]+$/; // Regex to allow only letters and spaces
+
+            if (!regex.test(value)) {
+                errorDiv.style.display = 'block'; // Show error message
+                input.setCustomValidity('Invalid category name'); // Set custom validity message
+            } else {
+                errorDiv.style.display = 'none'; // Hide error message
+                input.setCustomValidity(''); // Reset custom validity
+            }
+        }
+
+        function validateSubcategoryName(input) {
+            const value = input.value;
+            const errorDiv = document.getElementById('subcategoryNameError');
+            const regex = /^[A-Za-z\s]+$/; // Regex to allow only letters and spaces
+
+            if (!regex.test(value)) {
+                errorDiv.style.display = 'block'; // Show error message
+                input.setCustomValidity('Invalid subcategory name'); // Set custom validity message
+            } else {
+                errorDiv.style.display = 'none'; // Hide error message
+                input.setCustomValidity(''); // Reset custom validity
+            }
+        }
+
+        function validateDescription(input) {
+            const value = input.value;
+            const errorDiv = document.getElementById('descriptionError');
+            const regex = /^[A-Za-z\s]+$/; // Regex to allow only letters and spaces
+
+            if (!regex.test(value)) {
+                errorDiv.style.display = 'block'; // Show error message
+                input.setCustomValidity('Invalid description'); // Set custom validity message
+            } else {
+                errorDiv.style.display = 'none'; // Hide error message
+                input.setCustomValidity(''); // Reset custom validity
+            }
+        }
+
+        function validateCategoryForm() {
+            const categoryNameInput = document.getElementById('category_name');
+            validateCategoryName(categoryNameInput);
+            return categoryNameInput.checkValidity(); // Return true if valid
+        }
+
+        function validateSubcategoryForm() {
+            const subcategoryNameInput = document.getElementById('subcategory_name');
+            const descriptionInput = document.getElementById('description');
+            validateSubcategoryName(subcategoryNameInput);
+            validateDescription(descriptionInput);
+            return subcategoryNameInput.checkValidity() && descriptionInput.checkValidity(); // Return true if valid
+        }
+    </script>
 </body>
 </html>

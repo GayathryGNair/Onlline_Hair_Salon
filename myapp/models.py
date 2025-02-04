@@ -235,3 +235,22 @@ class Offer(models.Model):
 
     def __str__(self):
         return f"Discount: {self.discount_percentage}% off on {self.service.service_name}"
+    
+
+class OfferMale(models.Model):
+    service = models.ForeignKey(ServiceMen, related_name='offers_male', on_delete=models.CASCADE)
+    title = models.CharField(max_length=200)
+    description = models.TextField(default="No description available")
+    discount_percentage = models.FloatField()
+    start_date = models.DateField()
+    end_date = models.DateField()
+    is_active = models.BooleanField(default=True)
+
+    def clean(self):
+        if self.start_date > self.end_date:
+            raise ValidationError("Start date cannot be after the end date.")
+        if self.end_date < timezone.now().date():
+            raise ValidationError("Offer end date cannot be in the past.")
+
+    def __str__(self):
+        return f"Male Offer: {self.title} - {self.discount_percentage}% off on {self.service.service_name}"

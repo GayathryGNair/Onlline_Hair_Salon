@@ -26,6 +26,9 @@ from .views import (
 from .views import delete_all_offers
 from .views import search_services
 from .views import search_services_men
+from .views import analyze_hair_disease, upload_hair_image 
+from .views import edit_offer, offer_list  # Import your views
+from .views import add_offer_male, offer_list_male, edit_offer_male, delete_offer_male
 
 
 
@@ -78,7 +81,6 @@ urlpatterns = [
     path('employee_services/', views.employee_services, name='employee_services'),
     path('toggle_employee_status/<int:employee_id>/', views.toggle_employee_status, name='toggle_employee_status'),
     path('toggle_employee_approval/<int:employee_id>/', views.toggle_employee_approval, name='toggle_employee_approval'),
-    path('service/<int:service_id>/', service_detail, name='service_detail'),
     path('category/', views.category, name='category'),
     path('search/', views.search_services, name='search_services'),
     path('search_men/', views.search_services_men, name='search_services_men'),
@@ -160,12 +162,22 @@ urlpatterns = [
     path('dashboard/', views.dashboard, name='dashboard'),
 
     path('offers/add/', views.add_offer, name='add_offer'),
-    path('offers/', views.offer_list, name='offer_list'),
-    path('offers/<int:offer_id>/edit/', views.edit_offer, name='edit_offer'),
+    path('offers/', offer_list, name='offer_list'),
+    path('offers/<int:offer_id>/edit/', edit_offer, name='edit_offer'),
     path('offers/<int:offer_id>/delete/', views.delete_offer, name='delete_offer'),
     path('offers/delete_all/', delete_all_offers, name='delete_all_offers'),
+    path('service/<int:service_id>/', service_detail, name='service_detail'),
+### image detection ###
+    path('analyze_hair_disease/', analyze_hair_disease, name='analyze_hair_disease'),
+      path('upload_hair_image/', upload_hair_image, name='upload_hair_image'),  # Ensure this line is present
+
+    path('add_offer_male/', add_offer_male, name='add_offer_male'),
+    path('offer_list_male/', offer_list_male, name='offer_list_male'),
+    path('edit_offer_male/<int:offer_id>/', edit_offer_male, name='edit_offer_male'),
+    path('delete_offer_male/<int:offer_id>/', delete_offer_male, name='delete_offer_male'),
 
 ]
+
 
    
 

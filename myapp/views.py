@@ -306,12 +306,14 @@ def client_dashboard(request):
 
     try:
         client = Client.objects.get(id=user_id)
+        current_offers = Offer.objects.filter(is_active=True)  # Fetch current active offers
     except Client.DoesNotExist:
         messages.error(request, "Client not found.")
         return redirect('login')
 
     context = {
         'client': client,
+        'current_offers': current_offers,  # Pass current offers to the template
     }
     return render(request, 'client/client_dashboard.html', context)
 
@@ -551,6 +553,7 @@ def manage_service(request):
     if user_type != 'admin':
         messages.error(request, "You need to log in as admin to access this page.")
         return redirect('login') 
+
     if request.method == 'POST':
         category_id = request.POST.get('category')
         subcategory_id = request.POST.get('subcategory')
@@ -559,12 +562,35 @@ def manage_service(request):
         rate = request.POST.get('rate')
         image = request.FILES.get('image')
 
-        # Create a new service
+        # Server-side validation
+        if not service_name.isalpha() or not service_name.strip():
+            messages.error(request, 'Service name must contain only letters. Please try again.')
+            return redirect('manage_service')  # Redirect back to the form
+
+        # Check if the service already exists
+        if Service.objects.filter(service_name=service_name).exists():
+            messages.error(request, 'A service with this name already exists. Please choose a different name.')
+            return redirect('manage_service')  # Redirect back to the form
+
+        if not description.isalpha() or not description.strip():
+            messages.error(request, 'Description must contain only letters. Please try again.')
+            return redirect('manage_service')  # Redirect back to the form
+
+        try:
+            rate_value = int(rate)
+            if rate_value <= 0:
+                messages.error(request, 'Rate must be a positive integer. Please enter a valid rate.')
+                return redirect('manage_service')  # Redirect back to the form
+        except (ValueError, TypeError):
+            messages.error(request, 'Rate must be a valid positive integer. Please enter a valid rate.')
+            return redirect('manage_service')  # Redirect back to the form
+
+        # Create a new service if all validations pass
         Service.objects.create(
             subcategory_id=subcategory_id,
             service_name=service_name,
             description=description,
-            rate=rate,
+            rate=rate_value,
             image=image
         )
         messages.success(request, 'Service added successfully.')
@@ -578,7 +604,7 @@ def manage_service(request):
         'categories': categories,
         'subcategories': subcategories,
         'services': services,
-        'messages': messages.get_messages(request),
+        'messages': messages.get_messages(request),  # Pass messages to the template
     })
 
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
@@ -678,10 +704,22 @@ def edit_category(request, category_id):
     if user_type != 'admin':
         messages.error(request, "You need to log in as admin to access this page.")
         return redirect('login')
+    
     category = get_object_or_404(ServiceCategory, id=category_id)
     
     if request.method == 'POST':
-        category.name = request.POST['category_name']
+        category_name = request.POST['category_name']
+        
+        # Validation: Check if category name is provided and unique
+        if not category_name.isalpha() or not category_name.strip():
+            messages.error(request, 'Category name must contain only letters. Please try again.')
+            return render(request, 'admin/edit_category.html', {'category': category})  # Re-render with error
+        
+        if ServiceCategory.objects.filter(name=category_name).exclude(id=category_id).exists():
+            messages.error(request, 'Category already exists! Please choose a different name.')
+            return render(request, 'admin/edit_category.html', {'category': category})  # Re-render with error
+
+        category.name = category_name
         category.save()
         messages.success(request, 'Category updated successfully!')
         return redirect('category')
@@ -701,51 +739,45 @@ def edit_subcategory(request, subcategory_id):
     if user_type != 'admin':
         messages.error(request, "You need to log in as admin to access this page.")
         return redirect('login')
+    
     subcategory = get_object_or_404(ServiceSubcategory, id=subcategory_id)
     
-    if request.method == 'POST':
-        subcategory_name = request.POST.get('subcategory_name', '').strip()
-        category_id = request.POST.get('category', None)
-        
-        # Validation: Check if subcategory name and category are provided
-        if not subcategory_name:
-            messages.error(request, 'Subcategory name cannot be empty.')
-            return render(request, 'edit_subcategory.html', {
-                'subcategory': subcategory,
-                'categories': ServiceCategory.objects.all()
-            })
-        
-        if not category_id:
-            messages.error(request, 'Please select a valid category.')
-            return render(request, 'edit_subcategory.html', {
-                'subcategory': subcategory,
-                'categories': ServiceCategory.objects.all()
-            })
-
-        try:
-            # Update the subcategory fields
-            subcategory.name = subcategory_name
-            subcategory.category_id = category_id
-            
-            # Handle optional description and image if they are part of the model
-            description = request.POST.get('description', '').strip()
-            if description:
-                subcategory.description = description
-            
-            if 'subcategory_image' in request.FILES:
-                subcategory.image = request.FILES['subcategory_image']
-            
-            subcategory.save()
-            messages.success(request, 'Subcategory updated successfully!')
-            return redirect('category')
-        except Exception as e:
-            messages.error(request, f'Error updating subcategory: {e}')
+    # Always fetch categories at the start
+    categories = ServiceCategory.objects.all()  # Fetch all categories for the dropdown
     
-    categories = ServiceCategory.objects.all()
-    return render(request, 'admin/edit_subcategory.html', {
-        'subcategory': subcategory,
-        'categories': categories
-    })
+    if request.method == 'POST':
+        subcategory_name = request.POST['subcategory_name']
+        category_id = request.POST['category']
+        description = request.POST['description']
+        
+        # Validation: Check if subcategory name is provided and unique
+        if not subcategory_name.isalpha() or not subcategory_name.strip():
+            messages.error(request, 'Subcategory name must contain only letters. Please try again.')
+            return render(request, 'admin/edit_subcategory.html', {'subcategory': subcategory, 'categories': categories})  # Re-render with error
+        
+        # Validation: Check if description contains only letters and spaces
+        if not description.isalpha() or not description.strip():
+            messages.error(request, 'Description must contain only letters. Please try again.')
+            return render(request, 'admin/edit_subcategory.html', {'subcategory': subcategory, 'categories': categories})  # Re-render with error
+        
+
+        if ServiceSubcategory.objects.filter(name=subcategory_name).exclude(id=subcategory_id).exists():
+            messages.error(request, 'Subcategory already exists! Please choose a different name.')
+            return render(request, 'admin/edit_subcategory.html', {'subcategory': subcategory, 'categories': categories})  # Re-render with error
+
+        # Update the subcategory
+        subcategory.name = subcategory_name
+        subcategory.category_id = category_id
+        subcategory.description = description
+        
+        if 'subcategory_image' in request.FILES:
+            subcategory.image = request.FILES['subcategory_image']
+        
+        subcategory.save()
+        messages.success(request, 'Subcategory updated successfully!')
+        return redirect('manage_service')  # Redirect to the service management page
+    
+    return render(request, 'admin/edit_subcategory.html', {'subcategory': subcategory, 'categories': categories})
 
 
 
@@ -1446,47 +1478,61 @@ def for_women_services(request):
 ##################################################################################
 # myproject/myapp/views.py
 from django.shortcuts import render, redirect, get_object_or_404
-from .models import ServiceCategoryMen, ServiceSubcategoryMen, ServiceMen  # Import your models here
+from .models import ServiceCategoryMen, ServiceSubcategoryMen  # Import your models here
 from django.contrib import messages
+from django.views.decorators.cache import cache_control
 
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def manage_men_category(request):
-    if request.method == 'POST':
-        if 'category_name' in request.POST and 'category_id' not in request.POST:  # Adding a new category
-            category_name = request.POST.get('category_name')
-            new_category = ServiceCategoryMen(name=category_name)
-            new_category.save()
-            messages.success(request, 'Category added successfully!')
-        elif 'category_id' in request.POST:  # Editing an existing category
-            category_id = request.POST.get('category_id')
-            category_name = request.POST.get('category_name')
-            category = get_object_or_404(ServiceCategoryMen, id=category_id)
-            category.name = category_name
-            category.save()
-            messages.success(request, 'Category updated successfully!')
-        elif 'subcategory_name' in request.POST:  # Adding a new subcategory
-            subcategory_name = request.POST.get('subcategory_name')
-            category_id = request.POST.get('category')
-            description = request.POST.get('description', '')
-            # Check if category exists
-            category = get_object_or_404(ServiceCategoryMen, id=category_id)
-            subcategory = ServiceSubcategoryMen(
-                name=subcategory_name,
-                category=category,
-                description=description
-            )
-            # Check if an image file was uploaded
-            if 'subcategory_image' in request.FILES:
-                subcategory.image = request.FILES['subcategory_image']
-            subcategory.save()
-            messages.success(request, 'Subcategory added successfully!')
-        
-        return redirect('manage_men_category')  # Redirect to the same page after saving
+    user_type = request.session.get('user_type')
+
+    if user_type != 'admin':
+        messages.error(request, "You need to log in as admin to access this page.")
+        return redirect('login')
 
     categories = ServiceCategoryMen.objects.all()  # Fetch all male categories
     subcategories = ServiceSubcategoryMen.objects.all()  # Fetch all male subcategories
+
+    if request.method == 'POST':
+        if 'category_name' in request.POST:
+            # Add Category
+            category_name = request.POST['category_name']
+            if ServiceCategoryMen.objects.filter(name=category_name).exists():
+                messages.error(request, 'Category already exists!')
+            else:
+                category = ServiceCategoryMen(name=category_name)
+                category.save()
+                messages.success(request, 'Category added successfully!')
+
+        elif 'subcategory_name' in request.POST:
+            # Add Subcategory
+            subcategory_name = request.POST['subcategory_name']
+            category_id = request.POST['category']
+            description = request.POST.get('description', '')
+            # Check if category exists
+            category = get_object_or_404(ServiceCategoryMen, id=category_id)
+            if ServiceSubcategoryMen.objects.filter(name=subcategory_name, category=category).exists():
+                messages.error(request, 'Subcategory already exists in this category!')
+            else:
+                # Handle image upload
+                subcategory = ServiceSubcategoryMen(
+                    name=subcategory_name,
+                    category=category,
+                    description=description
+                )
+                
+                # Check if an image file was uploaded
+                if 'subcategory_image' in request.FILES:
+                    subcategory.image = request.FILES['subcategory_image']
+                    
+                subcategory.save()
+                messages.success(request, 'Subcategory added successfully!')
+
+        return redirect('manage_men_category')
+
     return render(request, 'admin/mens_category.html', {
         'categories': categories,
-        'subcategories': subcategories  # Add subcategories to the context
+        'subcategories': subcategories,
     })
 
 from django.shortcuts import render, redirect, get_object_or_404
@@ -1496,6 +1542,7 @@ from django.views.decorators.cache import cache_control
 
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def edit_men_category(request, category_id):
+    
     user_type = request.session.get('user_type')
 
     if user_type != 'admin':
@@ -1579,7 +1626,6 @@ def delete_men_subcategory(request, subcategory_id):
     subcategory.delete()
     messages.success(request, 'Subcategory deleted successfully!')
     return redirect('manage_men_category')  # Redirect to the men category management page
-
 # myproject/myapp/views.py
 from django.shortcuts import render, redirect, get_object_or_404
 from .models import ServiceMen, ServiceCategoryMen, ServiceSubcategoryMen
@@ -1602,15 +1648,33 @@ def manage_men_service(request):
         rate = request.POST.get('rate')
         image = request.FILES.get('image')
 
-        # Create a new service
+        # Server-side validation
+        if not service_name.isalpha() or not service_name.strip():
+            messages.error(request, 'Service name must contain only letters. Please try again.')
+            return redirect('manage_men_service')  # Redirect back to the form
+
+        if not description.isalpha() or not description.strip():
+            messages.error(request, 'Description must contain only letters. Please try again.')
+            return redirect('manage_men_service')  # Redirect back to the form
+
+        try:
+            rate_value = int(rate)
+            if rate_value <= 0:
+                messages.error(request, 'Rate must be a positive integer. Please enter a valid rate.')
+                return redirect('manage_men_service')  # Redirect back to the form
+        except (ValueError, TypeError):
+            messages.error(request, 'Rate must be a valid positive integer. Please enter a valid rate.')
+            return redirect('manage_men_service')  # Redirect back to the form
+
+        # Create a new service if all validations pass
         ServiceMen.objects.create(
             subcategory_id=subcategory_id,
             service_name=service_name,
             description=description,
-            rate=rate,
+            rate=rate_value,
             image=image
         )
-        messages.success(request, 'Service added successfully.')
+        messages.success(request, 'Male service added successfully.')
         return redirect('manage_men_service')  # Redirect to the same page
 
     categories = ServiceCategoryMen.objects.all()
@@ -1621,7 +1685,7 @@ def manage_men_service(request):
         'categories': categories,
         'subcategories': subcategories,
         'services': services,
-        'messages': messages.get_messages(request),
+        'messages': messages.get_messages(request),  # Pass messages to the template
     })
 
 # myproject/myapp/views.py
@@ -1668,155 +1732,48 @@ def delete_men_service(request, service_id):
     return redirect('manage_men_service')  # Redirect to the male service management page
  
 ############################################
-# myapp/views.py
-from django.http import JsonResponse
-import re
-import json
-import random
 
-def chatbot_response(request):
-    if request.method == 'POST':
-        try:
-            # Load the user message from the request body
-            data = json.loads(request.body)
-            user_message = data.get('message', '').lower()
-
-            # Hair salon knowledge base
-            responses = {
-                # Hair Services
-                r'haircut|trim': {
-                    'responses': [
-                        "We offer a variety of haircuts including classic, modern, and specialty styles. What type of haircut are you interested in?",
-                        "Our stylists can help you with a trim or a complete makeover. What do you have in mind?"
-                    ]
-                },
-                r'color|dye': {
-                    'responses': [
-                        "We provide hair coloring services including highlights, lowlights, and full color. What color are you considering?",
-                        "Are you looking for a bold color change or a subtle enhancement?"
-                    ]
-                },
-                r'styling|blowout': {
-                    'responses': [
-                        "We offer styling services for special occasions, including blowouts and updos. Do you have a specific event in mind?",
-                        "Our stylists can create beautiful styles for any occasion. What look are you going for?"
-                    ]
-                },
-                r'treatment|deep conditioning': {
-                    'responses': [
-                        "We have several hair treatments available, including deep conditioning and keratin treatments. Would you like to know more about them?",
-                        "Our treatments can help with dryness, frizz, and damage. What are your hair concerns?"
-                    ]
-                },
-                r'appointment|book': {
-                    'responses': [
-                        "You can book an appointment through our website or by calling us directly. Would you like the phone number?",
-                        "To schedule an appointment, please visit our website or let me know if you need assistance with the booking process."
-                    ]
-                },
-                r'products|recommendation': {
-                    'responses': [
-                        "We recommend using sulfate-free shampoos and conditioners for healthy hair. What type of products are you looking for?",
-                        "For styling, we have a range of products including sprays, gels, and creams. What do you need help with?"
-                    ]
-                },
-                r'pricing|cost': {
-                    'responses': [
-                        "Our pricing varies based on the service. Haircuts start at $30, and coloring services start at $60. Would you like to know the price for a specific service?",
-                        "You can find our full price list on our website. Do you have a specific service in mind?"
-                    ]
-                },
-            }
-
-            # Check for matches and return random response from matching category
-            for pattern, response_data in responses.items():
-                if re.search(pattern, user_message):
-                    return JsonResponse({
-                        'response': random.choice(response_data['responses'])
-                    })
-
-            # Default response for unmatched queries
-            default_responses = [
-                "I'm not sure about that. Could you ask about specific hair services? I can help with:\n"
-                "• Haircuts\n"
-                "• Hair coloring\n"
-                "• Styling\n"
-                "• Treatments\n"
-                "• Booking appointments",
-
-                "I specialize in hair salon-related questions. Please ask about:\n"
-                "• Our services\n"
-                "• Pricing\n"
-                "• Product recommendations\n"
-                "• Appointment scheduling"
-            ]
-
-            return JsonResponse({
-                'response': random.choice(default_responses)
-            })
-
-        except json.JSONDecodeError:
-            return JsonResponse({
-                'response': "Sorry, I couldn't process that request. Please try again."
-            })
-        except Exception as e:
-            return JsonResponse({
-                'response': "An error occurred. Please try again later."
-            })
-
-    return JsonResponse({
-        'error': 'Invalid request method'
-    })
 
 def dashboard(request):
     return render(request, 'dashboard.html')
 
 from django.shortcuts import render
-from .models import ServiceCategory, ServiceSubcategory, Service  # Import your models
+from .models import ServiceCategory, ServiceSubcategory, Service  # Import existing models
 
 def client_women_services(request):
-    user_id = request.session.get('user_id')
-    if not user_id:
-        messages.error(request, "You want to log in to access the dashboard.")
-        return redirect('login')
+    # Fetch all categories for women
+    categories_women = ServiceCategory.objects.all()
     
-    client = Client.objects.get(id=user_id)
-    categories = ServiceCategory.objects.all()
-    subcategories = ServiceSubcategory.objects.select_related('category').all()
-    services = Service.objects.select_related('subcategory').all()
+    # Fetch all subcategories with their related categories
+    subcategories_women = ServiceSubcategory.objects.select_related('category').all()
+    
+    # Fetch all services with their related subcategories
+    services_women = Service.objects.select_related('subcategory').all()
 
+    # Get the selected category and subcategory IDs from the request
     selected_category_id = request.GET.get('category')
     selected_subcategory_id = request.GET.get('subcategory')
 
-    # Handle search query
-    search_query = request.GET.get('search', '')
-    if search_query:
-        services = services.filter(
-            Q(service_name__icontains=search_query) |
-            Q(subcategory__name__icontains=search_query) |
-            Q(subcategory__category__name__icontains=search_query)
-        ).distinct()  # Use distinct to avoid duplicates
-
-        # Debugging: Print the search query and the number of services found
-        print(f"Search Query: {search_query}")
-        print(f"Number of Services Found: {services.count()}")
-
     # Filter subcategories if category is selected
     if selected_category_id:
-        subcategories = subcategories.filter(category_id=selected_category_id)
+        subcategories_women = subcategories_women.filter(category_id=selected_category_id)
         
     # Filter services if subcategory is selected
     if selected_subcategory_id:
-        services = services.filter(subcategory_id=selected_subcategory_id)
+        services_women = services_women.filter(subcategory_id=selected_subcategory_id)
 
     context = {
-        'categories': categories,
-        'subcategories': subcategories,
-        'services': services,
+        'categories_women': categories_women,
+        'subcategories_women': subcategories_women,
+        'services_women': services_women,
         'selected_category': selected_category_id,
         'selected_subcategory': selected_subcategory_id,
-        'search_query': search_query,
     }
+
+    # Add debug information to verify data is being passed correctly
+    print(f"Number of women's categories: {categories_women.count()}")
+    print(f"Number of women's subcategories: {subcategories_women.count()}")
+    print(f"Number of women's services: {services_women.count()}")
 
     return render(request, 'client_women_services.html', context)
 
@@ -1906,6 +1863,11 @@ from django.utils import timezone
 from django.core.exceptions import ValidationError
 
 def add_offer(request):
+    user_type = request.session.get('user_type')
+
+    if user_type != 'admin':
+        messages.error(request, "You need to log in as admin to access this page.")
+        return redirect('login') 
     selected_category_id = request.POST.get('category') if request.method == 'POST' else None
     selected_subcategory_id = request.POST.get('subcategory') if request.method == 'POST' else None
     selected_service_id = request.POST.get('service') if request.method == 'POST' else None
@@ -1993,8 +1955,17 @@ def add_offer(request):
         'selected_service_id': selected_service_id,
     })
 
+from django.utils import timezone
+
 def offer_list(request):
-    offers = Offer.objects.all()
+    user_type = request.session.get('user_type')
+
+    if user_type != 'admin':
+        messages.error(request, "You need to log in as admin to access this page.")
+        return redirect('login') 
+    # Fetch all offers that are currently active
+    current_time = timezone.now()  # Get the current time
+    offers = Offer.objects.filter(is_active=True, end_date__gte=current_time)  # Ensure end_date is greater than or equal to current time
     return render(request, 'offer_list.html', {'offers': offers})
 
 from django.shortcuts import render, get_object_or_404, redirect
@@ -2010,39 +1981,27 @@ from django.views.decorators.csrf import csrf_exempt
 
 @csrf_exempt
 def edit_offer(request, offer_id):
+    user_type = request.session.get('user_type')
+
+    if user_type != 'admin':
+        messages.error(request, "You need to log in as admin to access this page.")
+        return redirect('login') 
     offer = get_object_or_404(Offer, id=offer_id)
-    
+
     if request.method == 'POST':
-        # Update the offer with the data from the request
         offer.title = request.POST.get('title')
         offer.description = request.POST.get('description')
         offer.discount_percentage = request.POST.get('discount_percentage')
         offer.start_date = request.POST.get('start_date')
         offer.end_date = request.POST.get('end_date')
-        offer.is_active = request.POST.get('is_active') == 'True'
+        offer.is_active = request.POST.get('is_active') == 'on'  # Checkbox handling
+
+        # Save the updated offer
         offer.save()
-        
-        # Return a JSON response with the updated offer data
-        return JsonResponse({
-            'id': offer.id,
-            'title': offer.title,
-            'description': offer.description,
-            'discount_percentage': offer.discount_percentage,
-            'start_date': offer.start_date,
-            'end_date': offer.end_date,
-            'is_active': offer.is_active
-        })
-    
-    # Handle GET request to return the current offer data
-    return JsonResponse({
-        'id': offer.id,
-        'title': offer.title,
-        'description': offer.description,
-        'discount_percentage': offer.discount_percentage,
-        'start_date': offer.start_date,
-        'end_date': offer.end_date,
-        'is_active': offer.is_active
-    })
+        messages.success(request, 'Offer updated successfully!')
+        return redirect('offer_list')  # Redirect to the offer list page
+
+    return render(request, 'edit_offer.html', {'offer': offer})
 @csrf_exempt
 def delete_offer(request, offer_id):
     offer = get_object_or_404(Offer, id=offer_id)
@@ -2074,3 +2033,289 @@ def search_services_men(request):
         'query': query,
     }
     return render(request, 'search_results_men.html', context)
+
+
+####################################################################
+
+
+
+
+#chat bot
+
+
+import openai
+from django.http import JsonResponse
+import json
+import os
+
+
+
+def chatbot_response(request):
+    if request.method == 'POST':
+        try:
+            # Load the user message from the request body
+            data = json.loads(request.body)
+            user_message = data.get('message', '')
+
+            # Call OpenAI API
+            response = openai.ChatCompletion.create(
+                model="gpt-3.5-turbo",  # or "gpt-4" if you have access
+                messages=[
+                    {"role": "user", "content": user_message}
+                ]
+            )
+
+            # Extract the response from OpenAI
+            bot_response = response['choices'][0]['message']['content']
+
+            return JsonResponse({
+                'response': bot_response
+            })
+
+        except json.JSONDecodeError:
+            return JsonResponse({
+                'response': "Sorry, I couldn't process that request. Please try again."
+            })
+        except Exception as e:
+            return JsonResponse({
+                'response': f"An error occurred: {str(e)}"
+            })
+
+    return JsonResponse({
+        'error': 'Invalid request method'
+    })
+
+
+
+import json
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+import logging
+import google.generativeai as genai
+from django.core.files.storage import FileSystemStorage
+
+# Configure logging
+logger = logging.getLogger(__name__)
+
+# Set your Gemini API Key
+API_KEY = "AIzaSyDeGoQyD0YL2T9nCb33tzOKv0YzzbXStUw"
+
+# Configure the Generative AI client
+genai.configure(api_key=API_KEY)
+
+@csrf_exempt
+def chatbot_response(request):
+    if request.method == 'POST':
+        try:
+            # Load the user message from the request body
+            data = json.loads(request.body)
+            user_message = data.get('message')
+
+            if not user_message:
+                return JsonResponse({'error': 'No message provided'}, status=400)
+
+            # Create the model
+            model = genai.GenerativeModel("gemini-1.5-flash")
+
+            # Generate content using the user message
+            response = model.generate_content(user_message)
+
+            # Extract the AI response
+            ai_message = response.text
+
+            # Log the AI response for debugging
+            logger.info(f"Gemini API response: {ai_message}")
+
+            return JsonResponse({'response': ai_message})
+
+        except json.JSONDecodeError:
+            return JsonResponse({'error': 'Invalid JSON'}, status=400)
+        except Exception as e:
+            logger.error(f"Error fetching response from Gemini API: {str(e)}")
+            return JsonResponse({'error': 'Failed to get response from AI'}, status=500)
+
+    return JsonResponse({'error': 'Invalid request method'}, status=400)
+
+### image detection ###
+from django.shortcuts import render, redirect
+from django.contrib import messages
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+import json
+import google.generativeai as genai
+from django.core.files.storage import FileSystemStorage
+
+# Configure the Generative AI client
+API_KEY = "AIzaSyCIohu_oJ9ayNnrYBKX51vuhsFuLl4VTHY"
+genai.configure(api_key=API_KEY)
+
+@csrf_exempt
+def analyze_hair_disease(request):
+    if request.method == 'POST' and request.FILES.get('image'):
+        image_file = request.FILES['image']
+        
+        # Save the uploaded image temporarily
+        fs = FileSystemStorage()
+        filename = fs.save(image_file.name, image_file)
+        file_url = fs.url(filename)
+
+        # Log the image URL for debugging
+        logger.info(f"Uploaded image URL: {file_url}")
+
+        # Call the Gemini API to analyze the image
+        try:
+            model = genai.GenerativeModel("gemini-1.5-flash")
+            # Refine the prompt to focus on identifying specific conditions
+            response = model.generate_content(f"Analyze this hair image and provide the specific name of any visible hair problems or conditions (e.g., dandruff, alopecia, etc.): {file_url}")
+
+            # Extract the AI response
+            ai_message = response.text.strip()  # Remove any leading/trailing whitespace
+
+            # Log the AI response for debugging
+            logger.info(f"AI response: {ai_message}")
+
+            # Return only the name of the problem
+            return JsonResponse({'response': ai_message})
+
+        except Exception as e:
+            logger.error(f"Error analyzing image: {str(e)}")
+            return JsonResponse({'error': 'Failed to analyze image.'}, status=500)
+
+    return JsonResponse({'error': 'Invalid request method or no image uploaded.'}, status=400)
+
+def upload_hair_image(request):
+    return render(request, 'upload_hair_image.html')
+
+from django.shortcuts import render, redirect
+from django.contrib import messages
+from .models import Offer, Service, ServiceCategory, ServiceSubcategory  # Ensure you import your models
+from django.utils import timezone
+
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
+def add_offer_male(request):
+    user_type = request.session.get('user_type')
+
+    if user_type != 'admin':
+        messages.error(request, "You need to log in as admin to access this page.")
+        return redirect('login')
+
+    categories = ServiceCategory.objects.all()
+    subcategories = []
+    services = []
+    selected_category_id = None
+    selected_subcategory_id = None
+
+    if request.method == 'POST':
+        title = request.POST.get('title')
+        description = request.POST.get('description')
+        discount_percentage = request.POST.get('discount_percentage')
+        start_date = request.POST.get('start_date')
+        end_date = request.POST.get('end_date')
+        is_active = request.POST.get('is_active') == 'on'
+        selected_category_id = request.POST.get('category')
+        selected_subcategory_id = request.POST.get('subcategory')
+        selected_service_id = request.POST.get('service')
+
+        # Validate the data (you can add more validation as needed)
+        if not title or not description or not discount_percentage or not start_date or not end_date:
+            messages.error(request, "All fields are required.")
+            return redirect('add_offer_male')
+
+        # Create the offer
+        try:
+            service = Service.objects.get(id=selected_service_id)
+            offer = Offer(
+                service=service,
+                title=title,
+                description=description,
+                discount_percentage=discount_percentage,
+                start_date=start_date,
+                end_date=end_date,
+                is_active=is_active
+            )
+            offer.save()
+            messages.success(request, 'Offer added successfully!')
+            return redirect('offer_list_male')  # Redirect to the offer list page
+        except Service.DoesNotExist:
+            messages.error(request, "Selected service does not exist.")
+            return redirect('add_offer_male')
+
+    # If GET request, fetch subcategories and services based on selected category
+    if selected_category_id:
+        subcategories = ServiceSubcategory.objects.filter(category_id=selected_category_id)
+    if selected_subcategory_id:
+        services = Service.objects.filter(subcategory_id=selected_subcategory_id)
+
+    return render(request, 'add_offer_male.html', {
+        'categories': categories,
+        'subcategories': subcategories,
+        'services': services,
+        'selected_category_id': selected_category_id,
+        'selected_subcategory_id': selected_subcategory_id,
+    })
+
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib import messages
+from .models import Offer, Service  # Ensure you import your models
+
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
+def edit_offer_male(request, offer_id):
+    user_type = request.session.get('user_type')
+
+    if user_type != 'admin':
+        messages.error(request, "You need to log in as admin to access this page.")
+        return redirect('login')
+
+    offer = get_object_or_404(Offer, id=offer_id)
+    services = Service.objects.all()  # Fetch all services for the dropdown
+
+    if request.method == 'POST':
+        title = request.POST.get('title')
+        description = request.POST.get('description')
+        discount_percentage = request.POST.get('discount_percentage')
+        start_date = request.POST.get('start_date')
+        end_date = request.POST.get('end_date')
+        is_active = request.POST.get('is_active') == 'on'
+
+        # Update the offer
+        offer.title = title
+        offer.description = description
+        offer.discount_percentage = discount_percentage
+        offer.start_date = start_date
+        offer.end_date = end_date
+        offer.is_active = is_active
+        offer.save()
+
+        messages.success(request, 'Offer updated successfully!')
+        return redirect('offer_list_male')  # Redirect to the offer list page
+
+    return render(request, 'edit_offer_male.html', {
+        'offer': offer,
+        'services': services,
+    })
+
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
+def offer_list_male(request):
+    user_type = request.session.get('user_type')
+
+    if user_type != 'admin':
+        messages.error(request, "You need to log in as admin to access this page.")
+        return redirect('login')
+
+    offers = Offer.objects.all()  # Fetch all offers
+    return render(request, 'offer_list_male.html', {
+        'offers': offers,
+    })
+
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
+def delete_offer_male(request, offer_id):
+    user_type = request.session.get('user_type')
+
+    if user_type != 'admin':
+        messages.error(request, "You need to log in as admin to access this page.")
+        return redirect('login')
+
+    offer = get_object_or_404(Offer, id=offer_id)
+    offer.delete()
+    messages.success(request, 'Offer deleted successfully!')
+    return redirect('offer_list_male')  # Redirect to the offer list page

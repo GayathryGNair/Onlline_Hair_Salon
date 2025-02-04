@@ -111,6 +111,7 @@
             <!-- Sidebar -->
             <nav id="sidebar" class="col-md-3 col-lg-2 d-md-block sidebar collapse">
                 <div class="position-sticky sidebar-sticky">
+                    <h2 class="text-center mb-4">GlamourQuest Admin</h2>
                     <div class="logo-container">
                         <img src="{% static 'images/logo.png' %}" alt="GlamourQuest Logo" class="logo">
                     </div>
@@ -169,6 +170,7 @@
                 </div>
             </nav>
 
+
             <!-- Main content -->
             <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
                 <div class="header d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3">
@@ -190,11 +192,24 @@
                 <div class="card">
                     <div class="card-body">
                         <h2 class="card-title">Edit Subcategory</h2>
-                        <form method="POST" action="{% url 'edit_subcategory' subcategory.id %}" enctype="multipart/form-data">
+                        {% if messages %}
+                            <div class="alert alert-danger">
+                                {% for message in messages %}
+                                    <p>{{ message }}</p>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <form method="POST" action="{% url 'edit_subcategory' subcategory.id %}" enctype="multipart/form-data" onsubmit="return validateSubcategoryForm();">
                             {% csrf_token %}
                             <div class="mb-3">
                                 <label for="subcategory_name" class="form-label">Subcategory Name:</label>
-                                <input type="text" id="subcategory_name" name="subcategory_name" value="{{ subcategory.name }}" class="form-control" required aria-label="Subcategory Name">
+                                <input type="text" id="subcategory_name" name="subcategory_name" value="{{ subcategory.name }}" class="form-control" required aria-label="Subcategory Name" oninput="validateSubcategoryName(this)">
+                                <div id="subcategoryNameError" class="text-danger" style="display: none;">Subcategory name must contain only letters.</div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="description" class="form-label">Description:</label>
+                                <textarea id="description" name="description" class="form-control" required oninput="validateDescription(this)">{{ subcategory.description }}</textarea>
+                                <div id="descriptionError" class="text-danger" style="display: none;">Description must contain only letters.</div>
                             </div>
                             <div class="mb-3">
                                 <label for="category" class="form-label">Select Category:</label>
@@ -205,10 +220,6 @@
                                         </option>
                                     {% endfor %}
                                 </select>
-                            </div>
-                            <div class="mb-3">
-                                <label for="description" class="form-label">Description:</label>
-                                <textarea id="description" name="description" rows="4" class="form-control" required aria-label="Subcategory Description">{{ subcategory.description }}</textarea>
                             </div>
                             <div class="mb-3">
                                 <label for="subcategory_image" class="form-label">Subcategory Image:</label>
@@ -228,5 +239,42 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function validateSubcategoryName(input) {
+            const value = input.value;
+            const errorDiv = document.getElementById('subcategoryNameError');
+            const regex = /^[A-Za-z\s]+$/; // Regex to allow only letters and spaces
+
+            if (!regex.test(value)) {
+                errorDiv.style.display = 'block'; // Show error message
+                input.setCustomValidity('Invalid subcategory name'); // Set custom validity message
+            } else {
+                errorDiv.style.display = 'none'; // Hide error message
+                input.setCustomValidity(''); // Reset custom validity
+            }
+        }
+
+        function validateDescription(input) {
+            const value = input.value;
+            const errorDiv = document.getElementById('descriptionError');
+            const regex = /^[A-Za-z\s]+$/; // Regex to allow only letters and spaces
+
+            if (!regex.test(value)) {
+                errorDiv.style.display = 'block'; // Show error message
+                input.setCustomValidity('Invalid description'); // Set custom validity message
+            } else {
+                errorDiv.style.display = 'none'; // Hide error message
+                input.setCustomValidity(''); // Reset custom validity
+            }
+        }
+
+        function validateSubcategoryForm() {
+            const subcategoryNameInput = document.getElementById('subcategory_name');
+            const descriptionInput = document.getElementById('description');
+            validateSubcategoryName(subcategoryNameInput);
+            validateDescription(descriptionInput);
+            return subcategoryNameInput.checkValidity() && descriptionInput.checkValidity(); // Return true if valid
+        }
+    </script>
 </body>
 </html>
