@@ -264,7 +264,7 @@
                                     <td>
                                         {% if booking.status == 'Pending' or booking.status == 'Confirmed' %}
                                             {% if booking.booking_date >= today %}
-                                                <a href="{% url 'cancel_booking' booking.id %}" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to cancel this booking?')">Cancel</a>
+                                                <a href="#" class="btn btn-danger btn-sm cancel-button" data-booking-id="{{ booking.id }}" data-bs-toggle="modal" data-bs-target="#cancelBookingModal">Cancel</a>
                                             {% endif %}
                                         {% elif booking.status == 'Completed' %}
                                             {% if booking.feedback %}
@@ -290,6 +290,49 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Add this modal code just before the closing </body> tag -->
+    <div class="modal fade" id="cancelBookingModal" tabindex="-1" aria-labelledby="cancelBookingModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="cancelBookingModalLabel">Cancel Booking</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    Are you sure you want to cancel this booking?
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">No</button>
+                    <button type="button" class="btn btn-danger" id="confirmCancelButton">Yes, Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Handle the cancel button click
+            const cancelButtons = document.querySelectorAll('.cancel-button');
+            cancelButtons.forEach(button => {
+                button.addEventListener('click', function(event) {
+                    event.preventDefault(); // Prevent default action
+                    const bookingId = this.getAttribute('data-booking-id'); // Get booking ID
+                    const modal = new bootstrap.Modal(document.getElementById('cancelBookingModal'));
+                    modal.show();
+
+                    // Confirm button in the modal
+                    document.getElementById('confirmCancelButton').onclick = function() {
+                        if (bookingId) { // Ensure bookingId is not empty
+                            window.location.href = "{% url 'cancel_booking' '0' %}".replace("0", bookingId); // Redirect to cancel URL
+                        } else {
+                            console.error("Booking ID is not set.");
+                        }
+                    };
+                });
+            });
+        });
+    </script>
 </body>
 </html>
 {% endblock %}

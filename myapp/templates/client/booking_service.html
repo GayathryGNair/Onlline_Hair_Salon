@@ -247,7 +247,7 @@
                                 </tbody>
                             </table>
                             <div class="text-center mt-4">
-                                <button type="submit" class="btn btn-primary">
+                                <button type="submit" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#confirmBookingModal">
                                     Confirm Booking
                                 </button>
                             </div>
@@ -313,6 +313,41 @@
             // Initial update
             updateAvailableTimes();
         });
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            // Show the modal when the booking button is clicked
+            const bookingButton = document.querySelector('.btn-primary');
+            bookingButton.addEventListener('click', function(event) {
+                event.preventDefault(); // Prevent form submission
+                const form = bookingButton.closest('form'); // Get the form element
+                const modal = new bootstrap.Modal(document.getElementById('confirmBookingModal'));
+                modal.show();
+
+                // Confirm button in the modal
+                document.getElementById('confirmButton').onclick = function() {
+                    form.submit(); // Submit the form when confirmed
+                };
+            });
+        });
     </script>
+
+    <!-- Add this modal code just before the closing </body> tag -->
+    <div class="modal fade" id="confirmBookingModal" tabindex="-1" aria-labelledby="confirmBookingModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="confirmBookingModalLabel">Confirm Booking</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    Are you sure you want to confirm this booking?
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="confirmButton">Confirm</button>
+                </div>
+            </div>
+        </div>
+    </div>
 </body>
 </html>

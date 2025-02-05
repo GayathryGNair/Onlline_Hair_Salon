@@ -1921,7 +1921,7 @@ def add_offer(request):
                 except ValidationError as e:
                     # Handle validation errors if needed
                     continue
-            return redirect('offer_list')
+            return redirect('admin/offer_list')
 
         if selected_service_id:
             service = get_object_or_404(Service, id=selected_service_id)
@@ -1937,16 +1937,16 @@ def add_offer(request):
                 )
                 offer.full_clean()
                 offer.save()
-                return redirect('offer_list')
+                return redirect('admin/offer_list')
             except ValidationError as e:
-                return render(request, 'add_offer.html', {'errors': e.messages})
+                return render(request, 'admin/add_offer.html', {'errors': e.messages})
 
     # Fetch categories, subcategories, and services based on selections
     categories = ServiceCategory.objects.all()
     subcategories = ServiceSubcategory.objects.filter(category_id=selected_category_id) if selected_category_id else []
     services = Service.objects.filter(subcategory_id=selected_subcategory_id) if selected_subcategory_id else []
 
-    return render(request, 'add_offer.html', {
+    return render(request, 'admin/add_offer.html', {
         'categories': categories,
         'subcategories': subcategories,
         'services': services,
@@ -1966,7 +1966,7 @@ def offer_list(request):
     # Fetch all offers that are currently active
     current_time = timezone.now()  # Get the current time
     offers = Offer.objects.filter(is_active=True, end_date__gte=current_time)  # Ensure end_date is greater than or equal to current time
-    return render(request, 'offer_list.html', {'offers': offers})
+    return render(request, 'admin/offer_list.html', {'offers': offers})
 
 from django.shortcuts import render, get_object_or_404, redirect
 from django.http import JsonResponse
@@ -1999,9 +1999,9 @@ def edit_offer(request, offer_id):
         # Save the updated offer
         offer.save()
         messages.success(request, 'Offer updated successfully!')
-        return redirect('offer_list')  # Redirect to the offer list page
+        return redirect('admin/offer_list')  # Redirect to the offer list page
 
-    return render(request, 'edit_offer.html', {'offer': offer})
+    return render(request, 'admin/edit_offer.html', {'offer': offer})
 @csrf_exempt
 def delete_offer(request, offer_id):
     offer = get_object_or_404(Offer, id=offer_id)
@@ -2015,7 +2015,7 @@ from .models import Offer
 def delete_all_offers(request):
     if request.method == 'POST':
         Offer.objects.all().delete()  # Delete all offers
-        return redirect('offer_list')  # Redirect to the offer list after deletion
+        return redirect('admin/offer_list')  # Redirect to the offer list after deletion
 
 from django.db.models import Q
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
@@ -2188,7 +2188,7 @@ def upload_hair_image(request):
 
 from django.shortcuts import render, redirect
 from django.contrib import messages
-from .models import Offer, Service, ServiceCategory, ServiceSubcategory  # Ensure you import your models
+from .models import OfferMale, Service, ServiceCategory, ServiceSubcategory  # Ensure you import your models
 from django.utils import timezone
 
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
@@ -2199,54 +2199,18 @@ def add_offer_male(request):
         messages.error(request, "You need to log in as admin to access this page.")
         return redirect('login')
 
-    categories = ServiceCategory.objects.all()
+    categories = ServiceCategoryMen.objects.all()  # Fetch categories for male services
     subcategories = []
     services = []
-    selected_category_id = None
-    selected_subcategory_id = None
+    selected_category_id = request.POST.get('service_category') if request.method == 'POST' else None
+    selected_subcategory_id = request.POST.get('service_subcategory') if request.method == 'POST' else None
 
-    if request.method == 'POST':
-        title = request.POST.get('title')
-        description = request.POST.get('description')
-        discount_percentage = request.POST.get('discount_percentage')
-        start_date = request.POST.get('start_date')
-        end_date = request.POST.get('end_date')
-        is_active = request.POST.get('is_active') == 'on'
-        selected_category_id = request.POST.get('category')
-        selected_subcategory_id = request.POST.get('subcategory')
-        selected_service_id = request.POST.get('service')
-
-        # Validate the data (you can add more validation as needed)
-        if not title or not description or not discount_percentage or not start_date or not end_date:
-            messages.error(request, "All fields are required.")
-            return redirect('add_offer_male')
-
-        # Create the offer
-        try:
-            service = Service.objects.get(id=selected_service_id)
-            offer = Offer(
-                service=service,
-                title=title,
-                description=description,
-                discount_percentage=discount_percentage,
-                start_date=start_date,
-                end_date=end_date,
-                is_active=is_active
-            )
-            offer.save()
-            messages.success(request, 'Offer added successfully!')
-            return redirect('offer_list_male')  # Redirect to the offer list page
-        except Service.DoesNotExist:
-            messages.error(request, "Selected service does not exist.")
-            return redirect('add_offer_male')
-
-    # If GET request, fetch subcategories and services based on selected category
     if selected_category_id:
-        subcategories = ServiceSubcategory.objects.filter(category_id=selected_category_id)
+        subcategories = ServiceSubcategoryMen.objects.filter(category_id=selected_category_id)  # Fetch subcategories based on selected category
     if selected_subcategory_id:
-        services = Service.objects.filter(subcategory_id=selected_subcategory_id)
+        services = ServiceMen.objects.filter(subcategory_id=selected_subcategory_id)
 
-    return render(request, 'add_offer_male.html', {
+    return render(request, 'admin/add_offer_male.html', {
         'categories': categories,
         'subcategories': subcategories,
         'services': services,
@@ -2267,7 +2231,16 @@ def edit_offer_male(request, offer_id):
         return redirect('login')
 
     offer = get_object_or_404(Offer, id=offer_id)
-    services = Service.objects.all()  # Fetch all services for the dropdown
+    categories = ServiceCategoryMen.objects.all()  # Fetch categories for male services
+    subcategories = []
+    services = []
+    selected_category_id = request.POST.get('service_category', offer.service.subcategory.category.id)  # Default to current offer's category
+    selected_subcategory_id = request.POST.get('service_subcategory', offer.service.subcategory.id)  # Default to current offer's subcategory
+
+    if selected_category_id:
+        subcategories = ServiceSubcategoryMen.objects.filter(category_id=selected_category_id)  # Fetch subcategories based on selected category
+    if selected_subcategory_id:
+        services = ServiceMen.objects.filter(subcategory_id=selected_subcategory_id)  # Fetch services based on selected subcategory
 
     if request.method == 'POST':
         title = request.POST.get('title')
@@ -2287,11 +2260,15 @@ def edit_offer_male(request, offer_id):
         offer.save()
 
         messages.success(request, 'Offer updated successfully!')
-        return redirect('offer_list_male')  # Redirect to the offer list page
+        return redirect('admin/offer_list_male')  # Redirect to the offer list page
 
-    return render(request, 'edit_offer_male.html', {
+    return render(request, 'admin/edit_offer_male.html', {
         'offer': offer,
+        'categories': categories,
+        'subcategories': subcategories,
         'services': services,
+        'selected_category_id': selected_category_id,
+        'selected_subcategory_id': selected_subcategory_id,
     })
 
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
@@ -2303,7 +2280,7 @@ def offer_list_male(request):
         return redirect('login')
 
     offers = Offer.objects.all()  # Fetch all offers
-    return render(request, 'offer_list_male.html', {
+    return render(request, 'admin/offer_list_male.html', {
         'offers': offers,
     })
 
@@ -2319,3 +2296,40 @@ def delete_offer_male(request, offer_id):
     offer.delete()
     messages.success(request, 'Offer deleted successfully!')
     return redirect('offer_list_male')  # Redirect to the offer list page
+
+from django.shortcuts import render
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
+def service_selection(request):
+    user_type = request.session.get('user_type')
+
+    if user_type != 'admin':
+        messages.error(request, "You need to log in as admin to access this page.")
+        return redirect('login')
+    return render(request, 'admin/service_selection.html')
+
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
+def category_selection(request):
+    user_type = request.session.get('user_type')
+
+    if user_type != 'admin':
+        messages.error(request, "You need to log in as admin to access this page.")
+        return redirect('login')
+    return render(request, 'admin/category_selection.html')
+
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
+def offer_selection(request):
+    user_type = request.session.get('user_type')
+
+    if user_type != 'admin':
+        messages.error(request, "You need to log in as admin to access this page.")
+        return redirect('login')
+    return render(request, 'admin/offer_selection.html')
+
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
+def offer_list_selection(request):
+    user_type = request.session.get('user_type')
+
+    if user_type != 'admin':
+        messages.error(request, "You need to log in as admin to access this page.")
+        return redirect('login')
+    return render(request, 'admin/offer_list_selection.html')

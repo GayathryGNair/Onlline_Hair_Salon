@@ -29,6 +29,10 @@ from .views import search_services_men
 from .views import analyze_hair_disease, upload_hair_image 
 from .views import edit_offer, offer_list  # Import your views
 from .views import add_offer_male, offer_list_male, edit_offer_male, delete_offer_male
+from .views import service_selection  # Import the new view
+from .views import category_selection  # Import the new view
+from .views import offer_selection  # Import the new view
+from .views import offer_list_selection  # Import the new view
 
 
 
@@ -175,6 +179,14 @@ urlpatterns = [
     path('offer_list_male/', offer_list_male, name='offer_list_male'),
     path('edit_offer_male/<int:offer_id>/', edit_offer_male, name='edit_offer_male'),
     path('delete_offer_male/<int:offer_id>/', delete_offer_male, name='delete_offer_male'),
+
+    path('service-selection/', service_selection, name='service_selection'),
+
+    path('category-selection/', category_selection, name='category_selection'),
+
+    path('offer-selection/', offer_selection, name='offer_selection'),
+
+    path('offer-list-selection/', offer_list_selection, name='offer_list_selection'),
 
 ]
 
