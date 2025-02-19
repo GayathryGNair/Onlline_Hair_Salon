@@ -142,25 +142,28 @@
                                     </tr>
                                     <tr>
                                         <th>Service:</th>
-                                        <td>{{ service.service_name }}</td>
+                                        <td>
+                                            {% if booking.service %}
+                                                {{ booking.service.service_name }}
+                                            {% elif booking.service_men %}
+                                                {{ booking.service_men.service_name }}
+                                            {% else %}
+                                                Service not found
+                                            {% endif %}
+                                        </td>
                                     </tr>
                                     <tr>
                                         <th>Original Amount:</th>
                                         <td>₹{{ amount }}</td>
                                     </tr>
-                                    {% if service.discounted_price %}
-                                        <tr>
-                                            <th>Discounted Price:</th>
-                                            <td>₹{{ discounted_price|floatformat:2 }}</td>
-                                        </tr>
+                                    {% if discounted_price %}
                                         <tr>
                                             <th>Discount Amount:</th>
-                                            <td>₹{{ discount_amount|floatformat:2 }}</td>
+                                            <td class="text-success">₹{{ discount_amount|floatformat:2 }}</td>
                                         </tr>
-                                    {% else %}
                                         <tr>
-                                            <th>Discount Amount:</th>
-                                            <td>₹0.00</td>
+                                            <th>Final Price:</th>
+                                            <td class="text-primary">₹{{ discounted_price|floatformat:2 }}</td>
                                         </tr>
                                     {% endif %}
                                     <tr>

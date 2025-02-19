@@ -6,11 +6,7 @@ from django.contrib.auth import views as auth_views
 from django.contrib.auth import authenticate, login as auth_login
 from django.shortcuts import render, redirect
 from django.contrib import messages
-
-from myapp import models
-from .models import User
-from django.contrib.auth.hashers import check_password
-from django.contrib.auth import logout as auth_logout
+from django.views.decorators.csrf import csrf_exempt  # Add this line
 from django.views.decorators.cache import cache_control
 from django.core.mail import EmailMessage, send_mail
 from django.utils.crypto import get_random_string
@@ -31,6 +27,11 @@ from decimal import Decimal
 from django.db.models import Q  # Ensure you have this import
 from .models import OfferMale  # Ensure you import the OfferMale model
 import time
+from .models import Bill  # Add this at the top with your other imports
+from django.views.decorators.csrf import csrf_exempt
+import razorpay
+from django.conf import settings
+from django.http import JsonResponse
 
 
 def home(request):
@@ -460,9 +461,11 @@ def booking_service(request, service_id):
             except Exception as e:
                 messages.error(request, f"Error creating booking: {str(e)}")
         else:
+            # Add this to see form errors
+            print("Form errors:", form.errors)
             for field, errors in form.errors.items():
                 for error in errors:
-                    messages.error(request, f"{error}")
+                    messages.error(request, f"{field}: {error}")
     else:
         form = BookingForm(specialized_employees=specialized_employees)
 
@@ -1217,46 +1220,94 @@ from .models import Booking, Payment, Client, Employee, Service
 
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def send_bill(request, booking_id):
-    # Fetch the booking and related data
     booking = get_object_or_404(Booking, id=booking_id)
-    client = booking.client  # Assuming the Booking model has a ForeignKey to Client
-    employee = booking.staff  # Assuming the Booking model has a ForeignKey to Employee
-    service = booking.service  # Assuming the Booking model has a ForeignKey to Service
+    employee = get_object_or_404(Employee, id=booking.staff.id)
+    client = booking.client
 
-    # Set the amount to be billed
-    amount = booking.service.rate  # Assuming the rate is the amount to be billed
-
-    # Calculate the discounted price
-    if service.discounted_price:  # Check if discounted_price method exists
-        discount_amount = amount - service.discounted_price()  # Call the method here
-        discounted_price = service.discounted_price()  # Get the discounted price
+    # Handle both regular and men's services
+    if booking.service:
+        service = booking.service
+        amount = service.rate
+    elif booking.service_men:
+        service = booking.service_men
+        amount = service.rate
     else:
-        discount_amount = 0  # No discount
-        discounted_price = 0  # Set discounted price to 0 if no discount
+        messages.error(request, "No service found for this booking")
+        return redirect('view_appointments')
+
+    # Calculate discount if applicable
+    discounted_price = None
+    discount_amount = None
+
+    if booking.service:
+        active_offer = Offer.objects.filter(
+            service=service,
+            is_active=True,
+            start_date__lte=timezone.now(),
+            end_date__gte=timezone.now()
+        ).first()
+    elif booking.service_men:
+        active_offer = OfferMale.objects.filter(
+            service=service,
+            is_active=True,
+            start_date__lte=timezone.now(),
+            end_date__gte=timezone.now()
+        ).first()
+
+    if active_offer:
+        discount_percentage = Decimal(active_offer.discount_percentage)
+        discount_amount = amount * (discount_percentage / Decimal(100))
+        discounted_price = amount - discount_amount
+    else:
+        discounted_price = amount
 
     if request.method == 'POST':
-        # Create a new Payment record
-        Payment.objects.create(
-            booking=booking,
-            client=client,
-            employee=employee,
-            service=service,
-            amount=amount,
-            status='Pending',  # Set status to Pending
-            # Add payment_id and order_id if applicable
-        )
-        # Redirect to a success page or back to appointments
-        return redirect('view_appointments')  # Change this to your desired redirect
+        try:
+            # Create bill
+            bill = Bill.objects.create(
+                booking=booking,
+                client=client,
+                employee=employee,
+                service=booking.service,
+                service_men=booking.service_men,
+                amount=amount,
+                discounted_price=discounted_price,
+                status='Pending'
+            )
+            
+            # Create payment record
+            payment = Payment.objects.create(
+                booking=booking,
+                client=client,
+                employee=employee,
+                service=booking.service,
+                service_men=booking.service_men,
+                amount=discounted_price,  # Use discounted price if available
+                status='Pending'
+            )
+            
+            # Update booking status
+            booking.status = 'Completed'
+            booking.save()
+            
+            messages.success(request, 'Bill sent successfully!')
+            return redirect('view_appointments')
+            
+        except Exception as e:
+            messages.error(request, f'Error creating bill: {str(e)}')
+            return redirect('view_appointments')
 
     context = {
+        'booking': booking,
+        'booking_id': booking_id,
         'client': client,
         'employee': employee,
         'service': service,
         'amount': amount,
-        'discount_amount': discount_amount,
-        'discounted_price': discounted_price,  # Include discounted price in context
-        'booking_id': booking_id,
+        'discounted_price': discounted_price,
+        'discount_amount': discount_amount
     }
+    
     return render(request, 'emp/sendbill.html', context)
 
 
@@ -1296,26 +1347,72 @@ def update_payment_status(request, payment_id):
 # views.py
 
 from .models import Payment, Client, Booking
-@cache_control(no_cache=True, must_revalidate=True, no_store=True)
+@csrf_exempt
 def razorpay_payment(request, booking_id):
-    user_id = request.session.get('user_id')
-    client = get_object_or_404(Client, id=user_id)
-    booking = get_object_or_404(Booking, id=booking_id, client=client)
+    booking = get_object_or_404(Booking, id=booking_id)
+    client = booking.client
+    
+    # Get the correct service and calculate amount
+    if booking.service:
+        service = booking.service
+        base_amount = service.rate
+        # Check for active offers
+        active_offer = Offer.objects.filter(
+            service=service,
+            is_active=True,
+            start_date__lte=timezone.now(),
+            end_date__gte=timezone.now()
+        ).first()
+    elif booking.service_men:
+        service = booking.service_men
+        base_amount = service.rate
+        # Check for active offers for men's services
+        active_offer = OfferMale.objects.filter(
+            service=service,
+            is_active=True,
+            start_date__lte=timezone.now(),
+            end_date__gte=timezone.now()
+        ).first()
+    else:
+        return JsonResponse({'error': 'No service found'}, status=400)
 
-    if request.method == 'POST':
-        # Create a Razorpay order
-        razorpay_client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_SECRET))
-        amount = int(booking.service.rate * 100)  # Amount in paise
-        currency = 'INR'
-        order_data = {
-            'amount': amount,
-            'currency': currency,
-            'payment_capture': '1'  # Auto capture
-        }
-        order = razorpay_client.order.create(data=order_data)
-        return JsonResponse(order)  # Return order details to the frontend
+    # Calculate discounted amount and savings
+    if active_offer:
+        discount = Decimal(active_offer.discount_percentage)
+        discounted_amount = base_amount - (base_amount * discount / Decimal('100'))
+        savings = base_amount - discounted_amount
+    else:
+        discounted_amount = base_amount
+        savings = Decimal('0')
 
-    return render(request, 'client/razorpay_payment.html', {'booking': booking})
+    if request.method == "POST":
+        try:
+            # Convert amount to paise (Razorpay expects amount in smallest currency unit)
+            amount_in_paise = int(discounted_amount * 100)
+            
+            # Create Razorpay Order
+            client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
+            payment = client.order.create({
+                'amount': amount_in_paise,
+                'currency': 'INR',
+                'payment_capture': '1'
+            })
+            
+            return JsonResponse(payment)
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=400)
+    
+    context = {
+        'booking': booking,
+        'client': client,
+        'amount': discounted_amount,
+        'base_amount': base_amount,
+        'savings': savings,
+        'has_discount': active_offer is not None,
+        'settings': settings,
+    }
+    
+    return render(request, 'client/razorpay_payment.html', context)
 
 
 
@@ -1862,71 +1959,97 @@ from .models import Offer, Service
 from django.utils import timezone
 from django.core.exceptions import ValidationError
 
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def add_offer(request):
     user_type = request.session.get('user_type')
-
     if user_type != 'admin':
         messages.error(request, "You need to log in as admin to access this page.")
-        return redirect('login') 
-    selected_category_id = request.POST.get('category') if request.method == 'POST' else None
-    selected_subcategory_id = request.POST.get('subcategory') if request.method == 'POST' else None
-    selected_service_id = request.POST.get('service') if request.method == 'POST' else None
+        return redirect('login')
+
+    # Initialize variables
+    selected_category_id = None
+    selected_subcategory_id = None
+    subcategories = []
     services = []
 
-    if request.method == 'POST':
-        title = request.POST.get('title')
-        description = request.POST.get('description')
-        discount_percentage = request.POST.get('discount_percentage')
-        start_date = request.POST.get('start_date')
-        end_date = request.POST.get('end_date')
-        is_active = request.POST.get('is_active') == 'on'
+    # Get all categories
+    categories = ServiceCategory.objects.all()
 
-        if 'apply_category' in request.POST:
-            # Apply offer to all services in the selected category
-            services = Service.objects.filter(subcategory__category_id=selected_category_id)
-            for service in services:
-                try:
-                    offer = Offer(
-                        service=service,
-                        title=title,
-                        description=description,
-                        discount_percentage=discount_percentage,
-                        start_date=start_date,
-                        end_date=end_date,
-                        is_active=is_active
-                    )
-                    offer.full_clean()
-                    offer.save()
-                except ValidationError as e:
-                    # Handle validation errors if needed
-                    continue
-            return redirect('offer_list')
-
-        if 'apply_subcategory' in request.POST:
-            # Apply offer to all services in the selected subcategory
+    # Handle GET requests for category/subcategory selection
+    if request.method == 'GET':
+        selected_category_id = request.GET.get('category')
+        selected_subcategory_id = request.GET.get('subcategory')
+        
+        if selected_category_id:
+            subcategories = ServiceSubcategory.objects.filter(category_id=selected_category_id)
+            
+        if selected_subcategory_id:
             services = Service.objects.filter(subcategory_id=selected_subcategory_id)
-            for service in services:
-                try:
-                    offer = Offer(
-                        service=service,
-                        title=title,
-                        description=description,
-                        discount_percentage=discount_percentage,
-                        start_date=start_date,
-                        end_date=end_date,
-                        is_active=is_active
-                    )
-                    offer.full_clean()
-                    offer.save()
-                except ValidationError as e:
-                    # Handle validation errors if needed
-                    continue
-            return redirect('offer_list')
 
-        if selected_service_id:
-            service = get_object_or_404(Service, id=selected_service_id)
-            try:
-                offer = Offer(
+    if request.method == 'POST':
+        try:
+            # Get form data
+            title = request.POST.get('title')
+            description = request.POST.get('description')
+            discount_percentage = request.POST.get('discount_percentage')
+            start_date = request.POST.get('start_date')
+            end_date = request.POST.get('end_date')
+            is_active = request.POST.get('is_active') == 'on'
+
+            # Handle category selection
+            selected_category_id = request.POST.get('category')
+            if selected_category_id:
+                subcategories = ServiceSubcategory.objects.filter(category_id=selected_category_id)
+                
+                # Handle "Apply All to Category"
+                if 'apply_category' in request.POST:
+                    services = Service.objects.filter(subcategory__category_id=selected_category_id)
+                    if not services.exists():
+                        messages.error(request, 'No services found in this category.')
+                        return redirect('add_offer')
+                        
+                    for service in services:
+                        Offer.objects.create(
+                            service=service,
+                            title=title,
+                            description=description,
+                            discount_percentage=discount_percentage,
+                            start_date=start_date,
+                            end_date=end_date,
+                            is_active=is_active
+                        )
+                    messages.success(request, f'Offers added successfully for all services in the category!')
+                    return redirect('offer_list')
+
+            # Handle subcategory selection
+            selected_subcategory_id = request.POST.get('subcategory')
+            if selected_subcategory_id:
+                services = Service.objects.filter(subcategory_id=selected_subcategory_id)
+                
+                # Handle "Apply All to Subcategory"
+                if 'apply_subcategory' in request.POST:
+                    if not services.exists():
+                        messages.error(request, 'No services found in this subcategory.')
+                        return redirect('add_offer')
+                        
+                    for service in services:
+                        Offer.objects.create(
+                            service=service,
+                            title=title,
+                            description=description,
+                            discount_percentage=discount_percentage,
+                            start_date=start_date,
+                            end_date=end_date,
+                            is_active=is_active
+                        )
+                    messages.success(request, f'Offers added successfully for all services in the subcategory!')
+                    return redirect('offer_list')
+
+            # Handle single service offer creation
+            service_id = request.POST.get('service')
+            if service_id:
+                service = Service.objects.get(id=service_id)
+                Offer.objects.create(
                     service=service,
                     title=title,
                     description=description,
@@ -1935,25 +2058,25 @@ def add_offer(request):
                     end_date=end_date,
                     is_active=is_active
                 )
-                offer.full_clean()
-                offer.save()
+                messages.success(request, 'Offer added successfully!')
                 return redirect('offer_list')
-            except ValidationError as e:
-                return render(request, 'admin/add_offer.html', {'errors': e.messages})
+            else:
+                messages.error(request, 'Please select a service.')
+                return redirect('add_offer')
 
-    # Fetch categories, subcategories, and services based on selections
-    categories = ServiceCategory.objects.all()
-    subcategories = ServiceSubcategory.objects.filter(category_id=selected_category_id) if selected_category_id else []
-    services = Service.objects.filter(subcategory_id=selected_subcategory_id) if selected_subcategory_id else []
+        except Exception as e:
+            messages.error(request, f'Error creating offer: {str(e)}')
+            return redirect('add_offer')
 
-    return render(request, 'admin/add_offer.html', {
+    context = {
         'categories': categories,
         'subcategories': subcategories,
         'services': services,
         'selected_category_id': selected_category_id,
         'selected_subcategory_id': selected_subcategory_id,
-        'selected_service_id': selected_service_id,
-    })
+    }
+
+    return render(request, 'admin/add_offer.html', context)
 
 from django.utils import timezone
 
@@ -2196,65 +2319,102 @@ def add_offer_male(request):
     selected_subcategory_id = None
     subcategories = []
     services = []
-    applying_to_subcategory = False
-    show_only_offer_details = False
 
     # Get all categories
     categories = ServiceCategoryMen.objects.all()
 
-    if request.method == 'POST':
-        selected_category_id = request.POST.get('service_category')
-
-        # Handle category selection and apply all
+    # Handle GET requests for category/subcategory selection
+    if request.method == 'GET':
+        selected_category_id = request.GET.get('category')
+        selected_subcategory_id = request.GET.get('subcategory')
+        
         if selected_category_id:
-            if 'apply_category' in request.POST:
-                show_only_offer_details = True
-                # Get all services in the category for later use
-                services = ServiceMen.objects.filter(subcategory__category_id=selected_category_id)
-            else:
-                # Normal flow - show subcategories
+            subcategories = ServiceSubcategoryMen.objects.filter(category_id=selected_category_id)
+            
+        if selected_subcategory_id:
+            services = ServiceMen.objects.filter(subcategory_id=selected_subcategory_id)
+
+    if request.method == 'POST':
+        try:
+            # Get form data
+            title = request.POST.get('title')
+            description = request.POST.get('description')
+            discount_percentage = request.POST.get('discount_percentage')
+            start_date = request.POST.get('start_date')
+            end_date = request.POST.get('end_date')
+            is_active = request.POST.get('is_active') == 'on'
+
+            # Handle category selection
+            selected_category_id = request.POST.get('category')
+            if selected_category_id:
                 subcategories = ServiceSubcategoryMen.objects.filter(category_id=selected_category_id)
-                selected_subcategory_id = request.POST.get('service_subcategory')
-
-                if selected_subcategory_id:
-                    if 'apply_subcategory' in request.POST:
-                        applying_to_subcategory = True
-                        show_only_offer_details = True
-                        # Get all services in the subcategory for later use
-                        services = ServiceMen.objects.filter(subcategory_id=selected_subcategory_id)
-                    else:
-                        # Normal flow - show services
-                        services = ServiceMen.objects.filter(subcategory_id=selected_subcategory_id)
-
-        # Handle offer submission
-        if 'submit_offer' in request.POST:
-            try:
-                if 'apply_category' in request.POST and selected_category_id:
-                    # Apply to all services in category
+                
+                # Handle "Apply All to Category"
+                if 'apply_category' in request.POST:
                     services = ServiceMen.objects.filter(subcategory__category_id=selected_category_id)
+                    if not services.exists():
+                        messages.error(request, 'No services found in this category.')
+                        return redirect('add_offer_male')
+                        
                     for service in services:
-                        create_offer(request, service)
+                        OfferMale.objects.create(
+                            service=service,
+                            title=title,
+                            description=description,
+                            discount_percentage=discount_percentage,
+                            start_date=start_date,
+                            end_date=end_date,
+                            is_active=is_active
+                        )
                     messages.success(request, f'Offers added successfully for all services in the category!')
                     return redirect('offer_list_male')
+
+            # Handle subcategory selection
+            selected_subcategory_id = request.POST.get('subcategory')
+            if selected_subcategory_id:
+                services = ServiceMen.objects.filter(subcategory_id=selected_subcategory_id)
                 
-                elif 'apply_subcategory' in request.POST and selected_subcategory_id:
-                    # Apply to all services in subcategory
-                    services = ServiceMen.objects.filter(subcategory_id=selected_subcategory_id)
+                # Handle "Apply All to Subcategory"
+                if 'apply_subcategory' in request.POST:
+                    if not services.exists():
+                        messages.error(request, 'No services found in this subcategory.')
+                        return redirect('add_offer_male')
+                        
                     for service in services:
-                        create_offer(request, service)
+                        OfferMale.objects.create(
+                            service=service,
+                            title=title,
+                            description=description,
+                            discount_percentage=discount_percentage,
+                            start_date=start_date,
+                            end_date=end_date,
+                            is_active=is_active
+                        )
                     messages.success(request, f'Offers added successfully for all services in the subcategory!')
                     return redirect('offer_list_male')
-                
-                else:
-                    # Apply to single service
-                    service_id = request.POST.get('service')
-                    if service_id:
-                        service = get_object_or_404(ServiceMen, id=service_id)
-                        create_offer(request, service)
-                        messages.success(request, 'Offer added successfully!')
-                        return redirect('offer_list_male')
-            except Exception as e:
-                messages.error(request, f'Error creating offer: {str(e)}')
+
+            # Handle single service offer creation
+            service_id = request.POST.get('service')
+            if service_id:
+                service = ServiceMen.objects.get(id=service_id)
+                OfferMale.objects.create(
+                    service=service,
+                    title=title,
+                    description=description,
+                    discount_percentage=discount_percentage,
+                    start_date=start_date,
+                    end_date=end_date,
+                    is_active=is_active
+                )
+                messages.success(request, 'Offer added successfully!')
+                return redirect('offer_list_male')
+            else:
+                messages.error(request, 'Please select a service.')
+                return redirect('add_offer_male')
+
+        except Exception as e:
+            messages.error(request, f'Error creating offer: {str(e)}')
+            return redirect('add_offer_male')
 
     context = {
         'categories': categories,
@@ -2262,8 +2422,6 @@ def add_offer_male(request):
         'services': services,
         'selected_category_id': selected_category_id,
         'selected_subcategory_id': selected_subcategory_id,
-        'applying_to_subcategory': applying_to_subcategory,
-        'show_only_offer_details': show_only_offer_details,
     }
 
     return render(request, 'admin/add_offer_male.html', context)
@@ -2368,7 +2526,7 @@ def delete_all_offers(request):
     if request.method == 'POST':
         Offer.objects.all().delete()  # Delete all offers
         messages.success(request, 'All offers have been deleted.')
-        return redirect('admin/offer_list')  # Redirect to the offer list after deletion
+        return redirect('offer_list')  # Remove 'admin/' prefix
     
 from django.shortcuts import render
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
@@ -2407,11 +2565,20 @@ def offer_list_selection(request):
         return redirect('login')
     return render(request, 'admin/offer_list_selection.html')
 
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def delete_all_male_offers(request):
-     if request.method == 'POST':
-         OfferMale.objects.all().delete()  # Delete all offers
-         messages.success(request, 'All male offers have been deleted.')  # Success message
-         return redirect('admin/offer_list_male')  # Redirect to the offer list after deletion
+    user_type = request.session.get('user_type')
+    if user_type != 'admin':
+        messages.error(request, "You need to log in as admin to access this page.")
+        return redirect('login')
+
+    if request.method == 'POST':
+        try:
+            OfferMale.objects.all().delete()
+            messages.success(request, 'All male offers have been deleted successfully.')
+        except Exception as e:
+            messages.error(request, f'Error deleting offers: {str(e)}')
+    return redirect('offer_list_male')
 
 from django.shortcuts import render, get_object_or_404
 from .models import ServiceMen  # Ensure you import the ServiceMen model
@@ -2522,3 +2689,30 @@ def exponential_backoff(retries):
     # Wait 2^x * 1000 milliseconds between each retry, up to 10 seconds, plus a random amount of up to 1000 milliseconds.
     wait_time = min(10000, (2 ** retries) * 1000) + random.randint(0, 1000)
     time.sleep(wait_time / 1000.0)  # time.sleep expects seconds
+
+@csrf_exempt
+def payment_success(request):
+    payment_id = request.GET.get('payment_id')
+    if payment_id:
+        try:
+            # Update payment status in your database
+            payment = Payment.objects.filter(razorpay_payment_id=payment_id).first()
+            if payment:
+                payment.status = 'Paid'
+                payment.save()
+                
+                # Also update the bill status if it exists
+                bill = Bill.objects.filter(booking=payment.booking).first()
+                if bill:
+                    bill.status = 'Paid'
+                    bill.save()
+                
+                messages.success(request, 'Payment successful!')
+            else:
+                messages.error(request, 'Payment record not found.')
+        except Exception as e:
+            messages.error(request, f'Error processing payment: {str(e)}')
+    else:
+        messages.error(request, 'No payment ID received.')
+    
+    return redirect('view_payments')

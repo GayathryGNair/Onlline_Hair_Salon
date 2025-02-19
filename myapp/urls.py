@@ -38,6 +38,22 @@ from .views import booking_service
 
 
 urlpatterns = [
+    # ... existing URL patterns ...
+    
+    # Client URLs
+    path('client/dashboard/', views.client_dashboard, name='client_dashboard'),
+    path('client/profile/', views.client_profile, name='client_profile'),
+    path('client/update/', views.client_update, name='client_update'),
+    path('client/bookings/', views.client_bookings, name='client_bookings'),
+    path('client/services/', views.client_services, name='client_services'),
+    path('client/current-bookings/', views.client_current_bookings, name='client_current_bookings'),
+    path('client/service-history/', views.service_history, name='service_history'),
+    path('client/women-services/', views.client_women_services, name='client_women_services'),
+    path('client/men-services/', views.client_men_services, name='client_men_services'),
+    path('service/view/', views.service_view, name='service_view'),
+    path('view/payments/', views.view_payments, name='view_payments'),
+    
+    # ... other URL patterns ...
     path('', views.home, name='index'),
     path('about/', views.about, name='about'),
     path('services/', views.services, name='services'),
@@ -167,7 +183,7 @@ urlpatterns = [
     path('offers/', offer_list, name='offer_list'),
     path('offers/<int:offer_id>/edit/', edit_offer, name='edit_offer'),
     path('offers/<int:offer_id>/delete/', views.delete_offer, name='delete_offer'),
-    path('offers/delete_all/', delete_all_offers, name='delete_all_offers'),
+    path('offers/delete_all/', views.delete_all_offers, name='delete_all_offers'),
     path('service/<int:service_id>/', service_detail, name='service_detail'),
 ### image detection ###
     # path('analyze_hair_disease/', analyze_hair_disease, name='analyze_hair_disease'),
@@ -177,7 +193,7 @@ urlpatterns = [
     path('offer_list_male/', offer_list_male, name='offer_list_male'),
     path('edit_offer_male/<int:offer_id>/', edit_offer_male, name='edit_offer_male'),
     path('delete_offer_male/<int:offer_id>/', delete_offer_male, name='delete_offer_male'),
-    path('offers/delete_all/', delete_all_male_offers, name='delete_all_male_offers'),
+    path('offers/male/delete-all/', views.delete_all_male_offers, name='delete_all_male_offers'),
 
     path('service-selection/', service_selection, name='service_selection'),
 
@@ -203,6 +219,7 @@ urlpatterns = [
     
     
 
+    path('payment/success/', views.payment_success, name='payment_success'),
 
 ]
 

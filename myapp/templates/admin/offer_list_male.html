@@ -169,13 +169,16 @@
 
     <div class="container-fluid">
         <h1 class="h3 mb-4">Male Offers</h1>
-        <form method="POST" action="{% url 'delete_all_male_offers' %}" style="display:inline;">
+        <form method="POST" action="{% url 'delete_all_male_offers' %}" class="mb-3" id="deleteAllForm">
             {% csrf_token %}
-            <button type="submit" class="btn btn-danger mb-3">Delete All Offers</button>
+            <button type="button" class="btn btn-danger" onclick="showConfirmDialog('deleteAllForm')">
+                <i class="fas fa-trash-alt"></i> Delete All Offers
+            </button>
         </form>
         <table class="table">
             <thead>
                 <tr>
+                    <th>Service Name</th>
                     <th>Title</th>
                     <th>Description</th>
                     <th>Discount Percentage</th>
@@ -187,6 +190,7 @@
             <tbody>
                 {% for offer in offers %}
                 <tr>
+                    <td>{{ offer.service.service_name }}</td>
                     <td>{{ offer.title }}</td>
                     <td>{{ offer.description }}</td>
                     <td>{{ offer.discount_percentage }}%</td>
@@ -194,9 +198,9 @@
                     <td>{{ offer.end_date }}</td>
                     <td>
                         <a href="{% url 'edit_offer_male' offer.id %}" class="btn btn-sm btn-primary">Edit</a>
-                        <form method="POST" action="{% url 'delete_offer_male' offer.id %}" style="display:inline;">
+                        <form method="POST" action="{% url 'delete_offer_male' offer.id %}" style="display:inline;" id="deleteForm{{ offer.id }}">
                             {% csrf_token %}
-                            <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                            <button type="button" class="btn btn-sm btn-danger" onclick="showConfirmDialog('deleteForm{{ offer.id }}')">Delete</button>
                         </form>
                     </td>
                 </tr>
@@ -208,5 +212,43 @@
             </tbody>
         </table>
     </div>
+
+    <!-- Add this confirmation dialog HTML -->
+    <div class="modal fade" id="confirmDialog" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Confirm Booking</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    Are you sure you want to Delete this offer?
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="confirmBtn">Confirm</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add this JavaScript before closing body tag -->
+    <script>
+        let formToSubmit = null;
+        
+        function showConfirmDialog(formId) {
+            formToSubmit = document.getElementById(formId);
+            const confirmDialog = new bootstrap.Modal(document.getElementById('confirmDialog'));
+            confirmDialog.show();
+        }
+
+        document.getElementById('confirmBtn').addEventListener('click', function() {
+            if (formToSubmit) {
+                formToSubmit.submit();
+            }
+            const confirmDialog = bootstrap.Modal.getInstance(document.getElementById('confirmDialog'));
+            confirmDialog.hide();
+        });
+    </script>
 </body>
 </html>

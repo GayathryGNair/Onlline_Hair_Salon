@@ -142,7 +142,7 @@
                     </div>
                     <ul class="nav flex-column">
                         <li class="nav-item">
-                            <a class="nav-link active" href="{% url 'client_dashboard' % }">
+                            <a class="nav-link active" href="{% url 'client_dashboard' %}">
                                 <i class="fas fa-home me-2"></i> Dashboard
                             </a>
                         </li>
@@ -179,7 +179,7 @@
                         </li>
                       
                         <li class="nav-item">
-                            <a class="nav-link" href="{% url 'upload_hair_image' %}">
+                            <a class="nav-link" href="{% url 'service_view' %}">
                                 <i class="fas fa-image"></i> Detect Problem</i>
                             </a>
                         </li>
@@ -207,8 +207,47 @@
 
                 <div class="container mt-5">
                     <div class="card">
-                        <div class="card-body text-center"> <!-- Centering the button -->
-                            <button id="pay-button" class="btn btn-pink">Pay Now</button>
+                        <div class="card-body">
+                            <h4 class="text-center mb-4">Payment Details</h4>
+                            <div class="row justify-content-center">
+                                <div class="col-md-8">
+                                    <table class="table">
+                                        <tbody>
+                                            <tr>
+                                                <th>Service:</th>
+                                                <td>
+                                                    {% if booking.service %}
+                                                        {{ booking.service.service_name }}
+                                                    {% elif booking.service_men %}
+                                                        {{ booking.service_men.service_name }}
+                                                    {% endif %}
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <th>Amount to Pay:</th>
+                                                <td>₹{{ amount|floatformat:2 }}</td>
+                                            </tr>
+                                            {% if has_discount %}
+                                            <tr>
+                                                <th>Original Price:</th>
+                                                <td class="text-muted">
+                                                    <del>₹{{ base_amount|floatformat:2 }}</del>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <th>You Save:</th>
+                                                <td class="text-success">
+                                                    ₹{{ savings|floatformat:2 }}
+                                                </td>
+                                            </tr>
+                                            {% endif %}
+                                        </tbody>
+                                    </table>
+                                    <div class="text-center mt-4">
+                                        <button id="pay-button" class="btn btn-pink">Pay Now ₹{{ amount|floatformat:2 }}</button>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -219,22 +258,32 @@
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',
-                                'X-CSRFToken': '{{ csrf_token }}'  // Include CSRF token
+                                'X-CSRFToken': '{{ csrf_token }}'
                             },
                         })
                         .then(response => response.json())
                         .then(data => {
                             var options = {
-                                "key": "{{ settings.RAZORPAY_KEY_ID }}", // Your Razorpay Key ID
-                                "amount": data.amount, // Amount is in currency subunits. Default is paise. Hence, 100 = INR 1
+                                "key": "{{ settings.RAZORPAY_KEY_ID }}",
+                                "amount": data.amount,
                                 "currency": data.currency,
                                 "name": "GlamourQuest",
-                                "description": "Payment for {{ booking.service.service_name }}",
-                                "order_id": data.id, // This is the order_id created in your backend
+                                "description": "Payment for {% if booking.service %}{{ booking.service.service_name }}{% else %}{{ booking.service_men.service_name }}{% endif %}",
+                                "order_id": data.id,
                                 "handler": function (response){
-                                    // Handle successful payment here
-                                    alert("Payment successful!");
-                                    // You can redirect to a success page or update the booking status in your database
+                                    // Handle successful payment
+                                    window.location.href = "{% url 'payment_success' %}?payment_id=" + response.razorpay_payment_id;
+                                },
+                                "modal": {
+                                    "ondismiss": function(){
+                                        // Handle payment modal dismissal
+                                        console.log('Payment modal closed');
+                                    }
+                                },
+                                "prefill": {
+                                    "name": "{{ client.first_name }} {{ client.last_name }}",
+                                    "email": "{{ client.email }}",
+                                    "contact": "{{ client.contact }}"
                                 },
                                 "theme": {
                                     "color": "#FF69B4"
@@ -245,6 +294,7 @@
                         })
                         .catch(error => {
                             console.error('Error:', error);
+                            alert('Something went wrong. Please try again.');
                         });
                     };
                 </script>

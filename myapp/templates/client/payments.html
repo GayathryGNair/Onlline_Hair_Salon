@@ -271,14 +271,24 @@
                             <tbody>
                                 {% for payment in payments %}
                                 <tr>
-                                    <td>{{ payment.service.service_name }}</td>
-                                    <td>{{ payment.created_at.date }}</td>
-                                    <td>{{ payment.created_at.time }}</td>
+                                    <td>
+                                        {% if payment.service %}
+                                            {{ payment.service.service_name }}
+                                        {% elif payment.service_men %}
+                                            {{ payment.service_men.service_name }}
+                                        {% else %}
+                                            Service not found
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ payment.created_at|date:"Y-m-d" }}</td>
+                                    <td>{{ payment.created_at|time:"H:i" }}</td>
                                     <td>
                                         {% if payment.service.discounted_price %}
                                             ₹{{ payment.service.discounted_price|floatformat:2 }}
+                                        {% elif payment.service_men.get_discounted_price %}
+                                            ₹{{ payment.service_men.get_discounted_price|floatformat:2 }}
                                         {% else %}
-                                            ₹{{ payment.amount }}
+                                            ₹{{ payment.amount|floatformat:2 }}
                                         {% endif %}
                                     </td>
                                     <td>{{ payment.status }}</td>
@@ -286,13 +296,13 @@
                                         {% if payment.status == 'Paid' %}
                                             <span class="text-success">Already Paid</span>
                                         {% else %}
-                                            <a href="{% url 'confirm_payment' payment.id %}" class="btn btn-success btn-sm">Pay Now</a>
+                                            <a href="{% url 'razorpay_payment' payment.booking.id %}" class="btn btn-success btn-sm">Pay Now</a>
                                         {% endif %}
                                     </td>
                                 </tr>
                                 {% empty %}
                                 <tr>
-                                    <td colspan="6">You have no completed payments.</td>
+                                    <td colspan="6">You have no payments.</td>
                                 </tr>
                                 {% endfor %}
                             </tbody>
