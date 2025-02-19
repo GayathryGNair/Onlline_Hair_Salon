@@ -1,10 +1,13 @@
 # myapp/views.py
 # index page
+import random
 from django.shortcuts import render, get_object_or_404
 from django.contrib.auth import views as auth_views
 from django.contrib.auth import authenticate, login as auth_login
 from django.shortcuts import render, redirect
 from django.contrib import messages
+
+from myapp import models
 from .models import User
 from django.contrib.auth.hashers import check_password
 from django.contrib.auth import logout as auth_logout
@@ -26,6 +29,8 @@ from .models import Client, Employee
 from django.db import IntegrityError
 from decimal import Decimal
 from django.db.models import Q  # Ensure you have this import
+from .models import OfferMale  # Ensure you import the OfferMale model
+import time
 
 
 def home(request):
@@ -59,36 +64,26 @@ def forgot_reset(request):
         if user:
             # Generate a random token for the password reset
             token = get_random_string(20)
-            
-            # Build the password reset link
             reset_link = request.build_absolute_uri(reverse('reset_password', args=[token]))
             
             try:
-                # Send an email to the user with the reset link
                 send_mail(
                     'Password Reset Request',
                     f'Click the link below to reset your password:\n\n{reset_link}',
-                    'your-email@example.com',  # Replace with the email address configured in settings.py
+                    'glamourquest20@gmail.com',
                     [email],
                     fail_silently=False,
                 )
-                
-                # Save the reset token to the user's model (assuming the field reset_token exists)
+                # Save the reset token to the user's model
                 user.reset_token = token
                 user.save()
-
-                # Display success message to the user
                 messages.success(request, 'Password reset link has been sent to your email.')
-                return redirect('login')  # Redirect to login after sending the email
-
+                return redirect('login')
             except Exception as e:
-                # Display error message if email sending fails
                 messages.error(request, f"Error sending email: {str(e)}")
         else:
-            # If no user is found with that email
             messages.error(request, 'No account found with that email.')
     
-    # Render the forgot password page
     return render(request, 'forgot_reset.html')
 
 def reset_password(request, token):
@@ -306,7 +301,16 @@ def client_dashboard(request):
 
     try:
         client = Client.objects.get(id=user_id)
-        current_offers = Offer.objects.filter(is_active=True)  # Fetch current active offers
+        
+        # Get the current date
+        current_date = timezone.now().date()
+        
+        # Fetch current active offers
+        current_offers = Offer.objects.filter(is_active=True, start_date__lte=current_date, end_date__gte=current_date)
+        
+        # Fetch current active men's offers
+        current_men_offers = OfferMale.objects.filter(is_active=True, start_date__lte=current_date, end_date__gte=current_date)
+        
     except Client.DoesNotExist:
         messages.error(request, "Client not found.")
         return redirect('login')
@@ -314,6 +318,7 @@ def client_dashboard(request):
     context = {
         'client': client,
         'current_offers': current_offers,  # Pass current offers to the template
+        'current_men_offers': current_men_offers,  # Pass current men's offers to the template
     }
     return render(request, 'client/client_dashboard.html', context)
 
@@ -475,6 +480,92 @@ def booking_service(request, service_id):
     return render(request, 'client/booking_service.html', context)
 
 # The booking_confirmation view remains unchanged
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
+def booking_confirmation(request, booking_id):
+    user_id = request.session.get('user_id')
+    client = get_object_or_404(Client, id=user_id)
+    booking = get_object_or_404(Booking, id=booking_id, client=client)
+    return render(request, 'client/booking_confirmation.html', {'booking': booking})
+
+
+
+
+
+########booking for men
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib import messages
+from .models import Service, Booking, Employee, Client
+from .forms import BookingForm
+from django.utils import timezone
+from django.core.exceptions import ValidationError
+
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
+def booking_service_men(request, service_id):
+    # Get the service and client
+    service = get_object_or_404(ServiceMen, id=service_id)
+    user_id = request.session.get('user_id')
+    client = get_object_or_404(Client, id=user_id)
+
+    # Get specialized employees for men's services
+    specialized_employees = Employee.objects.filter(
+        specializations__service_categories_men=service.subcategory.category,
+        approved=True,
+        status=True
+    ).distinct()
+
+    # Get all existing booking times for the selected date
+    existing_booking_times = []
+    if request.method == 'POST':
+        date = request.POST.get('booking_date')
+        if date:
+            existing_bookings = Booking.objects.filter(
+                booking_date=date,
+                status__in=['Pending', 'Confirmed']
+            )
+            existing_booking_times = [booking.booking_time.strftime('%H:%M') for booking in existing_bookings]
+
+    # Calculate discount if any active offer exists
+    active_offer = service.active_offers().first()
+    if active_offer:
+        discount_percentage = active_offer.discount_percentage
+        discounted_price = service.get_discounted_price()
+    else:
+        discount_percentage = None
+        discounted_price = None
+
+    if request.method == 'POST':
+        form = BookingForm(request.POST, specialized_employees=specialized_employees)
+        if form.is_valid():
+            booking = form.save(commit=False)
+            booking.client = client
+            booking.service_men = service
+            booking.status = 'Pending'
+            booking.save()
+            messages.success(request, 'Booking created successfully!')
+            return redirect('booking_confirmation', booking_id=booking.id)
+    else:
+        form = BookingForm(specialized_employees=specialized_employees)
+
+    # Explicitly set the staff queryset
+    form.fields['staff'].queryset = specialized_employees
+    form.fields['staff'].required = True
+    form.fields['staff'].empty_label = "Select Staff Member"
+
+    # Convert existing bookings to JSON for JavaScript
+    existing_booking_json = json.dumps(existing_booking_times)
+
+    context = {
+        'service': service,
+        'form': form,
+        'existing_booking': existing_booking_json,
+        'current_time': timezone.now().strftime('%H:%M'),
+        'client': client,
+        'discount_percentage': discount_percentage,
+        'discounted_price': discounted_price,
+    }
+
+    return render(request, 'client/booking_service_men.html', context)
+
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def booking_confirmation(request, booking_id):
     user_id = request.session.get('user_id')
@@ -751,12 +842,12 @@ def edit_subcategory(request, subcategory_id):
         description = request.POST['description']
         
         # Validation: Check if subcategory name is provided and unique
-        if not subcategory_name.isalpha() or not subcategory_name.strip():
+        if not subcategory_name or not subcategory_name.replace(" ", "").isalpha():
             messages.error(request, 'Subcategory name must contain only letters. Please try again.')
             return render(request, 'admin/edit_subcategory.html', {'subcategory': subcategory, 'categories': categories})  # Re-render with error
         
         # Validation: Check if description contains only letters and spaces
-        if not description.isalpha() or not description.strip():
+        if not description or not all(char.isalpha() or char.isspace() for char in description):
             messages.error(request, 'Description must contain only letters. Please try again.')
             return render(request, 'admin/edit_subcategory.html', {'subcategory': subcategory, 'categories': categories})  # Re-render with error
         
@@ -775,7 +866,7 @@ def edit_subcategory(request, subcategory_id):
         
         subcategory.save()
         messages.success(request, 'Subcategory updated successfully!')
-        return redirect('manage_service')  # Redirect to the service management page
+        return redirect('category')  # Redirect to the service management page
     
     return render(request, 'admin/edit_subcategory.html', {'subcategory': subcategory, 'categories': categories})
 
@@ -906,101 +997,6 @@ def search_services(request):
     }
     return render(request, 'client/search_results.html', context)
 
-# from django.shortcuts import render, redirect, get_object_or_404
-# from django.contrib import messages
-# from django.contrib.auth.decorators import login_required
-# from .models import Service, ServiceCategory, ServiceSubcategory, Employee
-
-
-# @cache_control(no_cache=True, must_revalidate=True, no_store=True)
-# def employee_manage_service(request):
-#     user_type = request.session.get('user_type')
-
-#     if user_type != 'employee':
-#         messages.error(request, "You need to log in as employee to access this page.")
-#         return redirect('login') 
-
-#     if request.method == 'POST':
-#         category_id = request.POST.get('category')
-#         subcategory_id = request.POST.get('subcategory')
-#         service_name = request.POST.get('service_name')
-#         description = request.POST.get('description')
-#         rate = request.POST.get('rate')
-#         image = request.FILES.get('image')
-
-#         Service.objects.create(
-#             subcategory_id=subcategory_id,
-#             service_name=service_name,
-#             description=description,
-#             rate=rate,
-#             image=image
-#         )
-#         messages.success(request, 'Service added successfully.')
-#         return redirect('employee_manage_service')
-
-#     categories = ServiceCategory.objects.all()
-#     subcategories = ServiceSubcategory.objects.all()
-#     services = Service.objects.all()
-
-#     return render(request, 'employee_manage_service.html', {
-#         'categories': categories,
-#         'subcategories': subcategories,
-#         'services': services,
-#         'messages': messages.get_messages(request),
-#     })
-
-# @cache_control(no_cache=True, must_revalidate=True, no_store=True)
-# def employee_edit_service(request, service_id):
-#     user_type = request.session.get('user_type')
-
-#     if user_type != 'employee':
-#         messages.error(request, "You need to log in as employee to access this page.")
-#         return redirect('login') 
-
-#     service = get_object_or_404(Service, id=service_id)
-
-#     if request.method == 'POST':
-#         service.subcategory_id = request.POST.get('subcategory')
-#         service.service_name = request.POST.get('service_name')
-#         service.description = request.POST.get('description')
-#         service.rate = request.POST.get('rate')
-#         if 'image' in request.FILES:
-#             service.image = request.FILES['image']
-#         service.save()
-#         messages.success(request, 'Service updated successfully.')
-#         return redirect('employee_manage_service')
-
-#     categories = ServiceCategory.objects.all()
-#     subcategories = ServiceSubcategory.objects.all()
-
-#     return render(request, 'employee_edit_service.html', {
-#         'service': service,
-#         'categories': categories,
-#         'subcategories': subcategories,
-#     })
-
-# def delete_service(request, service_id):
-#     service = get_object_or_404(Service, id=service_id)
-#     service.delete()
-#     messages.success(request, 'Service deleted successfully.')
-#     return redirect('employee_manage_service')
-
-
-# @cache_control(no_cache=True, must_revalidate=True, no_store=True)
-# def employee_category(request):
-#     user_type = request.session.get('user_type')
-
-#     if user_type != 'employee':
-#         messages.error(request, "You need to log in as employee to access this page.")
-#         return redirect('login') 
-
-#     categories = ServiceCategory.objects.all()
-#     subcategories = ServiceSubcategory.objects.all()
-
-#     return render(request, 'employee_category.html', {
-#         'categories': categories,
-#         'subcategories': subcategories,
-#     })
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -1393,7 +1389,6 @@ def men_services(request):
 def women_services(request):
     return render(request, 'women_services.html')  # Create this template for Women's services
 
-# myproject/myapp/views.py
 # myproject/myapp/views.py
 from django.shortcuts import render, redirect
 from django.contrib import messages
@@ -1856,7 +1851,12 @@ def for_men_services(request):
     print(f"Number of men's services: {services_men.count()}")
 
     return render(request, 'formen_services.html', context)
+
+
+
 ############offers##########
+
+
 from django.shortcuts import render, redirect, get_object_or_404
 from .models import Offer, Service
 from django.utils import timezone
@@ -1921,7 +1921,7 @@ def add_offer(request):
                 except ValidationError as e:
                     # Handle validation errors if needed
                     continue
-            return redirect('admin/offer_list')
+            return redirect('offer_list')
 
         if selected_service_id:
             service = get_object_or_404(Service, id=selected_service_id)
@@ -1937,7 +1937,7 @@ def add_offer(request):
                 )
                 offer.full_clean()
                 offer.save()
-                return redirect('admin/offer_list')
+                return redirect('offer_list')
             except ValidationError as e:
                 return render(request, 'admin/add_offer.html', {'errors': e.messages})
 
@@ -2037,18 +2037,12 @@ def search_services_men(request):
 
 ####################################################################
 
-
-
-
 #chat bot
-
 
 import openai
 from django.http import JsonResponse
 import json
 import os
-
-
 
 def chatbot_response(request):
     if request.method == 'POST':
@@ -2084,7 +2078,6 @@ def chatbot_response(request):
     return JsonResponse({
         'error': 'Invalid request method'
     })
-
 
 
 import json
@@ -2136,7 +2129,7 @@ def chatbot_response(request):
 
     return JsonResponse({'error': 'Invalid request method'}, status=400)
 
-### image detection ###
+# ### image detection ###
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.http import JsonResponse
@@ -2188,88 +2181,159 @@ def upload_hair_image(request):
 
 from django.shortcuts import render, redirect
 from django.contrib import messages
-from .models import OfferMale, Service, ServiceCategory, ServiceSubcategory  # Ensure you import your models
+from .models import OfferMale, ServiceMen, ServiceCategoryMen, ServiceSubcategoryMen  # Ensure you import your models
 from django.utils import timezone
 
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def add_offer_male(request):
     user_type = request.session.get('user_type')
-
     if user_type != 'admin':
         messages.error(request, "You need to log in as admin to access this page.")
         return redirect('login')
 
-    categories = ServiceCategoryMen.objects.all()  # Fetch categories for male services
+    # Initialize variables
+    selected_category_id = None
+    selected_subcategory_id = None
     subcategories = []
     services = []
-    selected_category_id = request.POST.get('service_category') if request.method == 'POST' else None
-    selected_subcategory_id = request.POST.get('service_subcategory') if request.method == 'POST' else None
+    applying_to_subcategory = False
+    show_only_offer_details = False
 
-    if selected_category_id:
-        subcategories = ServiceSubcategoryMen.objects.filter(category_id=selected_category_id)  # Fetch subcategories based on selected category
-    if selected_subcategory_id:
-        services = ServiceMen.objects.filter(subcategory_id=selected_subcategory_id)
+    # Get all categories
+    categories = ServiceCategoryMen.objects.all()
 
-    return render(request, 'admin/add_offer_male.html', {
+    if request.method == 'POST':
+        selected_category_id = request.POST.get('service_category')
+
+        # Handle category selection and apply all
+        if selected_category_id:
+            if 'apply_category' in request.POST:
+                show_only_offer_details = True
+                # Get all services in the category for later use
+                services = ServiceMen.objects.filter(subcategory__category_id=selected_category_id)
+            else:
+                # Normal flow - show subcategories
+                subcategories = ServiceSubcategoryMen.objects.filter(category_id=selected_category_id)
+                selected_subcategory_id = request.POST.get('service_subcategory')
+
+                if selected_subcategory_id:
+                    if 'apply_subcategory' in request.POST:
+                        applying_to_subcategory = True
+                        show_only_offer_details = True
+                        # Get all services in the subcategory for later use
+                        services = ServiceMen.objects.filter(subcategory_id=selected_subcategory_id)
+                    else:
+                        # Normal flow - show services
+                        services = ServiceMen.objects.filter(subcategory_id=selected_subcategory_id)
+
+        # Handle offer submission
+        if 'submit_offer' in request.POST:
+            try:
+                if 'apply_category' in request.POST and selected_category_id:
+                    # Apply to all services in category
+                    services = ServiceMen.objects.filter(subcategory__category_id=selected_category_id)
+                    for service in services:
+                        create_offer(request, service)
+                    messages.success(request, f'Offers added successfully for all services in the category!')
+                    return redirect('offer_list_male')
+                
+                elif 'apply_subcategory' in request.POST and selected_subcategory_id:
+                    # Apply to all services in subcategory
+                    services = ServiceMen.objects.filter(subcategory_id=selected_subcategory_id)
+                    for service in services:
+                        create_offer(request, service)
+                    messages.success(request, f'Offers added successfully for all services in the subcategory!')
+                    return redirect('offer_list_male')
+                
+                else:
+                    # Apply to single service
+                    service_id = request.POST.get('service')
+                    if service_id:
+                        service = get_object_or_404(ServiceMen, id=service_id)
+                        create_offer(request, service)
+                        messages.success(request, 'Offer added successfully!')
+                        return redirect('offer_list_male')
+            except Exception as e:
+                messages.error(request, f'Error creating offer: {str(e)}')
+
+    context = {
         'categories': categories,
         'subcategories': subcategories,
         'services': services,
         'selected_category_id': selected_category_id,
         'selected_subcategory_id': selected_subcategory_id,
-    })
+        'applying_to_subcategory': applying_to_subcategory,
+        'show_only_offer_details': show_only_offer_details,
+    }
 
-from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib import messages
-from .models import Offer, Service  # Ensure you import your models
+    return render(request, 'admin/add_offer_male.html', context)
 
-@cache_control(no_cache=True, must_revalidate=True, no_store=True)
+def create_offer(request, service):
+    """Helper function to create an offer for a service"""
+    offer = OfferMale(
+        service=service,
+        title=request.POST.get('title'),
+        description=request.POST.get('description'),
+        discount_percentage=request.POST.get('discount_percentage'),
+        start_date=request.POST.get('start_date'),
+        end_date=request.POST.get('end_date'),
+        is_active=request.POST.get('is_active') == 'on'
+    )
+    offer.save()
+
+def create_offer(request, service):
+    """Helper function to create an offer for a service"""
+    offer = OfferMale(
+        service=service,
+        title=request.POST.get('title'),
+        description=request.POST.get('description'),
+        discount_percentage=request.POST.get('discount_percentage'),
+        start_date=request.POST.get('start_date'),
+        end_date=request.POST.get('end_date'),
+        is_active=request.POST.get('is_active') == 'on'
+    )
+    offer.save()
+
+def create_offer(request, service):
+    """Helper function to create an offer for a service"""
+    offer = OfferMale(
+        service=service,
+        title=request.POST.get('title'),
+        description=request.POST.get('description'),
+        discount_percentage=request.POST.get('discount_percentage'),
+        start_date=request.POST.get('start_date'),
+        end_date=request.POST.get('end_date'),
+        is_active=request.POST.get('is_active') == 'on'
+    )
+    offer.save()
+
+
+from django.shortcuts import render, get_object_or_404
+from django.http import JsonResponse
+from .models import OfferMale  # Assuming you have an Offer model
+from django.views.decorators.csrf import csrf_exempt
+
+@csrf_exempt
 def edit_offer_male(request, offer_id):
     user_type = request.session.get('user_type')
 
     if user_type != 'admin':
         messages.error(request, "You need to log in as admin to access this page.")
-        return redirect('login')
-
-    offer = get_object_or_404(Offer, id=offer_id)
-    categories = ServiceCategoryMen.objects.all()  # Fetch categories for male services
-    subcategories = []
-    services = []
-    selected_category_id = request.POST.get('service_category', offer.service.subcategory.category.id)  # Default to current offer's category
-    selected_subcategory_id = request.POST.get('service_subcategory', offer.service.subcategory.id)  # Default to current offer's subcategory
-
-    if selected_category_id:
-        subcategories = ServiceSubcategoryMen.objects.filter(category_id=selected_category_id)  # Fetch subcategories based on selected category
-    if selected_subcategory_id:
-        services = ServiceMen.objects.filter(subcategory_id=selected_subcategory_id)  # Fetch services based on selected subcategory
+        return redirect('login') 
+    offer = get_object_or_404(OfferMale, id=offer_id)
 
     if request.method == 'POST':
-        title = request.POST.get('title')
-        description = request.POST.get('description')
-        discount_percentage = request.POST.get('discount_percentage')
-        start_date = request.POST.get('start_date')
-        end_date = request.POST.get('end_date')
-        is_active = request.POST.get('is_active') == 'on'
-
-        # Update the offer
-        offer.title = title
-        offer.description = description
-        offer.discount_percentage = discount_percentage
-        offer.start_date = start_date
-        offer.end_date = end_date
-        offer.is_active = is_active
+        offer.title = request.POST.get('title')
+        offer.description = request.POST.get('description')
+        offer.discount_percentage = request.POST.get('discount_percentage')
+        offer.start_date = request.POST.get('start_date')
+        offer.end_date = request.POST.get('end_date')
+        offer.is_active = request.POST.get('is_active') == 'on'
         offer.save()
-
         messages.success(request, 'Offer updated successfully!')
-        return redirect('admin/offer_list_male')  # Redirect to the offer list page
+        return redirect('offer_list_male')  # Redirect to the offer list after editing
 
-    return render(request, 'admin/edit_offer_male.html', {
-        'offer': offer,
-        'categories': categories,
-        'subcategories': subcategories,
-        'services': services,
-        'selected_category_id': selected_category_id,
-        'selected_subcategory_id': selected_subcategory_id,
-    })
+    return render(request, 'admin/edit_offer_male.html', {'offer': offer})
 
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def offer_list_male(request):
@@ -2277,26 +2341,35 @@ def offer_list_male(request):
 
     if user_type != 'admin':
         messages.error(request, "You need to log in as admin to access this page.")
-        return redirect('login')
+        return redirect('login') 
+    # Fetch all offers that are currently active
+    current_time = timezone.now()  # Get the current time
+    offers = OfferMale.objects.filter(is_active=True, end_date__gte=current_time)  # Ensure end_date is greater than or equal to current time
+    return render(request, 'admin/offer_list_male.html', {'offers': offers})
 
-    offers = Offer.objects.all()  # Fetch all offers
-    return render(request, 'admin/offer_list_male.html', {
-        'offers': offers,
-    })
 
-@cache_control(no_cache=True, must_revalidate=True, no_store=True)
+@csrf_exempt
 def delete_offer_male(request, offer_id):
-    user_type = request.session.get('user_type')
+    # Check if the request method is POST
+    if request.method == 'POST':
+        offer = get_object_or_404(OfferMale, id=offer_id)
+        offer.delete()  # Delete the offer
+        messages.success(request, 'Offer deleted successfully!')
+        return redirect('offer_list_male')  # Redirect to the offer list after deletion
 
-    if user_type != 'admin':
-        messages.error(request, "You need to log in as admin to access this page.")
-        return redirect('login')
+    # If the request method is not POST, redirect to the offer list or handle accordingly
+    messages.error(request, 'Invalid request method.')
+    return redirect('offer_list_male')  # Redirect to the offer list
 
-    offer = get_object_or_404(Offer, id=offer_id)
-    offer.delete()
-    messages.success(request, 'Offer deleted successfully!')
-    return redirect('offer_list_male')  # Redirect to the offer list page
+from django.shortcuts import render, redirect
+from .models import Offer
 
+def delete_all_offers(request):
+    if request.method == 'POST':
+        Offer.objects.all().delete()  # Delete all offers
+        messages.success(request, 'All offers have been deleted.')
+        return redirect('admin/offer_list')  # Redirect to the offer list after deletion
+    
 from django.shortcuts import render
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def service_selection(request):
@@ -2333,3 +2406,119 @@ def offer_list_selection(request):
         messages.error(request, "You need to log in as admin to access this page.")
         return redirect('login')
     return render(request, 'admin/offer_list_selection.html')
+
+def delete_all_male_offers(request):
+     if request.method == 'POST':
+         OfferMale.objects.all().delete()  # Delete all offers
+         messages.success(request, 'All male offers have been deleted.')  # Success message
+         return redirect('admin/offer_list_male')  # Redirect to the offer list after deletion
+
+from django.shortcuts import render, get_object_or_404
+from .models import ServiceMen  # Ensure you import the ServiceMen model
+
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
+def service_detail_male(request, service_id):
+    service = get_object_or_404(ServiceMen, id=service_id)
+    
+    # Fetch any related offers if needed
+    current_date = timezone.now().date()
+    current_offers = OfferMale.objects.filter(
+        service=service,
+        is_active=True,
+        start_date__lte=current_date,
+        end_date__gte=current_date
+    )
+
+    context = {
+        'service': service,
+        'current_offers': current_offers,
+    }
+    return render(request, 'service_detail_male.html', context)
+
+
+
+#############Disesase detection#############
+@csrf_exempt
+def detect_service(request):
+    if request.method == 'POST':
+        try:
+            image = request.FILES.get('image')
+            if not image:
+                return JsonResponse({'error': 'No image provided'}, status=400)
+
+            # Read image bytes
+            image_bytes = image.read()
+            
+            # Initialize Gemini Vision model with the latest version
+            model = genai.GenerativeModel('gemini-1.5-flash')  # Updated to the recommended model
+            
+            # Generate the prompt for analysis
+            prompt = """
+            Analyze this image and provide a brief, concise response in the following format:
+
+            🔍 Problem:
+            [Short description of the visible damage/issue in 1-2 sentences]
+
+            👨‍🔧 Whom to Consult:
+            • Type: [Carpenter/Plumber/Electrician/Appliance Technician]
+
+            📝 Quick Fix Steps (3-4 steps max):
+            1. [Brief step]
+            2. [Brief step]
+            3. [Brief step]
+
+            ⚠ Safety:
+            • [2-3 key safety points only]
+            • [Required tools]
+
+            Keep all responses brief and actionable. Use simple language.
+            """
+            
+            # Create content with both prompt and image
+            contents = [
+                {
+                    "parts": [
+                        {"text": prompt},
+                        {
+                            "inline_data": {
+                                "mime_type": image.content_type,
+                                "data": image_bytes
+                            }
+                        }
+                    ]
+                }
+            ]
+            
+            # Generate response from Gemini
+            retries = 0
+            max_retries = 5  # Set a maximum number of retries to avoid infinite loops
+            while retries < max_retries:
+                try:
+                    response = model.generate_content(contents)
+                    if response and hasattr(response, 'text'):
+                        analysis = response.text
+                        return JsonResponse({'problem': analysis})
+                    else:
+                        raise Exception("Failed to get valid response from AI")
+                except Exception as e:
+                    if "429" in str(e) or "Resource has been exhausted" in str(e):
+                        retries += 1
+                        exponential_backoff(retries)
+                    else:
+                        print(f"Error in service detection: {str(e)}")
+                        return JsonResponse({'error': str(e)}, status=500)
+            return JsonResponse({'error': 'Request failed after retries'}, status=500)
+            
+        except Exception as e:
+            print(f"Error in service detection: {str(e)}")
+            return JsonResponse({'error': str(e)}, status=500)
+    return JsonResponse({'error': 'Invalid request'}, status=400)
+
+def service_view(request):
+    return render(request, 'client/service.html')  # Adjust the path if necessary
+
+
+def exponential_backoff(retries):
+    # Wait 2^x * 1000 milliseconds between each retry, up to 10 seconds, plus a random amount of up to 1000 milliseconds.
+    wait_time = min(10000, (2 ** retries) * 1000) + random.randint(0, 1000)
+    time.sleep(wait_time / 1000.0)  # time.sleep expects seconds

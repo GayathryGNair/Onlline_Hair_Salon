@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.hashers import make_password
 from decimal import Decimal
+from django.utils import timezone
 
 class User(models.Model):
     first_name = models.CharField(max_length=100)
@@ -112,6 +113,20 @@ class ServiceMen(models.Model):
     rate = models.DecimalField(max_digits=10, decimal_places=2, help_text="Rate in Indian Rupees")
     image = models.ImageField(upload_to='service_images_men/', blank=True, null=True)
 
+    def active_offers(self):
+        return self.offers_male.filter(
+            is_active=True,
+            start_date__lte=timezone.now().date(),
+            end_date__gte=timezone.now().date()
+        )
+
+    def get_discounted_price(self):
+        active_offer = self.active_offers().first()
+        if active_offer:
+            discount = Decimal(active_offer.discount_percentage)
+            return self.rate - (self.rate * (discount / Decimal('100')))
+        return self.rate
+
     def __str__(self):
         return f"{self.service_name} ({self.subcategory.name} - {self.subcategory.category.name})"
  
@@ -119,10 +134,12 @@ from django.db import models
 from django.core.exceptions import ValidationError
 from django.utils import timezone
 
+
 class Booking(models.Model):
     client = models.ForeignKey('Client', on_delete=models.CASCADE)
-    service = models.ForeignKey('Service', on_delete=models.CASCADE)
-    staff = models.ForeignKey('Employee', on_delete=models.CASCADE)  # Changed this line
+    service = models.ForeignKey('Service', on_delete=models.CASCADE, null=True, blank=True)  # For women's services
+    service_men = models.ForeignKey('ServiceMen', on_delete=models.CASCADE, null=True, blank=True)  # For men's services
+    staff = models.ForeignKey('Employee', on_delete=models.CASCADE)
     booking_date = models.DateField()
     booking_time = models.TimeField()
     additional_notes = models.TextField(blank=True)
@@ -134,16 +151,6 @@ class Booking(models.Model):
     ]
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Pending')
 
-    def clean(self):
-        # Add any additional validation if needed
-        if self.booking_date < timezone.now().date():
-            raise ValidationError("Booking date cannot be in the past.")
-        
-        # You can add more custom validation here if needed
-
-    def save(self, *args, **kwargs):
-        self.full_clean()
-        super().save(*args, **kwargs)
     def clean(self):
         if not self.booking_date:
             raise ValidationError("Booking date is required.")
@@ -160,7 +167,8 @@ class Booking(models.Model):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"{self.client} - {self.service} on {self.booking_date} at {self.booking_time}"
+        service_name = self.service.service_name if self.service else self.service_men.service_name
+        return f"{self.client} - {service_name} on {self.booking_date} at {self.booking_time}"
     
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
@@ -254,3 +262,6 @@ class OfferMale(models.Model):
 
     def __str__(self):
         return f"Male Offer: {self.title} - {self.discount_percentage}% off on {self.service.service_name}"
+    
+
+

@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Book Service - GlamourQuest</title>
+    <title>Book Men's Service - GlamourQuest</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
@@ -180,9 +180,9 @@
             <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
                 <!-- Header -->
                 <header class="header d-flex justify-content-between align-items-center mb-4">
-                    <h1 class="h3 mb-0">Book Service</h1>
+                    <h1 class="h3 mb-0">Book Men's Service</h1>
                     <div class="profile-dropdown dropdown">
-                        <a href="#" class="d-flex align-items-center text-white text-decoration-none dropdown-toggle" id="dropdownUser1" data-bs-toggle="dropdown" aria-expanded="false">
+                        <a href="#" class=" d-flex align-items-center text-white text-decoration-none dropdown-toggle" id="dropdownUser1" data-bs-toggle="dropdown" aria-expanded="false">
                             <img src="{% static 'images/profile.png' %}" alt="Profile" width="32" height="32" class="rounded-circle me-2">
                             <strong>{{ client.first_name }}</strong>
                         </a>
@@ -198,26 +198,29 @@
                 <!-- Booking Form -->
                 <div class="card">
                     <div class="card-body">
-                        <h2 class="card-title mb-4">Book Service: {{ service.service_name }}</h2>
+                        <h2 class="card-title mb-4">Book Men's Service: {{ service.service_name }}</h2>
+                        <p><strong>Description:</strong> {{ service.description }}</p>
                         
-                        <!-- Price Display -->
-                        <p class="mb-4">
-                            <strong>Rate:</strong> 
-                            {% if active_offer %}
-                                <span class="original-price">₹{{ service.rate }}</span> <!-- Original Price -->
-                                <span class="discounted-price">₹{{ service.discounted_price|floatformat:2 }}</span> <!-- Discounted Price -->
+                        <!-- Update this section to properly display prices -->
+                        <div class="pricing-info">
+                            {% if discount_percentage %}
+                                <p>
+                                    <strong>Original Price:</strong> 
+                                    <span style="text-decoration: line-through;">₹{{ service.rate }}</span>
+                                </p>
+                                <p>
+                                    <strong>Discount:</strong> 
+                                    <span class="text-success">{{ discount_percentage }}% OFF</span>
+                                </p>
+                                <p>
+                                    <strong>Final Price:</strong> 
+                                    <span class="text-primary">₹{{ discounted_price|floatformat:2 }}</span>
+                                </p>
                             {% else %}
-                                ₹{{ service.rate }} <!-- Regular Price -->
+                                <p><strong>Price:</strong> ₹{{ service.rate }}</p>
                             {% endif %}
-                        </p>
-                
-                        {% if discount_percentage %}
-                            <p class="mb-4">
-                                <strong>Discount: {{ discount_percentage }}%</strong><br>
-                                <strong>Discount Price: ${{ service.discounted_price|floatformat:2 }}</strong>
-                            </p>
-                        {% endif %}
-                
+                        </div>
+
                         {% if messages %}
                             {% for message in messages %}
                                 <div class="alert alert-danger alert-dismissible fade show" role="alert">
@@ -226,7 +229,7 @@
                                 </div>
                             {% endfor %}
                         {% endif %}
-                
+                        
                         <form method="POST">
                             {% csrf_token %}
                             <table class="table">
@@ -263,7 +266,7 @@
         document.addEventListener('DOMContentLoaded', function() {
             const dateInput = document.getElementById('id_booking_date');
             const timeSelect = document.getElementById('id_booking_time');
-            const bookedTimes = {{ existing_booking|safe }};
+            const bookedTimes = JSON.parse('{{ existing_booking|safe|escapejs }}');
 
             function updateAvailableTimes() {
                 const selectedDate = new Date(dateInput.value);

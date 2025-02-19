@@ -176,8 +176,8 @@ EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'glamourquest6@gmail.com'
-EMAIL_HOST_PASSWORD = 'iuja sggz broh sgde'
+EMAIL_HOST_USER = 'glamourquest20@gmail.com'
+EMAIL_HOST_PASSWORD = 'ebty uyor dikr mgyo'
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')  # Store uploaded media files in the 'media/' folder
@@ -222,8 +222,8 @@ RAZORPAY_SECRET ='ITd8ronAQbSCUCqvlqkMlxYl'  # Set this in your environment
    # settings.py
  # Replace with your Razorpay Secret Key
 
-EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER ')
-EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD') 
+# EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER ')
+# EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD') 
 
 SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = os.environ.get('SOCIAL_AUTH_GOOGLE_OAUTH2_KEY')
 SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = os.environ.get('SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET')

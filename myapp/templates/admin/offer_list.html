@@ -167,6 +167,11 @@
                     </div>
                 </header>
 
+                <form method="POST" action="{% url 'delete_all_offers' %}" style="display:inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger mb-3">Delete All Offers</button>
+                </form>
+
                 <div class="table-responsive">
                     <table class="table table-striped">
                         <thead>

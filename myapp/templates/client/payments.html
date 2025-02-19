@@ -192,7 +192,7 @@
                     </div>
                     <ul class="nav flex-column">
                         <li class="nav-item">
-                            <a class="nav-link" href="{% url 'client_dashboard' %}">
+                            <a class="nav-link active" href="{% url 'client_dashboard' % }">
                                 <i class="fas fa-home me-2"></i> Dashboard
                             </a>
                         </li>
@@ -211,19 +211,26 @@
                                 <i class="fas fa-money-bill"></i> Payments
                             </a>
                         </li>
-                        <li class="nav-item">
+                        <li class="nav-item"></li>
                             <a class="nav-link" href="{% url 'client_bookings' %}">
                                 <i class="fas fa-concierge-bell me-2"></i> Feedback
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link active" href="{% url 'client_services' %}">
+                            <a class="nav-link" href="{% url 'client_services' %}">
                                 <i class="fas fa-concierge-bell me-2"></i> Services
                             </a>
                         </li>
+                       
                         <li class="nav-item">
                             <a class="nav-link" href="{% url 'service_history' %}">
                                 <i class="fas fa-history me-2"></i> Service History
+                            </a>
+                        </li>
+                      
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'upload_hair_image' %}">
+                                <i class="fas fa-image"></i> Detect Problem</i>
                             </a>
                         </li>
                     </ul>
@@ -291,18 +298,7 @@
                             </tbody>
                         </table>
                         <!-- Add a new row to show discounted price if applicable -->
-                        <tr>
-                            <th>Discounted Price:</th>
-                            <td colspan="5">
-                                {% for payment in payments %}
-                                    {% if payment.service.discounted_price %}
-                                        ₹{{ payment.service.discounted_price|floatformat:2 }}
-                                    {% else %}
-                                        No discount available
-                                    {% endif %}
-                                {% endfor %}
-                            </td>
-                        </tr>
+                        
                         <a href="{% url 'client_dashboard' %}" class="btn btn-secondary">Back to Dashboard</a>
                     </div>
                 </div>

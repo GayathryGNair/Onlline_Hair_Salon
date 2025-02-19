@@ -351,8 +351,8 @@
                         </li>
                       
                         <li class="nav-item">
-                            <a class="nav-link" href="{% url 'upload_hair_image' %}">
-                                <i class="fas fa-image">Detect Diseases</i>
+                            <a class="nav-link" href="{% url 'service_view' %}">
+                                <i class="fas fa-image"></i> Detect Problem</i>
                             </a>
                         </li>
                     </ul>
@@ -422,7 +422,7 @@
 
                 <!-- Add this section in the main content area where you want to display the offers -->
                 <div class="current-offers mt-5">
-                    <h2 class="text-center mb-4">Current Offers</h2>
+                    <h2 class="text-center mb-4">Current women's Offers</h2>
                     <div class="row">
                         {% for offer in current_offers %}
                         <div class="col-md-4 mb-4">
@@ -443,6 +443,35 @@
                         {% endfor %}
                     </div>
                 </div>
+
+                <!-- Add this section for Men's Current Offers -->
+                <div class="current-offers mt-5">
+                    <h2 class="text-center mb-4">Current Men's Offers</h2>
+                    <div class="row">
+                        {% for offer in current_men_offers %}
+                        <div class="col-md-4 mb-4">
+                            <div class="card offer-card">
+                                <div class="card-img-container">
+                                    <img src="{{ offer.service.image.url }}" alt="{{ offer.title }}" class="card-img-top">
+                                </div>
+                                <div class="card-body">
+                                    <h5 class="card-title">{{ offer.title }}</h5>
+                                    <span class="badge offer-tag">New Offer</span>
+                                    <p class="card-text">{{ offer.description }}</p>
+                                    <p class="card-text"><strong>Discount:</strong> {{ offer.discount_percentage }}%</p>
+                                    <p class="card-text"><strong>Service:</strong> {{ offer.service.service_name }}</p>
+                                    <a href="{% url 'service_detail_male' offer.service.id %}" class="btn btn-primary">View Service</a>
+                                </div>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="col-12 text-center">
+                            <p>No current men's offers available.</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                <!-- End of Men's Current Offers Section -->
             </main>
         </div>
     </div>

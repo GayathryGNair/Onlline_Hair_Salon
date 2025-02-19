@@ -26,17 +26,15 @@ from .views import (
 from .views import delete_all_offers
 from .views import search_services
 from .views import search_services_men
-from .views import analyze_hair_disease, upload_hair_image 
+from .views import  upload_hair_image 
 from .views import edit_offer, offer_list  # Import your views
-from .views import add_offer_male, offer_list_male, edit_offer_male, delete_offer_male
+from .views import add_offer_male, offer_list_male, edit_offer_male, delete_offer_male, delete_all_male_offers
 from .views import service_selection  # Import the new view
 from .views import category_selection  # Import the new view
 from .views import offer_selection  # Import the new view
 from .views import offer_list_selection  # Import the new view
-
-
-
-
+from .views import service_detail_male  # Ensure this import is present
+from .views import booking_service
 
 
 urlpatterns = [
@@ -89,7 +87,7 @@ urlpatterns = [
     path('search/', views.search_services, name='search_services'),
     path('search_men/', views.search_services_men, name='search_services_men'),
 
-    path('booking/<int:service_id>/', views.booking_service, name='booking_service'),
+    path('booking/service/<int:service_id>/', booking_service, name='booking_service'),  # For women's services
     path('booking-confirmation/<int:booking_id>/', views.booking_confirmation, name='booking_confirmation'),
    
 
@@ -140,7 +138,7 @@ urlpatterns = [
     path('formen-services/', views.for_men_services, name='formen_services'),
     
     path('client_women-services/', views.client_women_services, name='client_women_services'),
-     path('client_men-services/', views.client_men_services, name='client_men_services'),
+    path('client_men-services/', views.client_men_services, name='client_men_services'),
 
 
 
@@ -172,13 +170,14 @@ urlpatterns = [
     path('offers/delete_all/', delete_all_offers, name='delete_all_offers'),
     path('service/<int:service_id>/', service_detail, name='service_detail'),
 ### image detection ###
-    path('analyze_hair_disease/', analyze_hair_disease, name='analyze_hair_disease'),
-      path('upload_hair_image/', upload_hair_image, name='upload_hair_image'),  # Ensure this line is present
+    # path('analyze_hair_disease/', analyze_hair_disease, name='analyze_hair_disease'),
+    path('upload_hair_image/', upload_hair_image, name='upload_hair_image'),  # Ensure this line is present
 
     path('add_offer_male/', add_offer_male, name='add_offer_male'),
     path('offer_list_male/', offer_list_male, name='offer_list_male'),
     path('edit_offer_male/<int:offer_id>/', edit_offer_male, name='edit_offer_male'),
     path('delete_offer_male/<int:offer_id>/', delete_offer_male, name='delete_offer_male'),
+    path('offers/delete_all/', delete_all_male_offers, name='delete_all_male_offers'),
 
     path('service-selection/', service_selection, name='service_selection'),
 
@@ -187,6 +186,23 @@ urlpatterns = [
     path('offer-selection/', offer_selection, name='offer_selection'),
 
     path('offer-list-selection/', offer_list_selection, name='offer_list_selection'),
+
+    path('service/male/<int:service_id>/', service_detail_male, name='service_detail_male'),
+
+    
+# urls.py
+# Update this line in urls.py
+   path('booking/service/men/<int:service_id>/', views.booking_service_men, name='booking_service_men'), 
+    
+    
+    
+    path('detect-service/', views.detect_service, name='detect_service'),
+    path('service/', views.service_view, name='service_view'),
+
+  
+    
+    
+
 
 ]
 

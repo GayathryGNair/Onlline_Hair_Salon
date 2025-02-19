@@ -115,7 +115,7 @@
                     <div class="logo-container">
                         <img src="{% static 'images/logo.png' %}" alt="GlamourQuest Logo" class="logo">
                     </div>
-                    <<ul class="nav flex-column">
+                    <ul class="nav flex-column">
                         <li class="nav-item">
                             <a class="nav-link active" href="{% url 'admin_dashboard' %}">
                                 <i class="fas fa-home me-2"></i> Dashboard
@@ -131,16 +131,11 @@
                                 <i class="fas fa-user-tie me-2"></i> Manage Employees
                             </a>
                         </li>
-                    
-                       
-        
                         <li class="nav-item">
                             <a class="nav-link" href="{% url 'service_selection' %}">
                                 <i class="fas fa-cogs me-2"></i> Add services
                             </a>
                         </li>
-                        
-                       
                         <li class="nav-item">
                             <a class="nav-link" href="{% url 'category_selection' %}">
                                 <i class="fas fa-tags me-2"></i> Add category
@@ -160,10 +155,8 @@
                 </div>
             </nav>
 
-
             <!-- Main content -->
             <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
-                <!-- Header -->
                 <header class="header d-flex justify-content-between align-items-center mb-4">
                     <h1 class="h3 mb-0">Add Offer</h1>
                     <div class="profile-dropdown dropdown">
@@ -182,61 +175,121 @@
                 <form method="POST" enctype="multipart/form-data" class="card mb-4" onsubmit="return validateOfferForm();">
                     {% csrf_token %}
                     <div class="card-body">
+                        <!-- Category Selection -->
                         <div class="mb-3">
                             <label for="service_category" class="form-label">Service Category:</label>
                             <select id="service_category" name="service_category" class="form-select" required onchange="this.form.submit()">
                                 <option value="">Select a category</option>
                                 {% for category in categories %}
-                                <option value="{{ category.id }}" {% if category.id|stringformat:"s" == selected_category_id %}selected{% endif %}>{{ category.name }}</option>
+                                <option value="{{ category.id }}" {% if category.id|stringformat:"s" == selected_category_id %}selected{% endif %}>
+                                    {{ category.name }}
+                                </option>
                                 {% endfor %}
                             </select>
                         </div>
-                        <div class="mb-3">
-                            <label for="service_subcategory" class="form-label">Service Subcategory:</label>
-                            <select id="service_subcategory" name="service_subcategory" class="form-select" required onchange="this.form.submit()">
-                                <option value="">Select a subcategory</option>
-                                {% for subcategory in subcategories %}
-                                <option value="{{ subcategory.id }}" {% if subcategory.id|stringformat:"s" == selected_subcategory_id %}selected{% endif %}>{{ subcategory.name }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                        <div class="mb-3">
-                            <label for="service" class="form-label">Service:</label>
-                            <select id="service" name="service" class="form-select" required>
-                                <option value="">Select a service</option>
-                                {% for service in services %}
-                                <option value="{{ service.id }}">{{ service.service_name }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                        <div class="mb-3">
-                            <label for="title" class="form-label">Offer Title:</label>
-                            <input type="text" name="title" class="form-control" required id="title" oninput="validateTitle(this)">
-                            <div id="titleError" class="text-danger" style="display: none;">Title must contain only letters.</div>
-                        </div>
-                        <div class="mb-3">
-                            <label for="description" class="form-label">Offer Description:</label>
-                            <textarea name="description" class="form-control" required id="description" oninput="validateDescription(this)"></textarea>
-                            <div id="descriptionError" class="text-danger" style="display: none;">Description must contain only letters.</div>
-                        </div>
-                        <div class="mb-3">
-                            <label for="discount_percentage" class="form-label">Discount Percentage:</label>
-                            <input type="number" name="discount_percentage" class="form-control" step="0.01" min="0" max="100" required id="discount_percentage" oninput="validateDiscount(this)">
-                            <div id="discountError" class="text-danger" style="display: none;">Discount must be between 0 and 100.</div>
-                        </div>
-                        <div class="mb-3">
-                            <label for="start_date" class="form-label">Start Date:</label>
-                            <input type="date" name="start_date" class="form-control" required id="start_date">
-                        </div>
-                        <div class="mb-3">
-                            <label for="end_date" class="form-label">End Date:</label>
-                            <input type="date" name="end_date" class="form-control" required id="end_date">
-                        </div>
-                        <div class="mb-3">
-                            <label for="is_active" class="form-label">Is Active:</label>
-                            <input type="checkbox" name="is_active" checked>
-                        </div>
-                        <button type="submit" class="btn btn-primary">Add Offer</button>
+
+                        {% if selected_category_id %}
+                            <!-- Apply All Category Button -->
+                            <form method="POST">
+                                {% csrf_token %}
+                                <input type="hidden" name="service_category" value="{{ selected_category_id }}">
+                                <div class="mb-3">
+                                    <button type="submit" name="apply_category" class="btn btn-secondary mb-3">Apply to All Services in Category</button>
+                                </div>
+                            </form>
+
+                            {% if not show_only_offer_details %}
+                                <!-- Subcategory Selection -->
+                                <div class="mb-3">
+                                    <label for="service_subcategory" class="form-label">Service Subcategory:</label>
+                                    <select id="service_subcategory" name="service_subcategory" class="form-select" required onchange="this.form.submit()">
+                                        <option value="">Select a subcategory</option>
+                                        {% for subcategory in subcategories %}
+                                        <option value="{{ subcategory.id }}" {% if subcategory.id|stringformat:"s" == selected_subcategory_id %}selected{% endif %}>
+                                            {{ subcategory.name }}
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+
+                                {% if selected_subcategory_id %}
+                                    <!-- Apply All Subcategory Button -->
+                                    <form method="POST">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="service_category" value="{{ selected_category_id }}">
+                                        <input type="hidden" name="service_subcategory" value="{{ selected_subcategory_id }}">
+                                        <div class="mb-3">
+                                            <button type="submit" name="apply_subcategory" class="btn btn-secondary mb-3">Apply to All Services in Subcategory</button>
+                                        </div>
+                                    </form>
+
+                                    {% if not applying_to_subcategory %}
+                                        <!-- Service Selection -->
+                                        <div class="mb-3">
+                                            <label for="service" class="form-label">Service:</label>
+                                            <select id="service" name="service" class="form-select" required>
+                                                <option value="">Select a service</option>
+                                                {% for service in services %}
+                                                <option value="{{ service.id }}">{{ service.service_name }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                    {% endif %}
+                                {% endif %}
+                            {% endif %}
+                        {% endif %}
+
+                        <!-- Offer Details Form -->
+                        {% if show_only_offer_details or selected_subcategory_id %}
+                        <form method="POST" class="offer-details-form">
+                            {% csrf_token %}
+                            <input type="hidden" name="service_category" value="{{ selected_category_id }}">
+                            {% if selected_subcategory_id %}
+                                <input type="hidden" name="service_subcategory" value="{{ selected_subcategory_id }}">
+                            {% endif %}
+                            
+                            <div class="offer-details card mt-4">
+                                <div class="card-body">
+                                    <h4 class="card-title mb-4">Offer Details</h4>
+                                    
+                                    <div class="mb-3">
+                                        <label for="title" class="form-label">Offer Title:</label>
+                                        <input type="text" name="title" class="form-control" required id="title" oninput="validateTitle(this)">
+                                        <div id="titleError" class="text-danger" style="display: none;">Title must contain only letters.</div>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label for="description" class="form-label">Offer Description:</label>
+                                        <textarea name="description" class="form-control" required id="description" oninput="validateDescription(this)"></textarea>
+                                        <div id="descriptionError" class="text-danger" style="display: none;">Description must contain only letters.</div>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label for="discount_percentage" class="form-label">Discount Percentage:</label>
+                                        <input type="number" name="discount_percentage" class="form-control" step="0.01" min="0" max="100" required id="discount_percentage" oninput="validateDiscount(this)">
+                                        <div id="discountError" class="text-danger" style="display: none;">Discount must be between 0 and 100.</div>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label for="start_date" class="form-label">Start Date:</label>
+                                        <input type="date" name="start_date" class="form-control" required id="start_date">
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label for="end_date" class="form-label">End Date:</label>
+                                        <input type="date" name="end_date" class="form-control" required id="end_date">
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label for="is_active" class="form-label">Is Active:</label>
+                                        <input type="checkbox" name="is_active" checked>
+                                    </div>
+
+                                    <button type="submit" name="submit_offer" class="btn btn-primary">Add Offer</button>
+                                </div>
+                            </div>
+                        </form>
+                        {% endif %}
                     </div>
                 </form>
             </main>
