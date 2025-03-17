@@ -353,7 +353,7 @@
                         <h5>Filter by Category:</h5>
                         <div class="btn-group" role="group" aria-label="Category buttons">
                             {% for category in categories_women %}
-                                <button onclick="toggleSubcategories('{{ category.name }}')" class="btn btn-secondary">{{ category.name }}</button>
+                                <button onclick="toggleSubcategories('{{ category.name }}')" id="category" class="btn btn-secondary">{{ category.name }}</button>
                             {% endfor %}
                         </div>
                     </div>
@@ -375,7 +375,7 @@
                                                         <h5 class="card-title">{{ subcategory.name }}</h5>
                                                         <p class="card-text">{{ subcategory.description }}</p>
                                                         <button onclick="toggleServices('{{ subcategory.id }}')" 
-                                                                class="btn btn-secondary">View Services</button>
+                                                                class="btn btn-secondary" id="services">View Services</button>
                                                     </div>
                                                 </div>
                                             </div>
@@ -422,7 +422,7 @@
                                                                 <p class="card-text"><strong>Discount:</strong> <span class="discount-percentage">{{ service.active_offers.first.discount_percentage }}%</span></p>
                                                             </div>
                                                         {% endif %}
-                                                        <a href="{% url 'booking_service' service.id %}" class="btn btn-secondary">Book Now!</a>
+                                                        <a href="{% url 'booking_service' service.id %}" class="btn btn-secondary" id="booking">Book Now!</a>
                                                     </div>
                                                 </div>
                                             </div>
@@ -431,9 +431,7 @@
                                 </div>
                             </div>
                         {% endfor %}
-                    </div>
-                    
-                    
+                    </div>  
                 </div>
             </main>
         </div>

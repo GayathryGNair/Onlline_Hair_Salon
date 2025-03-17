@@ -15,7 +15,7 @@ from .views import (
 )
 from .views import (
     manage_men_service,
-    # other views...
+  
 )
 from .views import (
     manage_men_service,
@@ -35,6 +35,7 @@ from .views import offer_selection  # Import the new view
 from .views import offer_list_selection  # Import the new view
 from .views import service_detail_male  # Ensure this import is present
 from .views import booking_service
+from .views import detect_disease
 
 
 urlpatterns = [
@@ -159,7 +160,7 @@ urlpatterns = [
 
 
 
-################################################################################
+    ################################################################################
 
 
     path('manage-men-category/', views.manage_men_category, name='manage_men_category'),
@@ -186,7 +187,6 @@ urlpatterns = [
     path('offers/delete_all/', views.delete_all_offers, name='delete_all_offers'),
     path('service/<int:service_id>/', service_detail, name='service_detail'),
 ### image detection ###
-    # path('analyze_hair_disease/', analyze_hair_disease, name='analyze_hair_disease'),
     path('upload_hair_image/', upload_hair_image, name='upload_hair_image'),  # Ensure this line is present
 
     path('add_offer_male/', add_offer_male, name='add_offer_male'),
@@ -206,13 +206,15 @@ urlpatterns = [
     path('service/male/<int:service_id>/', service_detail_male, name='service_detail_male'),
 
     
-# urls.py
+
 # Update this line in urls.py
    path('booking/service/men/<int:service_id>/', views.booking_service_men, name='booking_service_men'), 
     
     
     
     path('detect-service/', views.detect_service, name='detect_service'),
+    path('analyze_hair_disease/', views.detect_service, name='analyze_hair_disease'),
+
     path('service/', views.service_view, name='service_view'),
 
   
@@ -220,6 +222,10 @@ urlpatterns = [
     
 
     path('payment/success/', views.payment_success, name='payment_success'),
+
+    path('detect-disease/', detect_disease, name='detect_disease'),
+    path('face/', views.face, name='face'),  # Add this line
+   
 
 ]
 

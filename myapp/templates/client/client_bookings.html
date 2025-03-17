@@ -285,7 +285,7 @@
                                             {% if booking.feedback %}
                                                 <a href="{% url 'view_feedback' booking.id %}" class="btn btn-info btn-sm">View Feedback</a>
                                             {% else %}
-                                                <a href="{% url 'add_feedback' booking.id %}" class="btn btn-primary btn-sm">Add Feedback</a>
+                                                <a href="{% url 'add_feedback' booking.id %}" class="btn btn-primary btn-sm" id="addfeedback">Add Feedback</a>
                                             {% endif %}
                                         {% endif %}
                                     </td>

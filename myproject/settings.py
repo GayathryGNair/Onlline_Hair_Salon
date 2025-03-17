@@ -11,10 +11,10 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
 from pathlib import Path
-from dotenv import load_dotenv
+#from dotenv import load_dotenv
 import os
 
-load_dotenv()
+# load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -101,13 +101,14 @@ DATABASES = {
 # DATABASES = {
 #          'default': {
 #              'ENGINE': 'django.db.backends.mysql',
-#              'NAME': 'hairdb_maintaxfed',  # Ensure this database exists
-#              'USER': 'hairdb_maintaxfed',  # Ensure this user exists
-#              'PASSWORD': '659bfb9fcf22b55d8f24d7a619d23d188bb4d05a',  # Ensure this password is correct
-#              'HOST': 'oij4m.h.filess.io',   # Ensure this host is correct
+#              'NAME': 'glamourquest_greaternor',  # Ensure this database exists
+#              'USER': 'glamourquest_greaternor',  # Ensure this user exists
+#              'PASSWORD': '1f6affbeb96941f3c1206cee323abe3abba49f12',  # Ensure this password is correct
+#              'HOST': 'rhjq6.h.filess.io',   # Ensure this host is correct
 #              'PORT': '3307',                 # Ensure this port is correct
 #          }   
 # }
+
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators

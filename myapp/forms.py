@@ -42,13 +42,13 @@ class BookingForm(forms.ModelForm):
     booking_time = forms.ChoiceField(
         choices=TIME_CHOICES,
         required=True,
-        widget=forms.Select(attrs={'class': 'form-control'})
+        widget=forms.Select(attrs={'class': 'form-control', 'id':'time'})
     )
     staff = forms.ModelChoiceField(
         queryset=Employee.objects.none(),
         empty_label="Choose staff",
         required=False,
-        widget=forms.Select(attrs={'class': 'form-control'})
+        widget=forms.Select(attrs={'class': 'form-control','id':'staff'})
     )
 
     class Meta:
@@ -58,15 +58,18 @@ class BookingForm(forms.ModelForm):
             'booking_date': forms.DateInput(
                 attrs={
                     'type': 'date',
-                    'min': timezone.now().date().strftime('%Y-%m-%d'),
-                    'class': 'form-control'
+                    'min': timezone.now().date().strftime('%d-%m-%Y'),
+                    'class': 'form-control',
+                    'id': 'dates'
                 }
             ),
             'additional_notes': forms.Textarea(
                 attrs={
                     'rows': 4,
                     'class': 'form-control',
-                    'placeholder': 'Any special requests or notes?'
+                    'placeholder': 'Any special requests or notes?',
+                    'id': 'desc'
+
                 }
             ),
         }
@@ -127,6 +130,6 @@ class FeedbackForm(forms.ModelForm):
         model = Feedback
         fields = ['rating', 'comment']
         widgets = {
-            'rating': forms.NumberInput(attrs={'min': 1, 'max': 5}),
-            'comment': forms.Textarea(attrs={'rows': 4}),
+            'rating': forms.NumberInput(attrs={'min': 1, 'max': 5, 'id':'rating'}),
+            'comment': forms.Textarea(attrs={'rows': 4,'id':'comment'}),
         }

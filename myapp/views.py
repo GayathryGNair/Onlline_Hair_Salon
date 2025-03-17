@@ -118,6 +118,7 @@ def reset_password(request, token):
         messages.error(request, 'Invalid or expired reset token.')
         return redirect('forgot_reset')
 
+from django.contrib.auth import logout as auth_logout
 def logout(request):
     auth_logout(request)
     request.session.flush()  
@@ -127,6 +128,7 @@ from django.contrib.auth import authenticate, login as auth_login
 from django.shortcuts import redirect, render
 from django.contrib import messages
 from .models import Client, Employee  # Make sure to import your models
+from django.contrib.auth.hashers import check_password
 
 def login(request):
     if request.method == 'POST':
@@ -1079,6 +1081,7 @@ def add_feedback(request, booking_id):
         form = FeedbackForm()
     
     return render(request, 'client/add_feedback.html', {'form': form, 'booking': booking})
+
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def view_feedback(request, booking_id):
     booking = get_object_or_404(Booking, id=booking_id)
@@ -2605,19 +2608,22 @@ def service_detail_male(request, service_id):
 
 
 #############Disesase detection#############
+
 @csrf_exempt
 def detect_service(request):
     if request.method == 'POST':
         try:
             image = request.FILES.get('image')
+            print('Received image:', image)  # Debugging line
             if not image:
                 return JsonResponse({'error': 'No image provided'}, status=400)
 
             # Read image bytes
             image_bytes = image.read()
+            print('Image bytes length:', len(image_bytes))  # Debugging line
             
-            # Initialize Gemini Vision model with the latest version
-            model = genai.GenerativeModel('gemini-1.5-flash')  # Updated to the recommended model
+            # Initialize Gemini Vision model
+            model = genai.GenerativeModel('gemini-1.5-pro')
             
             # Generate the prompt for analysis
             prompt = """
@@ -2657,28 +2663,16 @@ def detect_service(request):
             ]
             
             # Generate response from Gemini
-            retries = 0
-            max_retries = 5  # Set a maximum number of retries to avoid infinite loops
-            while retries < max_retries:
-                try:
-                    response = model.generate_content(contents)
-                    if response and hasattr(response, 'text'):
-                        analysis = response.text
-                        return JsonResponse({'problem': analysis})
-                    else:
-                        raise Exception("Failed to get valid response from AI")
-                except Exception as e:
-                    if "429" in str(e) or "Resource has been exhausted" in str(e):
-                        retries += 1
-                        exponential_backoff(retries)
-                    else:
-                        print(f"Error in service detection: {str(e)}")
-                        return JsonResponse({'error': str(e)}, status=500)
-            return JsonResponse({'error': 'Request failed after retries'}, status=500)
-            
+            response = model.generate_content(contents)
+            if response and hasattr(response, 'text'):
+                analysis = response.text
+                return JsonResponse({'response': analysis})
+            else:
+                return JsonResponse({'error': 'Failed to get valid response from AI'}, status=500)
+
         except Exception as e:
             print(f"Error in service detection: {str(e)}")
-            return JsonResponse({'error': str(e)}, status=500)
+            return JsonResponse({'error': f'An error occurred: {str(e)}'}, status=500)
     return JsonResponse({'error': 'Invalid request'}, status=400)
 
 def service_view(request):
@@ -2716,3 +2710,58 @@ def payment_success(request):
         messages.error(request, 'No payment ID received.')
     
     return redirect('view_payments')
+
+
+from django.shortcuts import render
+from django.core.files.storage import FileSystemStorage
+import tensorflow as tf
+import numpy as np
+from PIL import Image
+
+# Load your trained model
+model = tf.keras.models.load_model('hair_disease_model.h5')
+
+def detect_disease(request):
+    if request.method == 'POST' and request.FILES['image']:
+        uploaded_file = request.FILES['image']
+        fs = FileSystemStorage()
+        filename = fs.save(uploaded_file.name, uploaded_file)
+        file_path = fs.url(filename)
+
+        # Preprocess the image for prediction
+        img = Image.open(uploaded_file)
+        img = img.resize((150, 150))  # Resize to match model input
+        img_array = np.array(img) / 255.0  # Normalize
+        img_array = np.expand_dims(img_array, axis=0)  # Add batch dimension
+
+        # Make prediction
+        predictions = model.predict(img_array)
+        predicted_class = np.argmax(predictions, axis=1)
+
+        # Map predicted class to disease name (you need to define this mapping)
+        disease_name = map_class_to_disease(predicted_class[0])
+
+        return render(request, 'disease_result.html', {'disease_name': disease_name, 'file_path': file_path})
+
+    return render(request, 'detect_disease.html')
+
+def map_class_to_disease(class_index):
+    # Define your mapping from class index to disease name
+    class_mapping = {
+        0: 'Alopecia Areata',
+        1: 'Contact Dermatitis',
+        2: 'Folliculitis',
+        3: 'Head Lice',
+        4: 'Lichen Planus',
+        5: 'Male Pattern Baldness',
+        6: 'Psoriasis',
+        7: 'Seborrheic Dermatitis',
+        8: 'Telogen Effluvium',
+        9: 'Tinea Capitis',
+    }
+    return class_mapping.get(class_index, 'Unknown Disease')
+
+from django.shortcuts import render
+
+def face(request):
+    return render(request, 'face.html')
